@@ -17,4 +17,10 @@ export const Colors = {
     buttonSecondaryText: '#FFFFFF',
 
     inputBackground: '#18181B',
+
+    // Stitch Design System
+    primaryBrand: '#137fec',
+    backgroundDark: '#101922',
+    surfaceDark: '#18222c',
+    surfaceDarker: '#141e27',
 };

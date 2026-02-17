@@ -1,4 +1,4 @@
-import { Slot, useRouter, useSegments } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -17,12 +17,19 @@ function AuthGuard() {
 
     if (!user && !inAuthGroup) {
       router.replace('/(auth)/login');
-    } else if (user && inAuthGroup) {
+    } else if (user && segments[0] !== '(main)' && segments[0] !== '(interview)') {
       router.replace('/(main)/home');
     }
   }, [user, isLoading, segments]);
 
-  return <Slot />;
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(main)" />
+      <Stack.Screen name="(interview)" />
+      <Stack.Screen name="index" />
+    </Stack>
+  );
 }
 
 export default function RootLayout() {
