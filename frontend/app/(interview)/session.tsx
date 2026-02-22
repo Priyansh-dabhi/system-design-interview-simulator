@@ -1,17 +1,22 @@
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ArrowLeftIcon, PaperPlaneRightIcon } from 'phosphor-react-native';
-import React, { useRef, useState } from 'react';
+import { useChatMutation, useEndSessionMutation } from '@/src/redux/api/interview_api';
+import { setSummary } from '@/src/redux/slices/session';
+import type { RootState } from '@/src/redux/store';
+import { useRouter } from 'expo-router';
+import { ArrowLeftIcon, MicrophoneIcon, PaperPlaneRightIcon } from 'phosphor-react-native';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
+    Alert,
     FlatList,
-    KeyboardAvoidingView,
-    Platform,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
     View,
 } from 'react-native';
+import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch, useSelector } from 'react-redux';
 import { Colors } from '../../src/constants/Colors';
 import { Layout } from '../../src/constants/Layout';
 
@@ -23,51 +28,113 @@ interface Message {
 
 export default function InterviewSessionScreen() {
     const router = useRouter();
-    const params = useLocalSearchParams();
-    const topicTitle = params.topicTitle as string || 'System Design Interview';
+    const dispatch = useDispatch();
 
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            id: '1',
-            role: 'interviewer',
-            text: "Let's start by defining the functional requirements. What features do you think are critical for an MVP?",
-        },
-        {
-            id: '2',
-            role: 'candidate',
-            text: 'We need 1:1 messaging, sent/delivered/read receipts, and last seen status. Also critical is offline support.',
-        },
-        {
-            id: '3',
-            role: 'interviewer',
-            text: 'Good. Now, how would you estimate the QPS for the messaging service if we assume 500M DAU?',
-        },
-    ]);
+    // Read session data from Redux
+    const sessionId = useSelector((state: RootState) => state.session.sessionId);
+    const openingMessage = useSelector((state: RootState) => state.session.openingMessage);
+    const problem = useSelector((state: RootState) => state.session.problem);
+    const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
 
+    const [sendChat, { isLoading: isSending }] = useChatMutation();
+    const [endSession, { isLoading: isEnding }] = useEndSessionMutation();
+
+    // Initialize messages with the AI opening question from the API
+    const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
+    const [isRecording, setIsRecording] = useState(false);
     const flatListRef = useRef<FlatList>(null);
 
-    const handleSend = () => {
-        if (inputText.trim()) {
-            const newMessage: Message = {
-                id: Date.now().toString(),
-                role: 'candidate',
-                text: inputText.trim(),
-            };
-            setMessages([...messages, newMessage]);
-            setInputText('');
+    // Set initial message from the API response
+    useEffect(() => {
+        if (openingMessage) {
+            setMessages([
+                {
+                    id: '1',
+                    role: 'interviewer',
+                    text: openingMessage,
+                },
+            ]);
+        }
+    }, [openingMessage]);
 
-            // Auto-scroll to bottom
+    const handleSend = async () => {
+        if (!inputText.trim() || !sessionId || !problem) return;
+
+        const userText = inputText.trim();
+        const userMessage: Message = {
+            id: Date.now().toString(),
+            role: 'candidate',
+            text: userText,
+        };
+
+        // Append user message immediately
+        setMessages((prev) => [...prev, userMessage]);
+        setInputText('');
+
+        // Auto-scroll to bottom
+        setTimeout(() => {
+            flatListRef.current?.scrollToEnd({ animated: true });
+        }, 100);
+
+        try {
+            const result = await sendChat({ sessionId, problem, message: userText }).unwrap();
+
+            // Append AI response
+            const aiMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'interviewer',
+                text: result.message,
+            };
+            setMessages((prev) => [...prev, aiMessage]);
+
+            // Auto-scroll after AI response
             setTimeout(() => {
                 flatListRef.current?.scrollToEnd({ animated: true });
             }, 100);
+        } catch (err: any) {
+            console.error('Chat error:', err);
+            Alert.alert(
+                'Chat Failed',
+                err?.data?.message || 'Failed to get AI response. Please try again.',
+                [{ text: 'OK' }]
+            );
         }
     };
 
+    const handleVoiceInput = () => {
+        setIsRecording(!isRecording);
+        // TODO: Implement voice recording logic
+        console.log(isRecording ? 'Stopping recording...' : 'Starting recording...');
+    };
+
     const handleEndInterview = () => {
-        // TODO: Navigate to interview summary or show confirmation dialog
-        console.log('Ending interview...');
-        router.back();
+        Alert.alert(
+            'End Interview?',
+            'This will generate your performance summary. You cannot continue this session after ending.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'End Interview',
+                    style: 'destructive',
+                    onPress: async () => {
+                        if (!sessionId || !problem) return;
+                        try {
+                            const result = await endSession({ sessionId, problem }).unwrap();
+                            dispatch(setSummary(result));
+                            router.replace('/summary');
+                        } catch (err: any) {
+                            console.error('End session error:', err);
+                            Alert.alert(
+                                'Summary Failed',
+                                err?.data?.message || 'Failed to generate summary. Please try again.',
+                                [{ text: 'OK' }]
+                            );
+                        }
+                    },
+                },
+            ]
+        );
     };
 
     const renderMessage = ({ item }: { item: Message }) => {
@@ -127,13 +194,20 @@ export default function InterviewSessionScreen() {
                 keyExtractor={(item) => item.id}
                 contentContainerStyle={styles.messagesList}
                 showsVerticalScrollIndicator={false}
+                ListFooterComponent={
+                    isSending ? (
+                        <View style={[styles.messageContainer, styles.interviewerContainer]}>
+                            <View style={[styles.messageBubble, styles.interviewerBubble, styles.typingBubble]}>
+                                <ActivityIndicator size="small" color={Colors.textSecondary} />
+                                <Text style={styles.typingText}>AI is thinking...</Text>
+                            </View>
+                        </View>
+                    ) : null
+                }
             />
 
             {/* Input Area */}
-            <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={0}
-            >
+            <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
@@ -143,20 +217,42 @@ export default function InterviewSessionScreen() {
                         placeholderTextColor={Colors.textSecondary}
                         multiline
                         maxLength={1000}
+                        editable={!isSending}
                     />
                     <TouchableOpacity
+                        onPress={handleVoiceInput}
+                        style={[styles.voiceButton, isRecording && styles.voiceButtonActive]}
+                    >
+                        <MicrophoneIcon
+                            size={20}
+                            color={isRecording ? '#FFFFFF' : Colors.text}
+                            weight={isRecording ? 'fill' : 'regular'}
+                        />
+                    </TouchableOpacity>
+                    <TouchableOpacity
                         onPress={handleSend}
-                        style={[styles.sendButton, !inputText.trim() && styles.sendButtonDisabled]}
-                        disabled={!inputText.trim()}
+                        style={[styles.sendButton, (!inputText.trim() || isSending) && styles.sendButtonDisabled]}
+                        disabled={!inputText.trim() || isSending}
                     >
                         <PaperPlaneRightIcon
                             size={20}
-                            color={inputText.trim() ? '#FFFFFF' : Colors.textSecondary}
+                            color={inputText.trim() && !isSending ? '#FFFFFF' : Colors.textSecondary}
                             weight="fill"
                         />
                     </TouchableOpacity>
                 </View>
-            </KeyboardAvoidingView>
+            </KeyboardStickyView>
+
+            {/* Loading Overlay while generating summary */}
+            {isEnding && (
+                <View style={styles.loadingOverlay}>
+                    <View style={styles.loadingCard}>
+                        <ActivityIndicator size="large" color={Colors.primaryBrand} />
+                        <Text style={styles.loadingTitle}>Generating Summary</Text>
+                        <Text style={styles.loadingSubtitle}>Analyzing your interview performance...</Text>
+                    </View>
+                </View>
+            )}
         </SafeAreaView>
     );
 }
@@ -276,6 +372,20 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.border,
     },
+    voiceButton: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: Colors.surface,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    voiceButtonActive: {
+        backgroundColor: '#EF4444',
+        borderColor: '#DC2626',
+    },
     sendButton: {
         width: 40,
         height: 40,
@@ -286,5 +396,42 @@ const styles = StyleSheet.create({
     },
     sendButtonDisabled: {
         backgroundColor: Colors.surface,
+    },
+    typingBubble: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    typingText: {
+        fontSize: 13,
+        color: Colors.textSecondary,
+        fontStyle: 'italic',
+    },
+    loadingOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    loadingCard: {
+        backgroundColor: Colors.surface,
+        borderRadius: Layout.borderRadius.lg,
+        padding: 32,
+        alignItems: 'center',
+        gap: 16,
+        marginHorizontal: 40,
+        borderWidth: 1,
+        borderColor: Colors.border,
+    },
+    loadingTitle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: Colors.text,
+    },
+    loadingSubtitle: {
+        fontSize: 14,
+        color: Colors.textSecondary,
+        textAlign: 'center',
     },
 });
