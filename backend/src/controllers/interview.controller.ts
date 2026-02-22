@@ -28,7 +28,7 @@ export const start_session = async (req: AuthRequest, res: Response) => {
             sessionId: session.id,
             message: openingQuestion,
         });
-        console.log("REQ.USER:", (req as any).user);
+        console.log("check REQ.USER:", (req as any).user);
 
     } catch (err) {
         console.error("Start session error:", err);
