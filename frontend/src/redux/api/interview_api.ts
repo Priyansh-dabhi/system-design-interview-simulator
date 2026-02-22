@@ -1,29 +1,47 @@
-import {createApi, fetchBaseQuery, } from "@reduxjs/toolkit/query/react"
-import { API_URL } from "@/src/config/api"
+import { API_URL } from "@/src/config/api";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createApi, fetchBaseQuery, } from "@reduxjs/toolkit/query/react";
 
 export const createSessionStartAPi = createApi({
     reducerPath: "interviewApi",
 
     baseQuery: fetchBaseQuery({
         baseUrl: `${API_URL}/api/interview`,
-        prepareHeaders: (headers, { getState }) => {
-        const token = (getState() as any).auth?.token;
-        if (token) {
-            headers.set('authorization', `Bearer ${token}`);
-        }
-        return headers;
+        prepareHeaders: async (headers) => {
+            const token = await AsyncStorage.getItem('token');
+            if (token) {
+                headers.set('authorization', `Bearer ${token}`);
+            }
+            return headers;
         },
     }),
-    
-    endpoints: (builder)=> ({
+
+    endpoints: (builder) => ({
         startSession: builder.mutation({
-            query: (problemName: string)=> ({
-                url: "/api/interview/start_session",
+            query: (problemName: string) => ({
+                url: "/start_session",
                 method: "POST",
-                body: {problemName},
+                body: { problem: problemName },
+            })
+        }),
+        chat: builder.mutation({
+            query: ({ sessionId, problem, message }) => ({
+                url: "/chat",
+                method: "POST",
+                body: { sessionId, problem, message },
+            })
+        }),
+        endSession: builder.mutation({
+            query: ({ sessionId, problem }) => ({
+                url: "/summary",
+                method: "POST",
+                body: { sessionId, problem },
             })
         })
-    })
+    }),
+
+
 })
 
-export const { useStartSessionMutation } = createSessionStartAPi ;
+// custom hooks
+export const { useStartSessionMutation, useChatMutation, useEndSessionMutation } = createSessionStartAPi;
