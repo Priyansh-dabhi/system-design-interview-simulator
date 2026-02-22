@@ -11,6 +11,7 @@ export default function ProfileScreen() {
         <ScreenWrapper>
             <View style={styles.container}>
                 <Text style={styles.text}>Profile Screen</Text>
+                <Text style={styles.text}>Add Feature user can select their own LLM api </Text>
                 <TouchableOpacity onPress={signOut} style={styles.button}>
                     <Text style={styles.buttonText}>Sign Out</Text>
                 </TouchableOpacity>

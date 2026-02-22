@@ -71,7 +71,7 @@ export default function HomeScreen() {
 
         {/* Action Area - Moved to Center */}
         <View style={styles.actionArea}>
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.9} onPress={() => router.push('/(interview)/topic-selection' as any)}>
+          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.9} onPress={() => router.push('/(interview)/problem-selection')}>
             <PlayIcon size={24} color="#FFFFFF" weight="fill" />
             <Text style={styles.primaryButtonText}>Start New Interview</Text>
           </TouchableOpacity>
