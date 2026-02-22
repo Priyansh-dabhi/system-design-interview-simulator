@@ -3,7 +3,7 @@ import { StyleSheet, Text, TextInput, View } from "react-native";
 import { Colors } from "../../constants/Colors";
 import { Layout } from "../../constants/Layout";
 
-import { InputProps } from "../../../types";
+import { InputProps } from "../../types/types";
 
 export const Input: React.FC<InputProps> = ({
   label,
