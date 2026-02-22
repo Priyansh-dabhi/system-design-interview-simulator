@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuthContextType, User } from '../../types';
+import { AuthContextType, User } from '../types/types';
 
 const AuthContext = createContext<AuthContextType>({
     token: null,

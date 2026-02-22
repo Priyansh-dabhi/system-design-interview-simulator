@@ -1,5 +1,5 @@
-import { AuthResponse, LoginCredentials, RegisterCredentials } from "../../types";
 import { API_URL } from "../config/api";
+import { AuthResponse, LoginCredentials, RegisterCredentials } from "../types/types";
 
 export const registerUser = async (data: RegisterCredentials): Promise<AuthResponse> => {
     const res = await fetch(`${API_URL}/api/auth/register`, {
