@@ -1,17 +1,24 @@
 import jwt from "jsonwebtoken";
-import pool from "../config/db.js";
+import prisma from "../config/prisma.js";
 import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/jwt.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
 
 export const registerUser = async (full_name: string, email: string, password: string) => {
     const passwordHash = await hashPassword(password);
 
-    const result = await pool.query(
-        "INSERT INTO users (full_name, email, password) VALUES ($1, $2, $3) RETURNING id, full_name, email",
-        [full_name, email, passwordHash]
-    );
+    const user = await prisma.user.create({
+        data: {
+            fullName: full_name,
+            email,
+            password: passwordHash,
+        },
+        select: {
+            id: true,
+            fullName: true,
+            email: true,
+        },
+    });
 
-    const user = result.rows[0];
     const token = jwt.sign(
         { userId: user.id },
         JWT_SECRET,
@@ -22,18 +29,15 @@ export const registerUser = async (full_name: string, email: string, password: s
 };
 
 export const loginUser = async (email: string, password: string) => {
-    const result = await pool.query(
-        "SELECT * FROM users WHERE email = $1",
-        [email]
-    );
+    const user = await prisma.user.findUnique({
+        where: { email },
+    });
 
-    const user = result.rows[0];
-    console.log("User: ", user)
     if (!user) throw new Error("User not found");
 
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) throw new Error("Invalid credentials");
-    console.log("Password: ", password)
+
     const token = jwt.sign(
         { userId: user.id },
         JWT_SECRET,
