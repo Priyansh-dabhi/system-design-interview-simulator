@@ -1,4 +1,4 @@
-import pool from "../config/db.js";
+import prisma from "../config/prisma.js";
 
 export const saveSummary = async (
     sessionId: string,
@@ -6,21 +6,19 @@ export const saveSummary = async (
     missedTopics: string[],
     suggestions: string[]
 ) => {
-    await pool.query(
-        `
-        INSERT INTO interview_summaries 
-        (session_id, strengths, missed_topics, suggestions)
-        VALUES ($1, $2, $3, $4)
-        `,
-        [sessionId, JSON.stringify(strengths), JSON.stringify(missedTopics), JSON.stringify(suggestions)]
-    );
+    await prisma.$transaction([
+        prisma.interviewSummary.create({
+            data: {
+                sessionId,
+                strengths: JSON.stringify(strengths),
+                missedTopics: JSON.stringify(missedTopics),
+                suggestions: JSON.stringify(suggestions),
+            },
+        }),
 
-    await pool.query(
-        `
-        UPDATE interview_sessions
-        SET status = 'completed'
-        WHERE id = $1
-        `,
-        [sessionId]
-    );
+        prisma.interviewSession.update({
+            where: { id: sessionId },
+            data: { status: "completed" },
+        }),
+    ]);
 };

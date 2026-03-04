@@ -1,33 +1,32 @@
-import pool from "../config/db.js";
+import prisma from "../config/prisma.js";
 
 export const getConversation = async (sessionId: string) => {
-    const result = await pool.query(
-        `
-        SELECT role, content
-        FROM interview_messages
-        WHERE session_id = $1
-        ORDER BY created_at ASC
-        `,
-        [sessionId]
-    );
+    const messages = await prisma.interviewMessage.findMany({
+        where: { sessionId },
+        orderBy: { createdAt: "asc" },
+        select: {
+            role: true,
+            content: true,
+        },
+    });
 
-    // Convert to string format for LLM
-    return result.rows
-        .map(row => `${row.role.toUpperCase()}: ${row.content}`)
-        .join("\n");
+    // Convert to string format for LLM (same as before)
+    return messages
+        .map((msg: { role: string; content: string }) => 
+        `${msg.role.toUpperCase()}: ${msg.content}`)
+    .join("\n");
 };
-
 
 export const saveMessage = async (
     sessionId: string,
     role: "user" | "ai",
     content: string
 ) => {
-    await pool.query(
-        `
-        INSERT INTO interview_messages (session_id, role, content)
-        VALUES ($1, $2, $3)
-        `,
-        [sessionId, role, content]
-    );
+    await prisma.interviewMessage.create({
+        data: {
+            sessionId,
+            role,
+            content,
+        },
+    });
 };
