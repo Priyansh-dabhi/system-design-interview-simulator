@@ -1,10 +1,13 @@
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  output          = "../src/generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
 }
 
 model User {
@@ -20,11 +23,13 @@ model User {
 }
 
 model InterviewSession {
-  id          String   @id @default(uuid())
-  userId      Int
-  problemName String
-  status      String   @default("active")
-  createdAt   DateTime @default(now())
+  id             String   @id @default(uuid())
+  userId         Int
+  problemName    String
+  status         String   @default("active")
+  coveredTopics  Json     @default("[]")          // ← Phase 3 (add now, use later)
+  difficultyLevel String  @default("mid")          // ← Phase 3 (add now, use later)
+  createdAt      DateTime @default(now())
 
   user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   messages InterviewMessage[]
@@ -56,4 +61,17 @@ model InterviewSummary {
   session      InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
   @@map("interview_summaries")
+}
+
+model KnowledgeChunk {
+  id        Int      @id @default(autoincrement())
+  topic     String   @db.VarChar(255)
+  subtopic  String?  @db.VarChar(255)
+  content   String
+  embedding Unsupported("vector(768)")?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("knowledge_chunks")
 }
