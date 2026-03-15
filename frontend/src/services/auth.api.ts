@@ -12,7 +12,10 @@ export const registerUser = async (data: RegisterCredentials): Promise<AuthRespo
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Registration failed");
+        const errorMessage = typeof errorData.message === 'string' 
+            ? errorData.message 
+            : (errorData.message?.message || JSON.stringify(errorData.message) || "Registration failed");
+        throw new Error(errorMessage);
     }
 
     return res.json();
@@ -29,7 +32,10 @@ export const loginUser = async (data: LoginCredentials): Promise<AuthResponse> =
 
     if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || "Login failed");
+        const errorMessage = typeof errorData.message === 'string' 
+            ? errorData.message 
+            : (errorData.message?.message || JSON.stringify(errorData.message) || "Login failed");
+        throw new Error(errorMessage);
     }
 
     return res.json();

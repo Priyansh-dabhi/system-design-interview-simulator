@@ -1,12 +1,23 @@
 import { useChatMutation, useEndSessionMutation } from '@/src/redux/api/interview_api';
 import { setSummary } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
+// Safe import: expo-speech-recognition requires a development build (not Expo Go)
+let ExpoSpeechRecognitionModule: any = null;
+let useSpeechRecognitionEvent: any = null;
+try {
+    const speechModule = require('expo-speech-recognition');
+    ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
+    useSpeechRecognitionEvent = speechModule.useSpeechRecognitionEvent;
+} catch {
+    // Native module not available (Expo Go)
+}
 import { ArrowLeftIcon, MicrophoneIcon, PaperPlaneRightIcon } from 'phosphor-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    BackHandler,
     FlatList,
     StyleSheet,
     Text,
@@ -28,6 +39,7 @@ interface Message {
 
 export default function InterviewSessionScreen() {
     const router = useRouter();
+    const navigation = useNavigation();
     const dispatch = useDispatch();
 
     // Read session data from Redux
@@ -43,6 +55,7 @@ export default function InterviewSessionScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [isRecording, setIsRecording] = useState(false);
+    const [isNavigatingAway, setIsNavigatingAway] = useState(false);
     const flatListRef = useRef<FlatList>(null);
 
     // Set initial message from the API response
@@ -57,6 +70,67 @@ export default function InterviewSessionScreen() {
             ]);
         }
     }, [openingMessage]);
+
+    const performEndSession = async () => {
+        if (!sessionId || !problem) return;
+        try {
+            const result = await endSession({ sessionId, problem }).unwrap();
+            dispatch(setSummary(result));
+            setIsNavigatingAway(true);
+            router.replace('/summary');
+        } catch (err: any) {
+            console.error('End session error:', err);
+            Alert.alert(
+                'Summary Failed',
+                err?.data?.message || 'Failed to generate summary. Please try again.',
+                [{ text: 'OK' }]
+            );
+        }
+    };
+
+    const handleEndInterview = useCallback(() => {
+        Alert.alert(
+            'End Interview?',
+            'This will generate your performance summary. You cannot continue this session after ending.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'End Interview',
+                    style: 'destructive',
+                    onPress: performEndSession,
+                },
+            ]
+        );
+    }, [sessionId, problem]);
+
+    // Intercept back button and gestures
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
+            // If we are intentionally navigating away, don't prevent removal
+            if (isNavigatingAway || isEnding) return;
+
+            // Prevent default behavior of leaving the screen
+            e.preventDefault();
+
+            // Prompt the user before leaving
+            Alert.alert(
+                'End Interview?',
+                'This will generate your performance summary. You cannot continue this session after ending.',
+                [
+                    { text: 'Cancel', style: 'cancel', onPress: () => { } },
+                    {
+                        text: 'End Interview',
+                        style: 'destructive',
+                        onPress: () => {
+                            performEndSession();
+                        },
+                    },
+                ]
+            );
+        });
+
+        return unsubscribe;
+    }, [navigation, isNavigatingAway, isEnding, sessionId, problem]);
 
     const handleSend = async () => {
         if (!inputText.trim() || !sessionId || !problem) return;
@@ -102,40 +176,71 @@ export default function InterviewSessionScreen() {
         }
     };
 
-    const handleVoiceInput = () => {
-        setIsRecording(!isRecording);
-        // TODO: Implement voice recording logic
-        console.log(isRecording ? 'Stopping recording...' : 'Starting recording...');
+    // --- Speech Recognition Hooks (only register if native module is available) ---
+    const noopHook = (_event: string, _cb: Function) => {};
+    const safeUseSpeechEvent = useSpeechRecognitionEvent || noopHook;
+
+    safeUseSpeechEvent('start', () => setIsRecording(true));
+    safeUseSpeechEvent('end', () => setIsRecording(false));
+    safeUseSpeechEvent('result', (event: any) => {
+        const transcript = event.results[0]?.transcript;
+        if (transcript) {
+            setInputText(transcript);
+        }
+    });
+    safeUseSpeechEvent('error', (event: any) => {
+        console.error('Speech recognition error:', event.error, event.message);
+        setIsRecording(false);
+        if (event.error === 'not-allowed') {
+            Alert.alert(
+                'Microphone Permission Required',
+                'Please enable microphone and speech recognition permissions in your device settings to use voice input.',
+                [{ text: 'OK' }]
+            );
+        } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
+            Alert.alert(
+                'Voice Input Failed',
+                'Speech recognition encountered an error. Please try again or use text input.',
+                [{ text: 'OK' }]
+            );
+        }
+    });
+
+    const handleVoiceInput = async () => {
+        // Check if native module is available
+        if (!ExpoSpeechRecognitionModule) {
+            Alert.alert(
+                'Voice Input Unavailable',
+                'Speech recognition requires a development build. Please run "npx expo prebuild" and rebuild the app.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        if (isRecording) {
+            ExpoSpeechRecognitionModule.stop();
+            return;
+        }
+
+        // Request permissions before starting
+        const result = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+        if (!result.granted) {
+            Alert.alert(
+                'Microphone Permission Required',
+                'Please enable microphone and speech recognition permissions in your device settings to use voice input.',
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
+        // Start speech recognition
+        ExpoSpeechRecognitionModule.start({
+            lang: 'en-US',
+            interimResults: true,
+            continuous: false,
+        });
     };
 
-    const handleEndInterview = () => {
-        Alert.alert(
-            'End Interview?',
-            'This will generate your performance summary. You cannot continue this session after ending.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'End Interview',
-                    style: 'destructive',
-                    onPress: async () => {
-                        if (!sessionId || !problem) return;
-                        try {
-                            const result = await endSession({ sessionId, problem }).unwrap();
-                            dispatch(setSummary(result));
-                            router.replace('/summary');
-                        } catch (err: any) {
-                            console.error('End session error:', err);
-                            Alert.alert(
-                                'Summary Failed',
-                                err?.data?.message || 'Failed to generate summary. Please try again.',
-                                [{ text: 'OK' }]
-                            );
-                        }
-                    },
-                },
-            ]
-        );
-    };
 
     const renderMessage = ({ item }: { item: Message }) => {
         const isInterviewer = item.role === 'interviewer';

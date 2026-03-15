@@ -28,7 +28,8 @@ export default function RegisterScreen() {
       await signIn(response.token, response.user);
       console.log("Register successful:", response);
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Registration failed");
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      Alert.alert("Error", errorMessage || "Registration failed");
     }
   };
 
