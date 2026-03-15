@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { generateFollowUp, generateSummary } from "../services/ai/ai.service.js";
+import { generateSummary } from "../services/ai/ai.service.js";
+import { orchestrateResponse } from "../services/ai/interviewOrchestrator.js";
 import * as messageRepo from "../repositories/message.repository.js";
 import * as summaryRepo from "../repositories/summary.repository.js";
 import * as sessionRepo from "../repositories/session.repository.js";
@@ -16,17 +17,23 @@ export const start_session = async (req: AuthRequest, res: Response) => {
         const session = await sessionRepo.createSession(userId, problem);
 
         // Generate first AI question
-        const openingQuestion = await generateFollowUp(
+        const { response: openingQuestion, stage } = await orchestrateResponse(
+            session.id,
             problem,
-            "Start the interview."
+            "",
+            0
         );
 
         // Save AI opening message
         await messageRepo.saveMessage(session.id, "ai", openingQuestion);
+        
+        // Update Session Stage
+        await sessionRepo.updateStage(session.id, stage);
 
         res.status(201).json({
             sessionId: session.id,
             message: openingQuestion,
+            stage,
         });
         console.log("check REQ.USER:", (req as any).user);
 
@@ -46,14 +53,25 @@ export const interview_chat = async (req: Request, res: Response) => {
 
         // 2️⃣ Fetch conversation from DB (better than trusting frontend)
         const conversation = await messageRepo.getConversation(sessionId);
+        
+        // 3️⃣ Get message count for stage logic
+        const messageCount = await messageRepo.getMessageCount(sessionId);
 
-        // 3️⃣ Generate AI follow-up
-        const aiResponse = await generateFollowUp(problem, conversation);
+        // 4️⃣ Generate AI follow-up
+        const { response: aiResponse, stage } = await orchestrateResponse(
+            sessionId,
+            problem,
+            conversation,
+            messageCount
+        );
 
-        // 4️⃣ Save AI message
+        // 5️⃣ Save AI message
         await messageRepo.saveMessage(sessionId, "ai", aiResponse);
 
-        res.json({ message: aiResponse });
+        // 6️⃣ Update session stage
+        await sessionRepo.updateStage(sessionId, stage);
+
+        res.json({ message: aiResponse, stage });
 
     } catch (err) {
         console.error("AI response error:", err);

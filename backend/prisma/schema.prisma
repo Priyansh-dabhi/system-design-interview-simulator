@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider   = "postgresql"
-  url        = env("DATABASE_URL")
   extensions = [vector]
 }
 
@@ -27,6 +26,7 @@ model InterviewSession {
   userId         Int
   problemName    String
   status         String   @default("active")
+  stage          String   @default("greeting")
   coveredTopics  Json     @default("[]")          // ← Phase 3 (add now, use later)
   difficultyLevel String  @default("mid")          // ← Phase 3 (add now, use later)
   createdAt      DateTime @default(now())

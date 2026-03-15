@@ -30,3 +30,9 @@ export const saveMessage = async (
         },
     });
 };
+
+export const getMessageCount = async (sessionId: string): Promise<number> => {
+    return prisma.interviewMessage.count({
+        where: { sessionId },
+    });
+};

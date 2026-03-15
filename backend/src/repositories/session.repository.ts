@@ -13,3 +13,10 @@ export const createSession = async (userId: number, problem: string) => {
 
     return session;
 };
+
+export const updateStage = async (sessionId: string, stage: string) => {
+    await prisma.interviewSession.update({
+        where: { id: sessionId },
+        data: { stage },
+    });
+};

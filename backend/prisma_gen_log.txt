@@ -1,0 +1,29 @@
+﻿node.exe : Loaded 
+Prisma config from 
+prisma.config.ts.
+At C:\Program Files\nod
+ejs\npx.ps1:29 char:3
++   & $NODE_EXE 
+$NPX_CLI_JS $args
++   ~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo     
+         : NotSpecifi  
+  ed: (Loaded Prisma   
+  c...isma.config.t    
+s.:String) [], Rem    
+oteException
+    + FullyQualifiedEr 
+   rorId : NativeComm  
+  andError
+ 
+
+Prisma schema loaded 
+from 
+prisma\schema.prisma.
+
+Γ£ö Generated Prisma Client (v7.4.2) to .\src\generated\prisma in 247ms
+
+Start by importing your Prisma Client (See: https://pris.ly/d/importing-client)
+
+
