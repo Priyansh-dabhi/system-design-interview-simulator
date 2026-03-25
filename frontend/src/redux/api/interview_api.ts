@@ -37,6 +37,12 @@ export const createSessionStartAPi = createApi({
                 method: "POST",
                 body: { sessionId, problem },
             })
+        }),
+        getHistory: builder.query({
+            query: () => ({
+                url: "/history",
+                method: "GET",
+            })
         })
     }),
 
@@ -44,4 +50,4 @@ export const createSessionStartAPi = createApi({
 })
 
 // custom hooks
-export const { useStartSessionMutation, useChatMutation, useEndSessionMutation } = createSessionStartAPi;
+export const { useStartSessionMutation, useChatMutation, useEndSessionMutation, useGetHistoryQuery } = createSessionStartAPi;

@@ -4,30 +4,44 @@ import { CaretRightIcon, ClockCounterClockwiseIcon, PlayIcon } from "phosphor-re
 import React from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useDispatch } from 'react-redux';
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
 import { useAuth } from "../../src/context/AuthContext";
+import { setSelectedTopic } from '@/src/redux/slices/problem';
 
 export default function HomeScreen() {
   const { user, signOut } = useAuth();
   const router = useRouter();
+  const dispatch = useDispatch();
 
   // Mock data for weekly progress
   const weeklyProgress = 3;
   const recommendedInterviews = [
     {
-      id: '1',
-      title: 'Distributed Caching',
-      description: 'High frequency in recent interviews',
-      color: '#3B82F6', // Blue
+      id: 'whatsapp',
+      title: 'Design WhatsApp',
+      description: 'Real-time messaging, websockets, message persistence.',
+      color: '#25D366', // WhatsApp Green
     },
     {
-      id: '2',
-      title: 'Load Balancing',
-      description: 'Core concept refresher',
-      color: '#10B981', // Emerald
+      id: 'netflix',
+      title: 'Design Netflix',
+      description: 'Video streaming optimization, CDN architecture.',
+      color: '#E50914', // Netflix Red
+    },
+    {
+      id: 'uber',
+      title: 'Design Uber',
+      description: 'Geospatial indexing, driver matching algorithms.',
+      color: '#276EF1', // Uber Blue
     },
   ];
+
+  const handleTopicSelect = (topic: { id: string; title: string }) => {
+    dispatch(setSelectedTopic({ id: topic.id, title: topic.title }));
+    router.push('/(interview)/problem-selection');
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -76,7 +90,7 @@ export default function HomeScreen() {
             <Text style={styles.primaryButtonText}>Start New Interview</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.9} onPress={() => console.log("History")}>
+          <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.9} onPress={() => router.push('/history')}>
             <ClockCounterClockwiseIcon size={24} color={Colors.textSecondary} />
             <Text style={styles.secondaryButtonText}>Interview History</Text>
           </TouchableOpacity>
@@ -86,14 +100,19 @@ export default function HomeScreen() {
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recommended Interviews</Text>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={()=> router.push('/problem-selection')}>
               <Text style={styles.seeAllText}>View all</Text>
             </TouchableOpacity>
           </View>
 
           <View style={styles.topicsList}>
             {recommendedInterviews.map((topic) => (
-              <TouchableOpacity key={topic.id} style={styles.topicCard} activeOpacity={0.7}>
+              <TouchableOpacity
+                key={topic.id}
+                style={styles.topicCard}
+                activeOpacity={0.7}
+                onPress={() => handleTopicSelect(topic)}
+              >
                 <View style={[styles.topicIcon, { backgroundColor: topic.color + '20' }]}>
                   <View style={[styles.topicIconInner, { backgroundColor: topic.color }]} />
                 </View>

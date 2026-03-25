@@ -1,33 +1,515 @@
-import React from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { ScreenWrapper } from "../../src/components/ScreenWrapper";
-import { Colors } from "../../src/constants/Colors";
+import {
+    ArrowDownIcon,
+    ArrowUpIcon,
+    CheckCircleIcon,
+    ClockCounterClockwiseIcon,
+    LightbulbIcon,
+    WarningCircleIcon,
+} from 'phosphor-react-native';
+import React, { useCallback, useState } from 'react';
+import {
+    RefreshControl,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../../src/constants/Colors';
+import { Layout } from '../../src/constants/Layout';
 
-export default function HistoryScreen() {
+// Types
+interface InterviewSummary {
+    strengths: string[];
+    missed_topics: string[];
+    suggestions: string[];
+}
+
+interface InterviewHistoryItem {
+    id: string;
+    topic: string;
+    date: string;
+    score: 'good' | 'average' | 'needs_improvement';
+    summary: InterviewSummary;
+}
+
+// Score config
+const scoreConfig = {
+    good: { label: 'Strong', color: '#10B981', bg: '#10B98118' },
+    average: { label: 'Average', color: '#F59E0B', bg: '#F59E0B18' },
+    needs_improvement: { label: 'Needs Work', color: '#EF4444', bg: '#EF444418' },
+};
+
+// Mock data — replace with API call when backend is ready
+const MOCK_HISTORY: InterviewHistoryItem[] = [
+    {
+        id: '1',
+        topic: 'Design WhatsApp',
+        date: 'Oct 12, 10:24 AM',
+        score: 'good',
+        summary: {
+            strengths: [
+                'Clear understanding of message delivery guarantees and read receipts',
+                'Good approach to handling real-time communication with WebSockets',
+                'Proper consideration of end-to-end encryption architecture',
+            ],
+            missed_topics: [
+                'Did not discuss media storage and CDN distribution strategy',
+                'Group chat scalability patterns were not covered',
+            ],
+            suggestions: [
+                'Consider discussing fan-out strategies for group messages',
+                'Explore how to handle offline message queuing and sync',
+            ],
+        },
+    },
+    {
+        id: '2',
+        topic: 'Design URL Shortener',
+        date: 'Oct 10, 09:15 AM',
+        score: 'average',
+        summary: {
+            strengths: [
+                'Good understanding of hash collision resolution strategies',
+                'Mentioned caching layer for frequently accessed URLs',
+            ],
+            missed_topics: [
+                'Analytics and click tracking were not addressed',
+                'Rate limiting and abuse prevention not discussed',
+                'Custom alias support was overlooked',
+            ],
+            suggestions: [
+                'Discuss how to generate unique short codes at scale using base62 encoding',
+                'Consider how to handle URL expiration and cleanup',
+                'Address geographic distribution and latency optimization',
+            ],
+        },
+    },
+    {
+        id: '3',
+        topic: 'Design Netflix',
+        date: 'Oct 08, 02:45 PM',
+        score: 'needs_improvement',
+        summary: {
+            strengths: [
+                'Identified the need for adaptive bitrate streaming',
+            ],
+            missed_topics: [
+                'Content delivery network architecture was not well explained',
+                'Recommendation engine design was missing',
+                'Video transcoding pipeline was not discussed',
+                'User session management across devices not addressed',
+            ],
+            suggestions: [
+                'Study CDN architecture and how Netflix uses Open Connect',
+                'Explore collaborative filtering for recommendation systems',
+                'Review video encoding formats and adaptive streaming protocols like HLS/DASH',
+            ],
+        },
+    },
+];
+
+// ─── Expandable Card ───────────────────────────────────────────────────────────
+
+function InterviewCard({ item }: { item: InterviewHistoryItem }) {
+    const [expanded, setExpanded] = useState(false);
+    const config = scoreConfig[item.score];
+
     return (
-        <ScreenWrapper>
-            <View style={styles.container}>
-                <Text style={styles.text}>History Screen</Text>
-                <Text style={styles.subtext}>Interview History Coming Soon</Text>
+        <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setExpanded(!expanded)}
+            style={styles.card}
+        >
+            {/* Card Header */}
+            <View style={styles.cardHeader}>
+                <View style={styles.cardHeaderLeft}>
+                    <View style={[styles.topicIcon, { backgroundColor: config.bg }]}>
+                        <ClockCounterClockwiseIcon size={18} color={config.color} />
+                    </View>
+                    <View style={styles.cardInfo}>
+                        <Text style={styles.cardTopic}>{item.topic}</Text>
+                        <Text style={styles.cardDate}>{item.date}</Text>
+                    </View>
+                </View>
+                <View style={styles.cardHeaderRight}>
+                    <View style={[styles.scoreBadge, { backgroundColor: config.bg }]}>
+                        <Text style={[styles.scoreBadgeText, { color: config.color }]}>
+                            {config.label}
+                        </Text>
+                    </View>
+                    {expanded ? (
+                        <ArrowUpIcon size={16} color={Colors.textSecondary} />
+                    ) : (
+                        <ArrowDownIcon size={16} color={Colors.textSecondary} />
+                    )}
+                </View>
             </View>
-        </ScreenWrapper>
+
+            {/* Expandable Review Content */}
+            {expanded && (
+                <View style={styles.reviewContent}>
+                    {/* Strengths */}
+                    <View style={styles.reviewSection}>
+                        <View style={styles.reviewSectionHeader}>
+                            <View style={[styles.reviewIconContainer, { backgroundColor: '#10B98120' }]}>
+                                <CheckCircleIcon size={16} color="#10B981" weight="fill" />
+                            </View>
+                            <Text style={styles.reviewSectionTitle}>Strengths</Text>
+                        </View>
+                        {item.summary.strengths.map((text, i) => (
+                            <View key={`s-${i}`} style={[styles.bulletCard, styles.strengthBullet]}>
+                                <View style={[styles.bulletDot, { backgroundColor: '#10B981' }]} />
+                                <Text style={styles.bulletText}>{text}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Missed Topics */}
+                    <View style={styles.reviewSection}>
+                        <View style={styles.reviewSectionHeader}>
+                            <View style={[styles.reviewIconContainer, { backgroundColor: '#F59E0B20' }]}>
+                                <WarningCircleIcon size={16} color="#F59E0B" weight="fill" />
+                            </View>
+                            <Text style={styles.reviewSectionTitle}>Missed Topics</Text>
+                        </View>
+                        {item.summary.missed_topics.map((text, i) => (
+                            <View key={`m-${i}`} style={[styles.bulletCard, styles.missedBullet]}>
+                                <View style={[styles.bulletDot, { backgroundColor: '#F59E0B' }]} />
+                                <Text style={styles.bulletText}>{text}</Text>
+                            </View>
+                        ))}
+                    </View>
+
+                    {/* Suggestions */}
+                    <View style={styles.reviewSection}>
+                        <View style={styles.reviewSectionHeader}>
+                            <View style={[styles.reviewIconContainer, { backgroundColor: '#3B82F620' }]}>
+                                <LightbulbIcon size={16} color="#3B82F6" weight="fill" />
+                            </View>
+                            <Text style={styles.reviewSectionTitle}>Suggestions</Text>
+                        </View>
+                        {item.summary.suggestions.map((text, i) => (
+                            <View key={`sg-${i}`} style={[styles.bulletCard, styles.suggestionBullet]}>
+                                <View style={[styles.bulletDot, { backgroundColor: '#3B82F6' }]} />
+                                <Text style={styles.bulletText}>{text}</Text>
+                            </View>
+                        ))}
+                    </View>
+                </View>
+            )}
+        </TouchableOpacity>
     );
 }
+
+// ─── Empty State ───────────────────────────────────────────────────────────────
+
+function EmptyState() {
+    return (
+        <View style={styles.emptyContainer}>
+            <View style={styles.emptyIconCircle}>
+                <ClockCounterClockwiseIcon size={40} color={Colors.textDim} />
+            </View>
+            <Text style={styles.emptyTitle}>No Interviews Yet</Text>
+            <Text style={styles.emptySubtitle}>
+                Complete your first mock interview to see your history and performance reviews here.
+            </Text>
+        </View>
+    );
+}
+
+// ─── Main Screen ───────────────────────────────────────────────────────────────
+
+export default function HistoryScreen() {
+    const [refreshing, setRefreshing] = useState(false);
+    const [history] = useState<InterviewHistoryItem[]>(MOCK_HISTORY);
+
+    const onRefresh = useCallback(() => {
+        setRefreshing(true);
+        // Simulate network request — replace with actual API call
+        setTimeout(() => setRefreshing(false), 1200);
+    }, []);
+
+    return (
+        <SafeAreaView style={styles.container} edges={['top']}>
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Interview History</Text>
+                <Text style={styles.headerSubtitle}>
+                    Review your past performance and technical growth
+                </Text>
+            </View>
+
+            {/* Content */}
+            {history.length === 0 ? (
+                <EmptyState />
+            ) : (
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.primaryBrand}
+                            colors={[Colors.primaryBrand]}
+                            progressBackgroundColor={Colors.surface}
+                        />
+                    }
+                >
+                    {/* Stats Row */}
+                    <View style={styles.statsRow}>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statValue}>{history.length}</Text>
+                            <Text style={styles.statLabel}>Total</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={[styles.statValue, { color: '#10B981' }]}>
+                                {history.filter((h) => h.score === 'good').length}
+                            </Text>
+                            <Text style={styles.statLabel}>Strong</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={[styles.statValue, { color: '#F59E0B' }]}>
+                                {history.filter((h) => h.score === 'average').length}
+                            </Text>
+                            <Text style={styles.statLabel}>Average</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={[styles.statValue, { color: '#EF4444' }]}>
+                                {history.filter((h) => h.score === 'needs_improvement').length}
+                            </Text>
+                            <Text style={styles.statLabel}>Needs Work</Text>
+                        </View>
+                    </View>
+
+                    {/* Interview Cards */}
+                    <View style={styles.cardsContainer}>
+                        {history.map((item) => (
+                            <InterviewCard key={item.id} item={item} />
+                        ))}
+                    </View>
+                </ScrollView>
+            )}
+        </SafeAreaView>
+    );
+}
+
+// ─── Styles ────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
+        backgroundColor: Colors.background,
     },
-    text: {
-        fontSize: 24,
-        fontWeight: "bold",
+
+    // Header
+    header: {
+        paddingHorizontal: Layout.spacing.lg,
+        paddingTop: Layout.spacing.md,
+        paddingBottom: Layout.spacing.lg,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.border,
+    },
+    headerTitle: {
+        fontSize: 26,
+        fontWeight: '700',
         color: Colors.text,
     },
-    subtext: {
-        marginTop: 8,
-        fontSize: 16,
+    headerSubtitle: {
+        fontSize: 14,
         color: Colors.textSecondary,
+        marginTop: 4,
+    },
+
+    // Scroll
+    scrollView: {
+        flex: 1,
+    },
+    scrollContent: {
+        padding: Layout.spacing.lg,
+        paddingBottom: 120,
+    },
+
+    // Stats Row
+    statsRow: {
+        flexDirection: 'row',
+        gap: Layout.spacing.sm,
+        marginBottom: Layout.spacing.lg,
+    },
+    statCard: {
+        flex: 1,
+        backgroundColor: Colors.surface,
+        borderRadius: Layout.borderRadius.md,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        paddingVertical: Layout.spacing.md,
+        alignItems: 'center',
+    },
+    statValue: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: Colors.text,
+    },
+    statLabel: {
+        fontSize: 11,
+        fontWeight: '500',
+        color: Colors.textSecondary,
+        marginTop: 2,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+
+    // Cards
+    cardsContainer: {
+        gap: Layout.spacing.md,
+    },
+    card: {
+        backgroundColor: Colors.surface,
+        borderRadius: Layout.borderRadius.lg,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        overflow: 'hidden',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: Layout.spacing.md,
+    },
+    cardHeaderLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        flex: 1,
+    },
+    topicIcon: {
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginRight: Layout.spacing.sm + 4,
+    },
+    cardInfo: {
+        flex: 1,
+    },
+    cardTopic: {
+        fontSize: 16,
+        fontWeight: '600',
+        color: Colors.text,
+    },
+    cardDate: {
+        fontSize: 12,
+        color: Colors.textSecondary,
+        marginTop: 2,
+    },
+    cardHeaderRight: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Layout.spacing.sm,
+    },
+    scoreBadge: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: Layout.borderRadius.full,
+    },
+    scoreBadgeText: {
+        fontSize: 11,
+        fontWeight: '600',
+        letterSpacing: 0.3,
+    },
+
+    // Review Content (expanded)
+    reviewContent: {
+        borderTopWidth: 1,
+        borderTopColor: Colors.border,
+        paddingHorizontal: Layout.spacing.md,
+        paddingVertical: Layout.spacing.md,
+        gap: Layout.spacing.lg,
+    },
+    reviewSection: {
+        gap: Layout.spacing.sm,
+    },
+    reviewSectionHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: Layout.spacing.sm,
+        marginBottom: 2,
+    },
+    reviewIconContainer: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    reviewSectionTitle: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.text,
+    },
+    bulletCard: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        backgroundColor: Colors.background,
+        paddingHorizontal: Layout.spacing.sm + 4,
+        paddingVertical: Layout.spacing.sm + 2,
+        borderRadius: Layout.borderRadius.sm + 2,
+        borderWidth: 1,
+        gap: Layout.spacing.sm,
+    },
+    strengthBullet: {
+        borderColor: '#10B98125',
+    },
+    missedBullet: {
+        borderColor: '#F59E0B25',
+    },
+    suggestionBullet: {
+        borderColor: '#3B82F625',
+    },
+    bulletDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginTop: 6,
+    },
+    bulletText: {
+        flex: 1,
+        fontSize: 13,
+        lineHeight: 19,
+        color: Colors.textSecondary,
+    },
+
+    // Empty State
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: Layout.spacing.xl,
+    },
+    emptyIconCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: Colors.surface,
+        borderWidth: 1,
+        borderColor: Colors.border,
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginBottom: Layout.spacing.lg,
+    },
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: Colors.text,
+        marginBottom: Layout.spacing.sm,
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: Colors.textSecondary,
+        textAlign: 'center',
+        lineHeight: 21,
     },
 });

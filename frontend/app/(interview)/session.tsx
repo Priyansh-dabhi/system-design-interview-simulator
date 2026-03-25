@@ -18,6 +18,8 @@ import {
     ActivityIndicator,
     Alert,
     BackHandler,
+    KeyboardAvoidingView,
+    Platform,
     FlatList,
     StyleSheet,
     Text,
@@ -25,7 +27,6 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { KeyboardStickyView } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { Colors } from '../../src/constants/Colors';
@@ -312,7 +313,10 @@ export default function InterviewSessionScreen() {
             />
 
             {/* Input Area */}
-            <KeyboardStickyView offset={{ closed: 0, opened: 0 }}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+            >
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
@@ -346,7 +350,7 @@ export default function InterviewSessionScreen() {
                         />
                     </TouchableOpacity>
                 </View>
-            </KeyboardStickyView>
+            </KeyboardAvoidingView>
 
             {/* Loading Overlay while generating summary */}
             {isEnding && (

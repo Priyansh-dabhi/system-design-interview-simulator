@@ -37,6 +37,7 @@ export default function MainLayout() {
       <Tabs.Screen
         name="practice"
         options={{
+          href: null, // This hides it from the bottom tab bar
           title: "Practice",
           tabBarIcon: ({ color, size }) => (
             <BooksIcon size={size} color={color} weight="fill" />
