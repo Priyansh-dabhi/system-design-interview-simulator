@@ -20,7 +20,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/Colors';
 import { Layout } from '../../src/constants/Layout';
-import { useAuth } from '../../src/context/AuthContext';
+import { useAppDispatch, useAppSelector } from '../../src/redux/hooks';
+import { logout } from '../../src/redux/slices/auth';
 
 // Mock performance data — replace with API data when available
 const PERFORMANCE_METRICS = [
@@ -71,9 +72,10 @@ const ACCOUNT_CONTROLS = [
 ];
 
 export default function ProfileScreen() {
-    const { user, signOut } = useAuth();
+    const user = useAppSelector((state) => state.auth.user);
+    const dispatch = useAppDispatch();
 
-    const initials = user?.full_name
+    const initials = user?.fullName
         ?.split(' ')
         .map((n) => n[0])
         .join('')
@@ -102,7 +104,7 @@ export default function ProfileScreen() {
                 {
                     text: 'Sign Out',
                     style: 'destructive',
-                    onPress: signOut,
+                    onPress: () => dispatch(logout()),
                 },
             ]
         );
@@ -119,7 +121,7 @@ export default function ProfileScreen() {
                     <View style={styles.avatar}>
                         <Text style={styles.avatarText}>{initials}</Text>
                     </View>
-                    <Text style={styles.userName}>{user?.full_name || 'User'}</Text>
+                    <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
                     <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
                 </View>
 

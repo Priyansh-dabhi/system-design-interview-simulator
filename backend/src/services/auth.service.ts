@@ -1,9 +1,14 @@
-import jwt from "jsonwebtoken";
 import prisma from "../config/prisma.js";
-import { JWT_EXPIRES_IN, JWT_SECRET } from "../config/jwt.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
+import { issueAuthSession } from "./refresh-token.service.js";
 
-export const registerUser = async (full_name: string, email: string, password: string) => {
+const toAuthUser = (user: { id: number; fullName: string; email: string }) => ({
+    id: user.id,
+    fullName: user.fullName,
+    email: user.email,
+});
+
+export const registerUser = async (full_name: string, email: string, password: string, deviceInfo?: string | null) => {
     const passwordHash = await hashPassword(password);
 
     const user = await prisma.user.create({
@@ -19,16 +24,12 @@ export const registerUser = async (full_name: string, email: string, password: s
         },
     });
 
-    const token = jwt.sign(
-        { userId: user.id },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-    );
+    const { accessToken, refreshToken } = await issueAuthSession(user, deviceInfo);
 
-    return { user, token };
+    return { user: toAuthUser(user), accessToken, refreshToken };
 };
 
-export const loginUser = async (email: string, password: string) => {
+export const loginUser = async (email: string, password: string, deviceInfo?: string | null) => {
     const user = await prisma.user.findUnique({
         where: { email },
     });
@@ -38,13 +39,11 @@ export const loginUser = async (email: string, password: string) => {
     const isMatch = await comparePassword(password, user.password);
     if (!isMatch) throw new Error("Invalid credentials");
 
-    const token = jwt.sign(
-        { userId: user.id },
-        JWT_SECRET,
-        { expiresIn: JWT_EXPIRES_IN }
-    );
+    const { accessToken, refreshToken } = await issueAuthSession(user, deviceInfo);
 
-    // Return user without password
-    const { password: _, ...userWithoutPassword } = user;
-    return { token, user: userWithoutPassword };
+    return {
+        accessToken,
+        refreshToken,
+        user: toAuthUser(user),
+    };
 };

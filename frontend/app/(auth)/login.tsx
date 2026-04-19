@@ -1,30 +1,29 @@
 import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Alert, StyleSheet, Text, View } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
-import { useAuth } from "../../src/context/AuthContext";
-import { loginUser } from "../../src/services/auth.api";
+import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
+import { login } from "../../src/redux/slices/auth";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading } = useAuth();
+  const isLoading = useAppSelector((state) => state.auth.isSubmitting);
 
   const handleLogin = async () => {
     if (email && password) {
       try {
-        const response = await loginUser({ email, password });
-        await signIn(response.token, response.user);
-        console.log("Login successful:", response);
-      } catch (error) {
+        await dispatch(login({ email, password })).unwrap();
+      } catch (error: any) {
         console.error("Login failed:", error);
-        // Alert.alert("Error", error.message);
+        Alert.alert("Login failed", error?.message || "Please check your credentials and try again.");
       }
     }
   };

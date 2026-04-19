@@ -6,17 +6,17 @@ import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
-import { useAuth } from "../../src/context/AuthContext";
-
-import { registerUser } from "@/src/services/auth.api";
+import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
+import { register } from "../../src/redux/slices/auth";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading } = useAuth();
+  const isLoading = useAppSelector((state) => state.auth.isSubmitting);
 
   const handleRegister = async () => {
     try {
@@ -24,9 +24,7 @@ export default function RegisterScreen() {
         Alert.alert("Error", "Please fill in all fields");
         return;
       }
-      const response = await registerUser({ full_name: name, email, password });
-      await signIn(response.token, response.user);
-      console.log("Register successful:", response);
+      await dispatch(register({ full_name: name, email, password })).unwrap();
     } catch (err: any) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       Alert.alert("Error", errorMessage || "Registration failed");

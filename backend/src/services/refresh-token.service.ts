@@ -1,0 +1,101 @@
+import prisma from "../config/prisma.js";
+import * as refreshTokenRepository from "../repositories/refresh-token.repository.js";
+import { generateRefreshToken, getRefreshTokenExpiryDate, hashRefreshToken, signAccessToken } from "../utils/token.js";
+
+export class AuthServiceError extends Error {
+    statusCode: number;
+
+    constructor(message: string, statusCode = 401) {
+        super(message);
+        this.name = "AuthServiceError";
+        this.statusCode = statusCode;
+    }
+}
+
+type SessionUser = {
+    id: number;
+    fullName: string;
+    email: string;
+};
+
+const buildTokenPair = async (user: SessionUser, deviceInfo?: string | null) => {
+    const accessToken = signAccessToken({
+        userId: user.id,
+        email: user.email,
+    });
+
+    const refreshToken = generateRefreshToken();
+    const tokenHash = hashRefreshToken(refreshToken);
+
+    await refreshTokenRepository.createRefreshTokenRecord({
+        userId: user.id,
+        tokenHash,
+        deviceInfo,
+        expiresAt: getRefreshTokenExpiryDate(),
+    });
+
+    return {
+        accessToken,
+        refreshToken,
+    };
+};
+
+export const issueAuthSession = async (user: SessionUser, deviceInfo?: string | null) => {
+    return buildTokenPair(user, deviceInfo);
+};
+
+export const refreshAuthSession = async (refreshToken: string, deviceInfo?: string | null) => {
+    const tokenHash = hashRefreshToken(refreshToken);
+    const existingToken = await refreshTokenRepository.findRefreshTokenByHash(tokenHash);
+
+    if (!existingToken) {
+        throw new AuthServiceError("Invalid refresh token", 401);
+    }
+
+    if (existingToken.revokedAt) {
+        await refreshTokenRepository.revokeAllRefreshTokensForUser(existingToken.userId);
+        throw new AuthServiceError("Refresh token has been revoked", 401);
+    }
+
+    if (existingToken.expiresAt <= new Date()) {
+        await refreshTokenRepository.revokeRefreshTokenById(existingToken.id);
+        throw new AuthServiceError("Refresh token expired", 401);
+    }
+
+    const nextRefreshToken = generateRefreshToken();
+    const nextTokenHash = hashRefreshToken(nextRefreshToken);
+    const accessToken = signAccessToken({
+        userId: existingToken.user.id,
+        email: existingToken.user.email,
+    });
+
+    await prisma.$transaction(async (tx) => {
+        await tx.refreshToken.update({
+            where: { id: existingToken.id },
+            data: { revokedAt: new Date() },
+        });
+
+        await tx.refreshToken.create({
+            data: {
+                userId: existingToken.user.id,
+                tokenHash: nextTokenHash,
+                deviceInfo: deviceInfo ?? existingToken.deviceInfo,
+                expiresAt: getRefreshTokenExpiryDate(),
+            },
+        });
+    });
+
+    return {
+        accessToken,
+        refreshToken: nextRefreshToken,
+    };
+};
+
+export const revokeRefreshSession = async (refreshToken: string) => {
+    const tokenHash = hashRefreshToken(refreshToken);
+    await refreshTokenRepository.revokeRefreshTokenByHash(tokenHash);
+};
+
+export const revokeAllUserSessions = async (userId: number) => {
+    await refreshTokenRepository.revokeAllRefreshTokensForUser(userId);
+};

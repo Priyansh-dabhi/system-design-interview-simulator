@@ -3,18 +3,24 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Colors } from "../src/constants/Colors";
-import { AuthProvider, useAuth } from "../src/context/AuthContext";
-
 import { useState } from "react";
 import { LoadingSplash } from "../src/components/LoadingSplash";
 import { store } from "@/src/redux/store";
 import { Provider } from "react-redux";
+import { useAppDispatch, useAppSelector } from "@/src/redux/hooks";
+import { bootstrapAuth } from "@/src/redux/slices/auth";
 
 function AuthGuard() {
-  const { user, isLoading } = useAuth();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+  const isLoading = useAppSelector((state) => state.auth.isHydrating);
   const segments = useSegments();
   const router = useRouter();
   const [isSplashReady, setSplashReady] = useState(false);
+
+  useEffect(() => {
+    dispatch(bootstrapAuth());
+  }, [dispatch]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -55,13 +61,11 @@ function AuthGuard() {
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <AuthProvider>
-        <SafeAreaProvider>
-          <View style={{ flex: 1, backgroundColor: Colors.background }}>
-            <AuthGuard />
-          </View>
-        </SafeAreaProvider>
-      </AuthProvider>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: Colors.background }}>
+          <AuthGuard />
+        </View>
+      </SafeAreaProvider>
     </Provider>
   );
 }

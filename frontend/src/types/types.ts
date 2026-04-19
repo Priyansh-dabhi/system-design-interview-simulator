@@ -1,14 +1,20 @@
 import { TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 export interface User {
-    id: string;
-    full_name: string;
+    id: number;
+    fullName: string;
     email: string;
 }
 
 export interface AuthResponse {
     user: User;
-    token: string;
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface RefreshResponse {
+    accessToken: string;
+    refreshToken: string;
 }
 
 export interface LoginCredentials {
@@ -20,14 +26,6 @@ export interface RegisterCredentials {
     full_name: string;
     email: string;
     password: string;
-}
-
-export interface AuthContextType {
-    token: string | null;
-    user: User | null;
-    isLoading: boolean;
-    signIn: (token: string, user: User) => Promise<void>;
-    signOut: () => Promise<void>;
 }
 
 export interface ScreenWrapperProps {

@@ -7,13 +7,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
-import { useAuth } from "../../src/context/AuthContext";
 import { setSelectedTopic } from '@/src/redux/slices/problem';
+import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
+import { logout } from '@/src/redux/slices/auth';
 
 export default function HomeScreen() {
-  const { user, signOut } = useAuth();
+  const user = useAppSelector((state) => state.auth.user);
   const router = useRouter();
   const dispatch = useDispatch();
+  const appDispatch = useAppDispatch();
 
   // Mock data for weekly progress
   const weeklyProgress = 3;
@@ -50,13 +52,13 @@ export default function HomeScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good Evening, {user?.full_name?.split(' ')[0] || 'Alex'}</Text>
+            <Text style={styles.greeting}>Good Evening, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
             <Text style={styles.subGreeting}>Ready to practice today?</Text>
           </View>
-          <TouchableOpacity onPress={signOut} style={styles.profileButton}>
+          <TouchableOpacity onPress={() => appDispatch(logout())} style={styles.profileButton}>
             {/* Placeholder for user avatar or initials */}
             <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{user?.full_name?.[0] || 'A'}</Text>
+              <Text style={styles.avatarText}>{user?.fullName?.[0] || 'A'}</Text>
             </View>
           </TouchableOpacity>
         </View>

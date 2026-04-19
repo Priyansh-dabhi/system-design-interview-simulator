@@ -16,7 +16,8 @@ model User {
   password  String
   createdAt DateTime @default(now())
 
-  sessions  InterviewSession[]
+  sessions      InterviewSession[]
+  refreshTokens RefreshToken[]
 
   @@map("users")
 }
@@ -74,4 +75,20 @@ model KnowledgeChunk {
   updatedAt DateTime @updatedAt
 
   @@map("knowledge_chunks")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     Int
+  tokenHash  String    @unique
+  deviceInfo String?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
 }

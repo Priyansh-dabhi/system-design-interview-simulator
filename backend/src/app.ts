@@ -11,6 +11,12 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+// Diagnostic: Request Logger
+app.use((req, res, next) => {
+    console.log(`[Diagnostic] ${new Date().toISOString()} - ${req.method} ${req.url} from ${req.ip}`);
+    next();
+});
+
 // health check
 app.get("/", (req, res) => {
     res.send("server is running");

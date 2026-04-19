@@ -1,5 +1,4 @@
-import dotenv from 'dotenv'
-dotenv.config();
-
-export const JWT_SECRET  = process.env.JWT_SECRET as string;
-export const JWT_EXPIRES_IN = "1h";
+export {
+    ACCESS_TOKEN_SECRET as JWT_SECRET,
+    ACCESS_TOKEN_EXPIRES_IN as JWT_EXPIRES_IN,
+} from "./auth.js";
