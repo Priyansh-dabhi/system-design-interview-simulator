@@ -1,0 +1,98 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+  output          = "../src/generated/prisma"
+}
+
+datasource db {
+  provider   = "postgresql"
+  extensions = [vector]
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String   @unique
+  password    String
+  authProvider String  @default("password") @map("auth_provider")
+  providerId  String?  @unique @map("provider_id")
+  avatarUrl   String?  @map("avatar_url")
+  oauthEnabled Boolean @default(false) @map("oauth_enabled")
+  createdAt   DateTime @default(now())
+
+  sessions      InterviewSession[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model InterviewSession {
+  id             String   @id @default(uuid())
+  userId         Int
+  problemName    String
+  status         String   @default("active")
+  stage          String   @default("greeting")
+  coveredTopics  Json     @default("[]")          // ← Phase 3 (add now, use later)
+  difficultyLevel String  @default("mid")          // ← Phase 3 (add now, use later)
+  createdAt      DateTime @default(now())
+
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages InterviewMessage[]
+  summary  InterviewSummary?
+
+  @@map("interview_sessions")
+}
+
+model InterviewMessage {
+  id        String   @id @default(uuid())
+  sessionId String
+  role      String
+  content   String
+  createdAt DateTime @default(now())
+
+  session   InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("interview_messages")
+}
+
+model InterviewSummary {
+  id           String   @id @default(uuid())
+  sessionId    String   @unique
+  strengths    String
+  missedTopics String
+  suggestions  String
+  createdAt    DateTime @default(now())
+
+  session      InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("interview_summaries")
+}
+
+model KnowledgeChunk {
+  id        Int      @id @default(autoincrement())
+  topic     String   @db.VarChar(255)
+  subtopic  String?  @db.VarChar(255)
+  content   String
+  embedding Unsupported("vector(768)")?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("knowledge_chunks")
+}
+
+model RefreshToken {
+  id         String    @id @default(uuid())
+  userId     Int
+  tokenHash  String    @unique
+  deviceInfo String?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}

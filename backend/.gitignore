@@ -18,3 +18,4 @@ yarn-error.log*
 # IDE Folders
 .vscode/
 .idea/
+/src/generated/prisma

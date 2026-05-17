@@ -1,34 +1,48 @@
 import { Link, useRouter } from "expo-router";
+import { Eye, EyeIcon, EyeSlash, EyeSlashIcon } from "phosphor-react-native";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
-import { useAuth } from "../../src/context/AuthContext";
-
-import { registerUser } from "@/src/services/auth.api";
+import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
+import { register } from "../../src/redux/slices/auth";
+import { getErrorMessage } from "../../src/utils/error";
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const isLoading = useAppSelector((state) => state.auth.isSubmitting);
 
   const handleRegister = async () => {
     try {
-      if (!name || !email || !password) {
+      const trimmedName = name.trim();
+      const trimmedEmail = email.trim().toLowerCase();
+
+      if (!trimmedName || !trimmedEmail || !password.trim()) {
         Alert.alert("Error", "Please fill in all fields");
         return;
       }
-      const response = await registerUser({ full_name: name, email, password });
-      await signIn(response.token, response.user);
-      console.log("Register successful:", response);
+
+      if (password.length < 8 || !/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+        Alert.alert(
+          "Error",
+          "Password must be at least 8 characters long and include at least one letter and one number."
+        );
+        return;
+      }
+
+      await dispatch(register({ full_name: trimmedName, email: trimmedEmail, password })).unwrap();
     } catch (err: any) {
-      Alert.alert("Error", err.message || "Registration failed");
+      const errorMessage = getErrorMessage(err, "Registration failed");
+      Alert.alert("Error", errorMessage || "Registration failed");
     }
   };
 
@@ -63,7 +77,21 @@ export default function RegisterScreen() {
             placeholder="Create a password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
+            rightAccessory={
+              <Pressable
+                onPress={() => setShowPassword((current) => !current)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeSlashIcon size={20} color={Colors.textDim} />
+                ) : (
+                  <EyeIcon size={20} color={Colors.textDim} />
+                )}
+              </Pressable>
+            }
           />
 
           <Button

@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../constants/Colors";
 import { Layout } from "../constants/Layout";
 
-import { ScreenWrapperProps } from "../../types";
+import { ScreenWrapperProps } from "../types/types";
 
 export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,

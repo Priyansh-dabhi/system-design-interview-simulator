@@ -8,7 +8,7 @@ import {
 import { Colors } from "../../constants/Colors";
 import { Layout } from "../../constants/Layout";
 
-import { ButtonProps } from "../../../types";
+import { ButtonProps } from "../../types/types";
 
 export const Button: React.FC<ButtonProps> = ({
   title,

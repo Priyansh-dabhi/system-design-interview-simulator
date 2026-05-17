@@ -1,0 +1,45 @@
+# Dependencies
+node_modules/
+
+# Expo / bundler caches
+.expo/
+.expo-shared/
+.metro-health-check*
+
+# Local web/export output
+dist/
+web-build/
+
+# Native generated build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/app/.cxx/
+
+# Logs and coverage
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+coverage/
+
+# Temp / editor / OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# Local machine / generated files
+android/local.properties
+*.tsbuildinfo
+
+# Binary outputs that should never be uploaded to EAS
+*.apk
+*.aab
+*.apks
+*.hprof
+
+# Local docs and scratch artifacts not needed for native cloud builds
+docs/

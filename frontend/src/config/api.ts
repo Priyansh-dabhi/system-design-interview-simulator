@@ -2,4 +2,7 @@ import Constants from "expo-constants";
 
 export const API_URL =
     Constants.expoConfig?.extra?.API_URL ||
-    "http://192.168.29.222:7373";
+    process.env.EXPO_PUBLIC_API_URL ||
+    "";
+
+    

@@ -1,32 +1,62 @@
 import { Link, useRouter } from "expo-router";
-import React, { useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Eye, EyeSlash } from "phosphor-react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
-import { useAuth } from "../../src/context/AuthContext";
-import { loginUser } from "../../src/services/auth.api";
+import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
+import { clearAuthNotice, login } from "../../src/redux/slices/auth";
+import { getErrorMessage } from "../../src/utils/error";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { signIn, isLoading } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
+  const [activeMethod, setActiveMethod] = useState<"password" | "google" | null>(null);
+  const isLoading = useAppSelector((state) => state.auth.isSubmitting);
+  const authNotice = useAppSelector((state) => state.auth.authNotice);
+  const isBusy = isLoading || activeMethod !== null;
+
+  useEffect(() => {
+    if (!authNotice) {
+      return;
+    }
+
+    Alert.alert("Session ended", authNotice, [
+      {
+        text: "OK",
+        onPress: () => dispatch(clearAuthNotice()),
+      },
+    ]);
+  }, [authNotice, dispatch]);
 
   const handleLogin = async () => {
-    if (email && password) {
-      try {
-        const response = await loginUser({ email, password });
-        await signIn(response.token, response.user);
-        console.log("Login successful:", response);
-      } catch (error) {
-        console.error("Login failed:", error);
-        // Alert.alert("Error", error.message);
-      }
+    const trimmedEmail = email.trim();
+
+    if (!trimmedEmail || !password.trim()) {
+      Alert.alert("Missing information", "Please enter both your email and password.");
+      return;
     }
+
+    try {
+      setActiveMethod("password");
+      await dispatch(login({ email: trimmedEmail, password })).unwrap();
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      Alert.alert("Login failed", getErrorMessage(error, "Please check your credentials and try again."));
+    } finally {
+      setActiveMethod(null);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    router.push("/(auth)/google-signin");
   };
 
   return (
@@ -53,26 +83,44 @@ export default function LoginScreen() {
             placeholder="Enter your password"
             value={password}
             onChangeText={setPassword}
-            secureTextEntry
+            secureTextEntry={!showPassword}
+            rightAccessory={
+              <Pressable
+                onPress={() => setShowPassword((current) => !current)}
+                hitSlop={8}
+                accessibilityRole="button"
+                accessibilityLabel={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? (
+                  <EyeSlash size={20} color={Colors.textDim} />
+                ) : (
+                  <Eye size={20} color={Colors.textDim} />
+                )}
+              </Pressable>
+            }
           />
 
           <Button
             title="Sign In"
             onPress={handleLogin}
-            isLoading={isLoading}
+            isLoading={activeMethod === "password"}
             style={styles.loginButton}
+            disabled={isBusy && activeMethod !== "password"}
           />
 
-          <View style={styles.divider}>
-            <View style={styles.line} />
-            <Text style={styles.orText}>OR</Text>
-            <View style={styles.line} />
+          <View style={styles.dividerRow}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
           </View>
 
           <Button
             title="Continue with Google"
-            variant="secondary"
-            onPress={() => console.log("Google Auth Placeholder")}
+            onPress={handleGoogleLogin}
+            variant="outline"
+            isLoading={false}
+            style={styles.googleButton}
+            disabled={isBusy}
           />
         </View>
 
@@ -117,20 +165,23 @@ const styles = StyleSheet.create({
   loginButton: {
     marginTop: Layout.spacing.sm,
   },
-  divider: {
+  googleButton: {
+    marginTop: Layout.spacing.sm,
+  },
+  dividerRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: Layout.spacing.lg,
+    marginTop: Layout.spacing.lg,
   },
-  line: {
+  dividerLine: {
     flex: 1,
     height: 1,
     backgroundColor: Colors.border,
   },
-  orText: {
-    color: Colors.textDim,
+  dividerText: {
+    color: Colors.textSecondary,
     marginHorizontal: Layout.spacing.md,
-    fontSize: 12,
+    fontSize: 14,
   },
   footer: {
     flexDirection: "row",

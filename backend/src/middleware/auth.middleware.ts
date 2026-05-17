@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET } from "../config/jwt";
+import { ACCESS_TOKEN_SECRET } from "../config/auth.js";
 
 export interface AuthRequest extends Request {
-    user?: { userId: string };
+    user?: { userId: number; email: string };
 }
 
 export const authenticate = (
@@ -20,10 +20,15 @@ export const authenticate = (
     const token = authHeader.split(" ")[1];
 
     try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET) as { userId: number; email: string };
         req.user = decoded;
         next();
-    } catch {
-        res.status(401).json({ message: "Invalid token" });
+
+    } catch (error) {
+        if (error instanceof jwt.TokenExpiredError) {
+            return res.status(401).json({ message: "Token expired" });
+        }
+
+        return res.status(401).json({ message: "Invalid token" });
     }
 };
