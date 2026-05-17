@@ -10,15 +10,16 @@ import { Layout } from "../../src/constants/Layout";
 import { setSelectedTopic } from '@/src/redux/slices/problem';
 import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
 import { logout } from '@/src/redux/slices/auth';
+import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
 
 export default function HomeScreen() {
   const user = useAppSelector((state) => state.auth.user);
+  const { data } = useGetHistoryQuery();
   const router = useRouter();
   const dispatch = useDispatch();
   const appDispatch = useAppDispatch();
 
-  // Mock data for weekly progress
-  const weeklyProgress = 3;
+  const interviewsPracticed = data?.stats.completed ?? 0;
   const recommendedInterviews = [
     {
       id: 'whatsapp',
@@ -74,7 +75,7 @@ export default function HomeScreen() {
               <View style={styles.progressContent}>
                 <View>
                   <Text style={styles.progressLabel}>Interviews Practiced</Text>
-                  <Text style={styles.progressValue}>{weeklyProgress}</Text>
+                  <Text style={styles.progressValue}>{interviewsPracticed}</Text>
                 </View>
                 <View style={styles.circularProgressPlaceholder}>
                   {/* Placeholder for a circular progress chart if needed */}

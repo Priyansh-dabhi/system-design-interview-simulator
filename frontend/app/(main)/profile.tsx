@@ -20,40 +20,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/Colors';
 import { Layout } from '../../src/constants/Layout';
+import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
 import { useAppDispatch, useAppSelector } from '../../src/redux/hooks';
 import { logout } from '../../src/redux/slices/auth';
-
-// Mock performance data — replace with API data when available
-const PERFORMANCE_METRICS = [
-    {
-        label: 'Total Interviews',
-        value: '12',
-        icon: ClipboardTextIcon,
-        color: '#3B82F6',
-        bg: '#3B82F618',
-    },
-    {
-        label: 'Average Score',
-        value: '88%',
-        icon: ChartBarIcon,
-        color: '#10B981',
-        bg: '#10B98118',
-    },
-    {
-        label: 'Strongest Domain',
-        value: 'System Design Fundamentals',
-        icon: TrophyIcon,
-        color: '#F59E0B',
-        bg: '#F59E0B18',
-    },
-    {
-        label: 'Focus Area',
-        value: 'Scalability & Tradeoffs',
-        icon: TargetIcon,
-        color: '#8B5CF6',
-        bg: '#8B5CF618',
-    },
-];
 
 // Account control items
 const ACCOUNT_CONTROLS = [
@@ -73,7 +42,47 @@ const ACCOUNT_CONTROLS = [
 
 export default function ProfileScreen() {
     const user = useAppSelector((state) => state.auth.user);
+    const { data } = useGetHistoryQuery();
     const dispatch = useAppDispatch();
+    const stats = data?.stats;
+    const completionRate =
+        stats && stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : '0%';
+    const focusArea =
+        (stats?.needsImprovement ?? 0) > 0
+            ? 'Review missed topics'
+            : stats?.completed
+                ? 'Keep practicing'
+                : 'Start first interview';
+    const performanceMetrics = [
+        {
+            label: 'Total Interviews',
+            value: String(stats?.total ?? 0),
+            icon: ClipboardTextIcon,
+            color: '#3B82F6',
+            bg: '#3B82F618',
+        },
+        {
+            label: 'Completion Rate',
+            value: completionRate,
+            icon: ChartBarIcon,
+            color: '#10B981',
+            bg: '#10B98118',
+        },
+        {
+            label: 'Strongest Domain',
+            value: stats?.strongestDomain ?? 'Not enough data',
+            icon: TrophyIcon,
+            color: '#F59E0B',
+            bg: '#F59E0B18',
+        },
+        {
+            label: 'Focus Area',
+            value: focusArea,
+            icon: TargetIcon,
+            color: '#8B5CF6',
+            bg: '#8B5CF618',
+        },
+    ];
 
     const initials = user?.fullName
         ?.split(' ')
@@ -129,7 +138,7 @@ export default function ProfileScreen() {
                 <View style={styles.sectionContainer}>
                     <Text style={styles.sectionTitle}>Performance Metrics</Text>
                     <View style={styles.metricsGrid}>
-                        {PERFORMANCE_METRICS.map((metric) => {
+                        {performanceMetrics.map((metric) => {
                             const Icon = metric.icon;
                             return (
                                 <View key={metric.label} style={styles.metricCard}>

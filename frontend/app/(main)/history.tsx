@@ -18,21 +18,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../src/constants/Colors';
 import { Layout } from '../../src/constants/Layout';
+import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
+import { InterviewHistoryItem } from '../../src/types/types';
 
-// Types
-interface InterviewSummary {
-    strengths: string[];
-    missed_topics: string[];
-    suggestions: string[];
-}
-
-interface InterviewHistoryItem {
-    id: string;
-    topic: string;
-    date: string;
-    score: 'good' | 'average' | 'needs_improvement';
-    summary: InterviewSummary;
-}
+const formatInterviewDate = (value: string) =>
+    new Intl.DateTimeFormat(undefined, {
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+    }).format(new Date(value));
 
 // Score config
 const scoreConfig = {
@@ -40,75 +35,6 @@ const scoreConfig = {
     average: { label: 'Average', color: '#F59E0B', bg: '#F59E0B18' },
     needs_improvement: { label: 'Needs Work', color: '#EF4444', bg: '#EF444418' },
 };
-
-// Mock data — replace with API call when backend is ready
-const MOCK_HISTORY: InterviewHistoryItem[] = [
-    {
-        id: '1',
-        topic: 'Design WhatsApp',
-        date: 'Oct 12, 10:24 AM',
-        score: 'good',
-        summary: {
-            strengths: [
-                'Clear understanding of message delivery guarantees and read receipts',
-                'Good approach to handling real-time communication with WebSockets',
-                'Proper consideration of end-to-end encryption architecture',
-            ],
-            missed_topics: [
-                'Did not discuss media storage and CDN distribution strategy',
-                'Group chat scalability patterns were not covered',
-            ],
-            suggestions: [
-                'Consider discussing fan-out strategies for group messages',
-                'Explore how to handle offline message queuing and sync',
-            ],
-        },
-    },
-    {
-        id: '2',
-        topic: 'Design URL Shortener',
-        date: 'Oct 10, 09:15 AM',
-        score: 'average',
-        summary: {
-            strengths: [
-                'Good understanding of hash collision resolution strategies',
-                'Mentioned caching layer for frequently accessed URLs',
-            ],
-            missed_topics: [
-                'Analytics and click tracking were not addressed',
-                'Rate limiting and abuse prevention not discussed',
-                'Custom alias support was overlooked',
-            ],
-            suggestions: [
-                'Discuss how to generate unique short codes at scale using base62 encoding',
-                'Consider how to handle URL expiration and cleanup',
-                'Address geographic distribution and latency optimization',
-            ],
-        },
-    },
-    {
-        id: '3',
-        topic: 'Design Netflix',
-        date: 'Oct 08, 02:45 PM',
-        score: 'needs_improvement',
-        summary: {
-            strengths: [
-                'Identified the need for adaptive bitrate streaming',
-            ],
-            missed_topics: [
-                'Content delivery network architecture was not well explained',
-                'Recommendation engine design was missing',
-                'Video transcoding pipeline was not discussed',
-                'User session management across devices not addressed',
-            ],
-            suggestions: [
-                'Study CDN architecture and how Netflix uses Open Connect',
-                'Explore collaborative filtering for recommendation systems',
-                'Review video encoding formats and adaptive streaming protocols like HLS/DASH',
-            ],
-        },
-    },
-];
 
 // ─── Expandable Card ───────────────────────────────────────────────────────────
 
@@ -130,7 +56,7 @@ function InterviewCard({ item }: { item: InterviewHistoryItem }) {
                     </View>
                     <View style={styles.cardInfo}>
                         <Text style={styles.cardTopic}>{item.topic}</Text>
-                        <Text style={styles.cardDate}>{item.date}</Text>
+                        <Text style={styles.cardDate}>{formatInterviewDate(item.date)}</Text>
                     </View>
                 </View>
                 <View style={styles.cardHeaderRight}>
@@ -223,13 +149,15 @@ function EmptyState() {
 
 export default function HistoryScreen() {
     const [refreshing, setRefreshing] = useState(false);
-    const [history] = useState<InterviewHistoryItem[]>(MOCK_HISTORY);
+    const { data, isFetching, refetch } = useGetHistoryQuery();
+    const history = data?.history ?? [];
+    const stats = data?.stats;
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         // Simulate network request — replace with actual API call
-        setTimeout(() => setRefreshing(false), 1200);
-    }, []);
+        refetch().finally(() => setRefreshing(false));
+    }, [refetch]);
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -251,7 +179,7 @@ export default function HistoryScreen() {
                     showsVerticalScrollIndicator={false}
                     refreshControl={
                         <RefreshControl
-                            refreshing={refreshing}
+                            refreshing={refreshing || isFetching}
                             onRefresh={onRefresh}
                             tintColor={Colors.primaryBrand}
                             colors={[Colors.primaryBrand]}
@@ -262,24 +190,24 @@ export default function HistoryScreen() {
                     {/* Stats Row */}
                     <View style={styles.statsRow}>
                         <View style={styles.statCard}>
-                            <Text style={styles.statValue}>{history.length}</Text>
+                            <Text style={styles.statValue}>{stats?.total ?? history.length}</Text>
                             <Text style={styles.statLabel}>Total</Text>
                         </View>
                         <View style={styles.statCard}>
                             <Text style={[styles.statValue, { color: '#10B981' }]}>
-                                {history.filter((h) => h.score === 'good').length}
+                                {stats?.strong ?? history.filter((h) => h.score === 'good').length}
                             </Text>
                             <Text style={styles.statLabel}>Strong</Text>
                         </View>
                         <View style={styles.statCard}>
                             <Text style={[styles.statValue, { color: '#F59E0B' }]}>
-                                {history.filter((h) => h.score === 'average').length}
+                                {stats?.average ?? history.filter((h) => h.score === 'average').length}
                             </Text>
                             <Text style={styles.statLabel}>Average</Text>
                         </View>
                         <View style={styles.statCard}>
                             <Text style={[styles.statValue, { color: '#EF4444' }]}>
-                                {history.filter((h) => h.score === 'needs_improvement').length}
+                                {stats?.needsImprovement ?? history.filter((h) => h.score === 'needs_improvement').length}
                             </Text>
                             <Text style={styles.statLabel}>Needs Work</Text>
                         </View>

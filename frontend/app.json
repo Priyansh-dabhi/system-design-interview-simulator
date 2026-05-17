@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Allow System Design Interview Simulator to use speech recognition for voice input.",
-        "NSMicrophoneUsageDescription": "Allow System Design Interview Simulator to use the microphone for voice input."
+        "NSMicrophoneUsageDescription": "Allow System Design Interview Simulator tandroid.usesCleartextTraffico use the microphone for voice input."
       }
     },
     "android": {
@@ -28,8 +28,7 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.anonymous.interviewer",
-      "usesCleartextTraffic": true
+      "package": "com.anonymous.interviewer"
     },
     "web": {
       "output": "static",
@@ -59,7 +58,8 @@
           ]
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,

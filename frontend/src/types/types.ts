@@ -1,3 +1,4 @@
+import { ReactNode } from 'react';
 import { TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 export interface User {
@@ -15,6 +16,41 @@ export interface AuthResponse {
 export interface RefreshResponse {
     accessToken: string;
     refreshToken: string;
+    user: User;
+}
+
+export interface InterviewSummary {
+    strengths: string[];
+    missed_topics: string[];
+    suggestions: string[];
+}
+
+export type InterviewScore = 'good' | 'average' | 'needs_improvement';
+
+export interface InterviewHistoryItem {
+    id: string;
+    topic: string;
+    status: string;
+    stage: string;
+    date: string;
+    messageCount: number;
+    score: InterviewScore;
+    summary: InterviewSummary;
+}
+
+export interface InterviewStats {
+    total: number;
+    completed: number;
+    active: number;
+    strong: number;
+    average: number;
+    needsImprovement: number;
+    strongestDomain: string;
+}
+
+export interface InterviewHistoryResponse {
+    history: InterviewHistoryItem[];
+    stats: InterviewStats;
 }
 
 export interface LoginCredentials {
@@ -37,6 +73,7 @@ export interface ScreenWrapperProps {
 export interface InputProps extends TextInputProps {
     label?: string;
     error?: string;
+    rightAccessory?: ReactNode;
 }
 
 export interface ButtonProps {

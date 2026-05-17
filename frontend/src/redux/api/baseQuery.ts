@@ -1,10 +1,29 @@
 import { BaseQueryApi, BaseQueryFn, FetchArgs, FetchBaseQueryError, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { API_URL } from "../../config/api";
-import { clearAuthState, setSession } from "../slices/auth";
-import { clearStoredAuth, getStoredRefreshToken, getStoredUser, setStoredRefreshToken } from "../../storage/authStorage";
-import { RefreshResponse } from "../../types/types";
+import { clearAuthState, setAuthNotice, setSession } from "../slices/auth";
+import { clearStoredAuth, getStoredRefreshToken, setStoredRefreshToken, setStoredUser } from "../../storage/authStorage";
 import { clearSelectedTopic } from "../slices/problem";
 import { clearSession } from "../slices/session";
+import { AuthApiError, refreshSession } from "../../services/auth.api";
+import { signOutFirebaseSession } from "../../services/googleAuth";
+
+const getSessionRecoveryNotice = (error: unknown) => {
+    if (error instanceof AuthApiError) {
+        if (error.category === "auth" || error.category === "validation") {
+            return "Session expired. Please sign in again.";
+        }
+
+        if (error.category === "network") {
+            return "We couldn't refresh your session. Check your connection and sign in again.";
+        }
+
+        if (error.category === "config") {
+            return "The app API URL is not configured. Update the app configuration and sign in again.";
+        }
+    }
+
+    return "We couldn't refresh your session. Please sign in again.";
+};
 
 let activeRefreshPromise: Promise<string | null> | null = null;
 
@@ -25,41 +44,35 @@ const rawBaseQuery = fetchBaseQuery({
 const performTokenRefresh = async (api: BaseQueryApi) => {
     if (!activeRefreshPromise) {
         activeRefreshPromise = (async () => {
-            const [refreshToken, user] = await Promise.all([
-                getStoredRefreshToken(),
-                getStoredUser(),
-            ]);
+            const refreshToken = await getStoredRefreshToken();
 
-            if (!refreshToken || !user) {
+            if (!refreshToken) {
                 await clearStoredAuth();
+                await signOutFirebaseSession();
                 api.dispatch(clearAuthState());
                 api.dispatch(clearSession());
                 api.dispatch(clearSelectedTopic());
+                api.dispatch(setAuthNotice("Session expired. Please sign in again."));
                 return null;
             }
 
-            const refreshResult = await rawBaseQuery(
-                {
-                    url: "/api/auth/refresh",
-                    method: "POST",
-                    body: { refreshToken },
-                },
-                api,
-                {}
-            );
-
-            if (!refreshResult.data) {
+            try {
+                const tokens = await refreshSession(refreshToken);
+                await Promise.all([
+                    setStoredRefreshToken(tokens.refreshToken),
+                    setStoredUser(tokens.user),
+                ]);
+                api.dispatch(setSession({ accessToken: tokens.accessToken, user: tokens.user }));
+                return tokens.accessToken;
+            } catch (error) {
                 await clearStoredAuth();
+                await signOutFirebaseSession();
                 api.dispatch(clearAuthState());
                 api.dispatch(clearSession());
                 api.dispatch(clearSelectedTopic());
+                api.dispatch(setAuthNotice(getSessionRecoveryNotice(error)));
                 return null;
             }
-
-            const tokens = refreshResult.data as RefreshResponse;
-            await setStoredRefreshToken(tokens.refreshToken);
-            api.dispatch(setSession({ accessToken: tokens.accessToken, user }));
-            return tokens.accessToken;
         })().finally(() => {
             activeRefreshPromise = null;
         });

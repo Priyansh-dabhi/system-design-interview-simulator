@@ -4,7 +4,7 @@ export const Colors = {
     surfaceHighlight: '#2A2A2A',
     text: '#FFFFFF',
     textSecondary: '#A1A1AA', // Zinc 400
-    textDim: '#52525B', // Zinc 600
+    textDim: '#fff', // Zinc 600
     primary: '#E4E4E7', // Zinc 200 - High contrast neutral
     primaryDark: '#A1A1AA',
     border: '#27272A', // Zinc 800
