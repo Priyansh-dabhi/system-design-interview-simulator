@@ -3,7 +3,7 @@ import { verifyGoogleIdToken } from "../config/firebase-admin.js";
 import { comparePassword, hashPassword } from "../utils/password.js";
 import { issueAuthSession } from "./refresh-token.service.js";
 import { AuthServiceError } from "./auth-errors.js";
-import { Prisma } from "../generated/prisma/index.js";
+import { Prisma } from "@prisma/client";
 import crypto from "crypto";
 
 const toAuthUser = (user: { id: number; fullName: string; email: string }) => ({
