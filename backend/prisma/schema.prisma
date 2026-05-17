@@ -10,11 +10,15 @@ datasource db {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  fullName  String
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
+  id          Int      @id @default(autoincrement())
+  fullName    String
+  email       String   @unique
+  password    String
+  authProvider String  @default("password") @map("auth_provider")
+  providerId  String?  @unique @map("provider_id")
+  avatarUrl   String?  @map("avatar_url")
+  oauthEnabled Boolean @default(false) @map("oauth_enabled")
+  createdAt   DateTime @default(now())
 
   sessions      InterviewSession[]
   refreshTokens RefreshToken[]

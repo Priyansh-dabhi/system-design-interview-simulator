@@ -1,16 +1,7 @@
 import prisma from "../config/prisma.js";
 import * as refreshTokenRepository from "../repositories/refresh-token.repository.js";
 import { generateRefreshToken, getRefreshTokenExpiryDate, hashRefreshToken, signAccessToken } from "../utils/token.js";
-
-export class AuthServiceError extends Error {
-    statusCode: number;
-
-    constructor(message: string, statusCode = 401) {
-        super(message);
-        this.name = "AuthServiceError";
-        this.statusCode = statusCode;
-    }
-}
+import { AuthServiceError } from "./auth-errors.js";
 
 type SessionUser = {
     id: number;
@@ -88,6 +79,11 @@ export const refreshAuthSession = async (refreshToken: string, deviceInfo?: stri
     return {
         accessToken,
         refreshToken: nextRefreshToken,
+        user: {
+            id: existingToken.user.id,
+            fullName: existingToken.user.fullName,
+            email: existingToken.user.email,
+        },
     };
 };
 
