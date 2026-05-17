@@ -1,8 +1,13 @@
 import prisma from "../config/prisma.js";
 
-export const getConversation = async (sessionId: string) => {
+export const getConversationForOwnedSession = async (sessionId: string, userId: number) => {
     const messages = await prisma.interviewMessage.findMany({
-        where: { sessionId },
+        where: {
+            sessionId,
+            session: {
+                userId,
+            },
+        },
         orderBy: { createdAt: "asc" },
         select: {
             role: true,
@@ -19,20 +24,42 @@ export const getConversation = async (sessionId: string) => {
 
 export const saveMessage = async (
     sessionId: string,
+    userId: number,
     role: "user" | "ai",
     content: string
 ) => {
-    await prisma.interviewMessage.create({
-        data: {
-            sessionId,
-            role,
-            content,
-        },
+    await prisma.$transaction(async (tx) => {
+        const ownedSession = await tx.interviewSession.findFirst({
+            where: {
+                id: sessionId,
+                userId,
+            },
+            select: {
+                id: true,
+            },
+        });
+
+        if (!ownedSession) {
+            throw new Error("SESSION_NOT_FOUND");
+        }
+
+        await tx.interviewMessage.create({
+            data: {
+                sessionId,
+                role,
+                content,
+            },
+        });
     });
 };
 
-export const getMessageCount = async (sessionId: string): Promise<number> => {
+export const getMessageCountForOwnedSession = async (sessionId: string, userId: number): Promise<number> => {
     return prisma.interviewMessage.count({
-        where: { sessionId },
+        where: {
+            sessionId,
+            session: {
+                userId,
+            },
+        },
     });
 };
