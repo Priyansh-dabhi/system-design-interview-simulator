@@ -289,7 +289,7 @@ erDiagram
 
     interview_summaries {
         uuid id PK
-        uuid sessionId FK_UK
+        uuid sessionId UK
         string strengths
         string missedTopics
         string suggestions
@@ -301,7 +301,7 @@ erDiagram
         string topic
         string subtopic
         string content
-        vector embedding
+        vector768 embedding
         json metadata
         datetime createdAt
         datetime updatedAt
