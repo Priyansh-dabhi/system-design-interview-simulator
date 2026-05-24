@@ -292,31 +292,32 @@ export default function InterviewSessionScreen() {
                 </TouchableOpacity>
             </View>
 
-            {/* Messages */}
-            <FlatList
-                ref={flatListRef}
-                data={messages}
-                renderItem={renderMessage}
-                keyExtractor={(item) => item.id}
-                contentContainerStyle={styles.messagesList}
-                showsVerticalScrollIndicator={false}
-                ListFooterComponent={
-                    isSending ? (
-                        <View style={[styles.messageContainer, styles.interviewerContainer]}>
-                            <View style={[styles.messageBubble, styles.interviewerBubble, styles.typingBubble]}>
-                                <ActivityIndicator size="small" color={Colors.textSecondary} />
-                                <Text style={styles.typingText}>AI is thinking...</Text>
-                            </View>
-                        </View>
-                    ) : null
-                }
-            />
-
-            {/* Input Area */}
             <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+                style={{ flex: 1 }}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}  // 'height' for Android
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
+                {/* Messages */}
+                <FlatList
+                    ref={flatListRef}
+                    data={messages}
+                    renderItem={renderMessage}
+                    keyExtractor={(item) => item.id}
+                    contentContainerStyle={styles.messagesList}
+                    showsVerticalScrollIndicator={false}
+                    ListFooterComponent={
+                        isSending ? (
+                            <View style={[styles.messageContainer, styles.interviewerContainer]}>
+                                <View style={[styles.messageBubble, styles.interviewerBubble, styles.typingBubble]}>
+                                    <ActivityIndicator size="small" color={Colors.textSecondary} />
+                                    <Text style={styles.typingText}>AI is thinking...</Text>
+                                </View>
+                            </View>
+                        ) : null
+                    }
+                />
+
+                {/* Input Area */}
                 <View style={styles.inputContainer}>
                     <TextInput
                         style={styles.input}
