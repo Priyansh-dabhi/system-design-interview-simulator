@@ -58,6 +58,14 @@ export default function InterviewSessionScreen() {
     const [isRecording, setIsRecording] = useState(false);
     const [isNavigatingAway, setIsNavigatingAway] = useState(false);
     const flatListRef = useRef<FlatList>(null);
+    const baseTextRef = useRef('');
+
+    // Keep track of text before recording to allow appending on resume
+    useEffect(() => {
+        if (!isRecording) {
+            baseTextRef.current = inputText;
+        }
+    }, [inputText, isRecording]);
 
     // Set initial message from the API response
     useEffect(() => {
@@ -186,7 +194,9 @@ export default function InterviewSessionScreen() {
     safeUseSpeechEvent('result', (event: any) => {
         const transcript = event.results[0]?.transcript;
         if (transcript) {
-            setInputText(transcript);
+            const baseText = baseTextRef.current;
+            const separator = baseText.length > 0 && !baseText.endsWith(' ') ? ' ' : '';
+            setInputText(baseText + separator + transcript);
         }
     });
     safeUseSpeechEvent('error', (event: any) => {
