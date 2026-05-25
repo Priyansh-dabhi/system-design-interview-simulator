@@ -18,7 +18,7 @@
 
 ---
 
-🔗 **[Live Backend](https://system-design-interview-simulator.onrender.com)** · 📂 **[GitHub Repository](https://github.com/Priyansh-dabhi/system-design-interview-simulator)** · 🎬 **[Demo Video](#-demo--screenshots)** · 🖼️ **[Media Gallery](#-demo--screenshots)**
+🔗 **[Live Backend](https://system-design-interview-simulator.onrender.com)** · 📂 **[GitHub Repository](https://github.com/Priyansh-dabhi/system-design-interview-simulator)** · 🎬 **[Demo Video](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=drive_link)** · 🖼️ **[Media Gallery](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=drive_link)**
 
 </div>
 
@@ -765,24 +765,7 @@ The backend is deployed on [Render](https://render.com) as a web service:
 
 ## 📸 Demo & Screenshots
 
-<!-- 
-Add screenshots and demo recordings here.
-Recommended sections:
-
-- Login / Registration screen
-- Home dashboard
-- Problem selection
-- Live interview chat
-- Voice input in action
-- AI evaluation summary
-- Interview history
-
-Example format:
-![Login Screen](https://res.cloudinary.com/your-cloud/image/upload/v1/screenshots/login.png)
-![Interview Session](https://res.cloudinary.com/your-cloud/image/upload/v1/screenshots/session.png)
--->
-
-> 📌 **Screenshots and demo video coming soon.** Check back for a visual walkthrough of the complete interview flow.
+**[🔗 Click here to view the Demo Video and Screenshots on Google Drive](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=sharing)**
 
 ---
 
