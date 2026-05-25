@@ -288,6 +288,7 @@ const styles = StyleSheet.create({
         marginTop: 2,
         textTransform: 'uppercase',
         letterSpacing: 0.5,
+        textAlign: 'center',
     },
 
     // Cards
