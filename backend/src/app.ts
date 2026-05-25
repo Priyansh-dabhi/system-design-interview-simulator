@@ -19,7 +19,7 @@ app.use((req, res, next) => {
 
 // health check
 app.get("/", (req, res) => {
-    res.send("server is running");
+    res.send("AI System Design Interview Simulator API is live 🚀");
 });
 
 // auth routes
