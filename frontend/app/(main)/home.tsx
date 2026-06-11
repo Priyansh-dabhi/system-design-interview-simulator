@@ -1,7 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { CaretRightIcon, ClockCounterClockwiseIcon, PlayIcon } from "phosphor-react-native";
-import React from "react";
+import React, { useEffect } from "react";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
@@ -12,12 +12,31 @@ import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
 import { logout } from '@/src/redux/slices/auth';
 import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
 
+// Safe import: expo-speech-recognition requires a development build (not Expo Go)
+let ExpoSpeechRecognitionModule: any = null;
+try {
+    const speechModule = require('expo-speech-recognition');
+    ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
+} catch {
+    // Native module not available (Expo Go)
+}
+
 export default function HomeScreen() {
   const user = useAppSelector((state) => state.auth.user);
   const { data } = useGetHistoryQuery();
   const router = useRouter();
   const dispatch = useDispatch();
   const appDispatch = useAppDispatch();
+
+  useEffect(() => {
+    // Request permissions upfront when user first lands on the home screen
+    const requestPermissions = async () => {
+      if (ExpoSpeechRecognitionModule) {
+        await ExpoSpeechRecognitionModule.requestPermissionsAsync();
+      }
+    };
+    requestPermissions();
+  }, []);
 
   const interviewsPracticed = data?.stats.completed ?? 0;
   const recommendedInterviews = [
@@ -56,7 +75,7 @@ export default function HomeScreen() {
             <Text style={styles.greeting}>Good Evening, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
             <Text style={styles.subGreeting}>Ready to practice today?</Text>
           </View>
-          <TouchableOpacity onPress={() => appDispatch(logout())} style={styles.profileButton}>
+          <TouchableOpacity style={styles.profileButton}>
             {/* Placeholder for user avatar or initials */}
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>{user?.fullName?.[0] || 'A'}</Text>
