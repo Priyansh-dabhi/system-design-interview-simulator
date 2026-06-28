@@ -4,7 +4,7 @@ import { setSession } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { useRouter } from 'expo-router';
 import { ArrowLeftIcon, ChatCircleDotsIcon, CheckIcon, FilmReelIcon, LinkIcon, MapPinIcon } from 'phosphor-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -72,8 +72,15 @@ export default function TopicSelectionScreen() {
     const selectedTopic = useSelector((state: RootState) => state.problem.selectedTopic);
     const router = useRouter();
     const [startSession, { isLoading }] = useStartSessionMutation();
+    const [expandedId, setExpandedId] = useState<string | null>(null);
 
-    const handleTopicPress = (topic: Topic) => {
+    // Tap on card body → expand / collapse description
+    const handleCardPress = (topic: Topic) => {
+        setExpandedId(prev => (prev === topic.id ? null : topic.id));
+    };
+
+    // Tap on checkbox area → select / deselect topic
+    const handleTopicSelect = (topic: Topic) => {
         try {
             if (selectedTopic?.id === topic.id) {
                 dispatch(clearSelectedTopic());
@@ -85,9 +92,7 @@ export default function TopicSelectionScreen() {
                     })
                 );
             }
-        } catch (err) {
-
-        }
+        } catch (err) {}
         console.log('Selected topic:', topic.id);
     };
 
@@ -135,6 +140,7 @@ export default function TopicSelectionScreen() {
             >
                 {TOPICS.map((topic) => {
                     const isSelected = selectedTopic?.id === topic.id;
+                    const isExpanded = expandedId === topic.id;
                     return (
                         <TouchableOpacity
                             key={topic.id}
@@ -142,8 +148,8 @@ export default function TopicSelectionScreen() {
                                 styles.topicCard,
                                 isSelected && styles.topicCardSelected,
                             ]}
-                            activeOpacity={0.7}
-                            onPress={() => handleTopicPress(topic)}
+                            activeOpacity={0.75}
+                            onPress={() => handleCardPress(topic)}
                         >
                             {/* Icon */}
                             <View style={[styles.topicIconContainer, { backgroundColor: topic.accentColor + '15' }]}>
@@ -156,8 +162,19 @@ export default function TopicSelectionScreen() {
                                     <Text style={styles.topicTitle}>{topic.title}</Text>
                                 </View>
 
-                                {/* Description - Centered */}
-                                <Text style={styles.topicDescription} numberOfLines={2} ellipsizeMode="tail">{topic.description}</Text>
+                                {/* Description – collapsed (2 lines) or expanded (full) */}
+                                <Text
+                                    style={styles.topicDescription}
+                                    numberOfLines={isExpanded ? undefined : 2}
+                                    ellipsizeMode="tail"
+                                >
+                                    {topic.description}
+                                </Text>
+
+                                {/* Tap hint */}
+                                <Text style={styles.expandHint}>
+                                    {isExpanded ? 'Tap to collapse ▲' : 'Tap to expand ▼'}
+                                </Text>
 
                                 {/* Metadata: Type and Difficulty */}
                                 <View style={styles.metadataRow}>
@@ -173,10 +190,14 @@ export default function TopicSelectionScreen() {
                                 </View>
                             </View>
 
-                            {/* Checkbox */}
-                            <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                            {/* Checkbox – separate tap target for selection */}
+                            <TouchableOpacity
+                                style={[styles.checkbox, isSelected && styles.checkboxSelected]}
+                                onPress={(e) => { e.stopPropagation?.(); handleTopicSelect(topic); }}
+                                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                            >
                                 {isSelected && <CheckIcon size={16} color="#FFFFFF" weight="bold" />}
-                            </View>
+                            </TouchableOpacity>
                         </TouchableOpacity>
                     );
                 })}
@@ -316,7 +337,13 @@ const styles = StyleSheet.create({
         fontSize: 13,
         color: Colors.textSecondary,
         lineHeight: 18,
-        textAlign: 'center',
+        textAlign: 'left',
+    },
+    expandHint: {
+        fontSize: 11,
+        color: Colors.textSecondary,
+        opacity: 0.55,
+        marginTop: -2,
     },
     checkbox: {
         position: 'absolute',
