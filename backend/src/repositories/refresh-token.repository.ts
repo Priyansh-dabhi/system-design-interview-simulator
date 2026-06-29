@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
 
 type RefreshTokenRecordInput = {
     userId: number;
@@ -13,18 +14,18 @@ export const createRefreshTokenRecord = async ({
     deviceInfo,
     expiresAt,
 }: RefreshTokenRecordInput) => {
-    return prisma.refreshToken.create({
+    return withDbErrorHandling(() => prisma.refreshToken.create({
         data: {
             userId,
             tokenHash,
             deviceInfo,
             expiresAt,
         },
-    });
+    }));
 };
 
 export const findRefreshTokenByHash = async (tokenHash: string) => {
-    return prisma.refreshToken.findUnique({
+    return withDbErrorHandling(() => prisma.refreshToken.findUnique({
         where: { tokenHash },
         include: {
             user: {
@@ -35,32 +36,32 @@ export const findRefreshTokenByHash = async (tokenHash: string) => {
                 },
             },
         },
-    });
+    }));
 };
 
 export const revokeRefreshTokenById = async (id: string) => {
-    return prisma.refreshToken.update({
+    return withDbErrorHandling(() => prisma.refreshToken.update({
         where: { id },
         data: { revokedAt: new Date() },
-    });
+    }));
 };
 
 export const revokeRefreshTokenByHash = async (tokenHash: string) => {
-    return prisma.refreshToken.updateMany({
+    return withDbErrorHandling(() => prisma.refreshToken.updateMany({
         where: {
             tokenHash,
             revokedAt: null,
         },
         data: { revokedAt: new Date() },
-    });
+    }));
 };
 
 export const revokeAllRefreshTokensForUser = async (userId: number) => {
-    return prisma.refreshToken.updateMany({
+    return withDbErrorHandling(() => prisma.refreshToken.updateMany({
         where: {
             userId,
             revokedAt: null,
         },
         data: { revokedAt: new Date() },
-    });
+    }));
 };

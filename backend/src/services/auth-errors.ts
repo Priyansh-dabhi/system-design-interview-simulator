@@ -1,9 +1,8 @@
-export class AuthServiceError extends Error {
-    statusCode: number;
+import { AppError } from "../utils/errors.js";
 
-    constructor(message: string, statusCode = 401) {
-        super(message);
+export class AuthServiceError extends AppError {
+    constructor(message: string, statusCode = 401, code = "AUTH_ERROR") {
+        super(message, statusCode, code);
         this.name = "AuthServiceError";
-        this.statusCode = statusCode;
     }
 }

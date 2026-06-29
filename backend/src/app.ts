@@ -4,6 +4,7 @@ import cors from "cors";
 // routes (we’ll add auth routes soon)
 import authRoutes from "./routes/auth.routes.js";
 import interviewRoutes from  "./routes/interview.routes.js"
+import { globalErrorHandler } from "./middleware/error.middleware.js";
 
 const app = express();
 
@@ -25,5 +26,13 @@ app.get("/", (req, res) => {
 // auth routes
 app.use("/api/auth", authRoutes);
 app.use("/api/interview",interviewRoutes)
+
+// 404 catch-all
+app.use((req, res, next) => {
+    res.status(404).json({ message: "Route not found", code: "NOT_FOUND" });
+});
+
+// global error handler
+app.use(globalErrorHandler);
 
 export default app;

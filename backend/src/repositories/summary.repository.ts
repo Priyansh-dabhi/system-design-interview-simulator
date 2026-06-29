@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
 
 export const saveSummary = async (
     sessionId: string,
@@ -7,7 +8,7 @@ export const saveSummary = async (
     missedTopics: string[],
     suggestions: string[]
 ) => {
-    await prisma.$transaction(async (tx) => {
+    await withDbErrorHandling(() => prisma.$transaction(async (tx) => {
         const ownedSession = await tx.interviewSession.findFirst({
             where: {
                 id: sessionId,
@@ -35,5 +36,5 @@ export const saveSummary = async (
             where: { id: sessionId },
             data: { status: "completed" },
         });
-    });
+    }));
 };

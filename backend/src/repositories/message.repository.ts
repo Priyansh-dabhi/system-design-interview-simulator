@@ -1,7 +1,8 @@
 import prisma from "../config/prisma.js";
+import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
 
 export const getConversationForOwnedSession = async (sessionId: string, userId: number) => {
-    const messages = await prisma.interviewMessage.findMany({
+    const messages = await withDbErrorHandling(() => prisma.interviewMessage.findMany({
         where: {
             sessionId,
             session: {
@@ -13,7 +14,7 @@ export const getConversationForOwnedSession = async (sessionId: string, userId: 
             role: true,
             content: true,
         },
-    });
+    }));
 
     // Convert to string format for LLM (same as before)
     return messages
@@ -28,7 +29,7 @@ export const saveMessage = async (
     role: "user" | "ai",
     content: string
 ) => {
-    await prisma.$transaction(async (tx) => {
+    await withDbErrorHandling(() => prisma.$transaction(async (tx) => {
         const ownedSession = await tx.interviewSession.findFirst({
             where: {
                 id: sessionId,
@@ -50,16 +51,16 @@ export const saveMessage = async (
                 content,
             },
         });
-    });
+    }));
 };
 
 export const getMessageCountForOwnedSession = async (sessionId: string, userId: number): Promise<number> => {
-    return prisma.interviewMessage.count({
+    return withDbErrorHandling(() => prisma.interviewMessage.count({
         where: {
             sessionId,
             session: {
                 userId,
             },
         },
-    });
+    }));
 };

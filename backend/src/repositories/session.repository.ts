@@ -1,7 +1,8 @@
 import prisma from "../config/prisma.js";
+import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
 
 export const createSession = async (userId: number, problem: string) => {
-    const session = await prisma.interviewSession.create({
+    return withDbErrorHandling(() => prisma.interviewSession.create({
         data: {
             userId,
             problemName: problem,
@@ -9,13 +10,11 @@ export const createSession = async (userId: number, problem: string) => {
         select: {
             id: true,
         },
-    });
-
-    return session;
+    }));
 };
 
 export const findOwnedSessionById = async (sessionId: string, userId: number) => {
-    return prisma.interviewSession.findFirst({
+    return withDbErrorHandling(() => prisma.interviewSession.findFirst({
         where: {
             id: sessionId,
             userId,
@@ -27,21 +26,21 @@ export const findOwnedSessionById = async (sessionId: string, userId: number) =>
             status: true,
             stage: true,
         },
-    });
+    }));
 };
 
 export const updateOwnedSessionStage = async (sessionId: string, userId: number, stage: string) => {
-    return prisma.interviewSession.updateMany({
+    return withDbErrorHandling(() => prisma.interviewSession.updateMany({
         where: {
             id: sessionId,
             userId,
         },
         data: { stage },
-    });
+    }));
 };
 
 export const getHistoryForUser = async (userId: number) => {
-    return prisma.interviewSession.findMany({
+    return withDbErrorHandling(() => prisma.interviewSession.findMany({
         where: {
             userId,
         },
@@ -56,5 +55,5 @@ export const getHistoryForUser = async (userId: number) => {
                 },
             },
         },
-    });
+    }));
 };
