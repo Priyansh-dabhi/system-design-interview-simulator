@@ -1,5 +1,5 @@
 import "dotenv/config";
-import testPrisma from "../../prisma/test-client.ts";
+import testPrisma from "../../prisma/test-client.js";
 
 /**
  * Runs ONCE before all test suites.
