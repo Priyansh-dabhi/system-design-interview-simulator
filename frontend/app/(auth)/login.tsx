@@ -5,6 +5,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
+import { GoogleIcon } from "../../src/components/ui/GoogleIcon";
 import { Colors } from "../../src/constants/Colors";
 import { Layout } from "../../src/constants/Layout";
 import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
@@ -115,11 +116,13 @@ export default function LoginScreen() {
           </View>
 
           <Button
-            title="Continue with Google"
+            title="Sign in with Google"
             onPress={handleGoogleLogin}
             variant="outline"
             isLoading={false}
             style={styles.googleButton}
+            textStyle={styles.googleButtonText}
+            leftIcon={<GoogleIcon size={20} />}
             disabled={isBusy}
           />
         </View>
@@ -167,6 +170,14 @@ const styles = StyleSheet.create({
   },
   googleButton: {
     marginTop: Layout.spacing.sm,
+    borderRadius: 100,
+    borderColor: Colors.border,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+  },
+  googleButtonText: {
+    color: "#1F2937",
+    fontWeight: "600",
   },
   dividerRow: {
     flexDirection: "row",
