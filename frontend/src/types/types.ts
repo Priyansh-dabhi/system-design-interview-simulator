@@ -84,4 +84,5 @@ export interface ButtonProps {
     disabled?: boolean;
     style?: ViewStyle;
     textStyle?: TextStyle;
+    leftIcon?: ReactNode;
 }
