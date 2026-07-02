@@ -9,6 +9,7 @@
     "cors": "^2.8.6",
     "dotenv": "^16.6.1",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.5.2",
     "firebase-admin": "^13.10.0",
     "jsonwebtoken": "^9.0.3",
     "langchain": "^1.2.30",
@@ -40,7 +41,9 @@
     "dev": "nodemon --watch index.ts --exec node --loader ts-node/esm index.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "test:load": "k6 run load-tests/auth-load-test.js",
+    "test:load:chat": "k6 run load-tests/chat-load-test.js"
   },
   "keywords": [],
   "author": "",
