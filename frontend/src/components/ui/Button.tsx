@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { Colors } from "../../constants/Colors";
 import { Layout } from "../../constants/Layout";
@@ -18,6 +19,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   style,
   textStyle,
+  leftIcon,
 }) => {
   const getBackgroundColor = () => {
     if (disabled) return Colors.surfaceHighlight;
@@ -77,9 +79,12 @@ export const Button: React.FC<ButtonProps> = ({
       {isLoading ? (
         <ActivityIndicator color={getTextColor()} />
       ) : (
-        <Text style={[styles.text, { color: getTextColor() }, textStyle]}>
-          {title}
-        </Text>
+        <View style={styles.contentContainer}>
+          {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
+          <Text style={[styles.text, { color: getTextColor() }, textStyle]}>
+            {title}
+          </Text>
+        </View>
       )}
     </TouchableOpacity>
   );
@@ -94,6 +99,14 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 48,
     width: "100%",
+  },
+  contentContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  leftIconContainer: {
+    marginRight: Layout.spacing.sm,
   },
   text: {
     fontSize: 16,
