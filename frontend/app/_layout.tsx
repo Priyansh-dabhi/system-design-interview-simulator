@@ -10,6 +10,7 @@ import { store } from "@/src/redux/store";
 import { Provider } from "react-redux";
 import { useAppDispatch, useAppSelector } from "@/src/redux/hooks";
 import { bootstrapAuth, clearGoogleAuthPhase } from "@/src/redux/slices/auth";
+import { OfflineScreen } from "../src/components/OfflineScreen";
 
 function AuthGuard() {
   const dispatch = useAppDispatch();
@@ -93,6 +94,7 @@ export default function RootLayout() {
       <SafeAreaProvider>
         <View style={{ flex: 1, backgroundColor: Colors.background }}>
           <AuthGuard />
+          <OfflineScreen />
         </View>
       </SafeAreaProvider>
     </Provider>

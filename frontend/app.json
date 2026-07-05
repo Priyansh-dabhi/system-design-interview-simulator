@@ -12,7 +12,7 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSSpeechRecognitionUsageDescription": "Allow System Design Interview Simulator to use speech recognition for voice input.",
-        "NSMicrophoneUsageDescription": "Allow System Design Interview Simulator tandroid.usesCleartextTraffico use the microphone for voice input."
+        "NSMicrophoneUsageDescription": "Allow System Design Interview Simulator to use the microphone for voice input."
       }
     },
     "android": {

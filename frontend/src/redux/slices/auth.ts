@@ -12,7 +12,7 @@ import {
     registerUser,
 } from "../../services/auth.api";
 import { signOutFirebaseSession } from "../../services/googleAuth";
-import { clearStoredAuth, getStoredRefreshToken, setStoredRefreshToken, setStoredUser } from "../../storage/authStorage";
+import { clearStoredAuth, getStoredRefreshToken, getStoredUser, setStoredRefreshToken, setStoredUser } from "../../storage/authStorage";
 import { AuthResponse, LoginCredentials, RegisterCredentials, User } from "../../types/types";
 
 const getSessionRecoveryNotice = (error: unknown) => {
@@ -83,6 +83,19 @@ export const bootstrapAuth = createAsyncThunk(
                 authNotice: null,
             };
         } catch (error) {
+            // Network error — device is offline. Preserve stored credentials
+            // and load cached user so the AuthGuard doesn't redirect to login.
+            if (error instanceof AuthApiError && error.category === "network") {
+                const cachedUser = await getStoredUser();
+                return {
+                    accessToken: null,
+                    user: cachedUser,       // Keep the user "logged in"
+                    authNotice: null,
+                };
+            }
+
+            // Genuine auth failure (expired token, revoked session, etc.)
+            // — clear everything and force re-login.
             await clearStoredAuth();
             await signOutFirebaseSession();
             return {
