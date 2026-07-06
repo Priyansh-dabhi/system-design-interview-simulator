@@ -67,74 +67,7 @@ export default function ProfileScreen() {
         );
     };
 
-
-        <SafeAreaView style={styles.container} edges={['top']}>
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-
-                {/* Profile Header */}
-                <View style={styles.profileHeader}>
-                    <View style={styles.avatar}>
-                        <Text style={styles.avatarText}>{initials}</Text>
-                    </View>
-                    <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
-                    <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
-                </View>
-
-                {/* Performance Metrics */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Performance Metrics</Text>
-                    <View style={styles.metricsGrid}>
-                        {performanceMetrics.map((metric) => (
-                            <MetricCard
-                                key={metric.label}
-                                label={metric.label}
-                                value={metric.value}
-                                icon={metric.icon}
-                                color={metric.color}
-                                bg={metric.bg}
-                            />
-                        ))}
-                    </View>
-                </View>
-
-                {/* Account Controls */}
-                <View style={styles.sectionContainer}>
-                    <Text style={styles.sectionTitle}>Account Controls</Text>
-                    <View style={styles.controlsList}>
-                        <ControlRow
-                            label="Edit Profile"
-                            icon={UserCircleIcon}
-                            onPress={() => console.log('Navigate to Edit Profile')}
-                        />
-                        <ControlRow
-                            label="Preferences"
-                            icon={GearSixIcon}
-                            onPress={() => router.push('/(main)/preferences')}
-                        />
-                        <ControlRow
-                            label="Sign Out"
-                            icon={SignOutIcon}
-                            iconColor={colors.error}
-                            iconBg={colors.dangerSurfaceBg}
-                            labelColor={colors.error}
-                            chevronColor={colors.error}
-                            isLast
-                            onPress={handleSignOut}
-                        />
-                    </View>
-                </View>
-
-                {/* App Version */}
-                <View style={styles.versionContainer}>
-                    <Text style={styles.versionText}>v1.0.0-beta</Text>
-                </View>
-
-            </ScrollView>
-        </SafeAreaView>
-    );
-}
-
-    const styles = React.useMemo(() => StyleSheet.create({
+const styles = React.useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: colors.background,
@@ -210,4 +143,71 @@ export default function ProfileScreen() {
         },
     }), [colors]);
 
-    return (
+  return (
+
+
+          <SafeAreaView style={styles.container} edges={['top']}>
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+                {/* Profile Header */}
+                <View style={styles.profileHeader}>
+                    <View style={styles.avatar}>
+                        <Text style={styles.avatarText}>{initials}</Text>
+                    </View>
+                    <Text style={styles.userName}>{user?.fullName || 'User'}</Text>
+                    <Text style={styles.userEmail}>{user?.email || 'user@example.com'}</Text>
+                </View>
+
+                {/* Performance Metrics */}
+                <View style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>Performance Metrics</Text>
+                    <View style={styles.metricsGrid}>
+                        {performanceMetrics.map((metric) => (
+                            <MetricCard
+                                key={metric.label}
+                                label={metric.label}
+                                value={metric.value}
+                                icon={metric.icon}
+                                color={metric.color}
+                                bg={metric.bg}
+                            />
+                        ))}
+                    </View>
+                </View>
+
+                {/* Account Controls */}
+                <View style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>Account Controls</Text>
+                    <View style={styles.controlsList}>
+                        <ControlRow
+                            label="Edit Profile"
+                            icon={UserCircleIcon}
+                            onPress={() => console.log('Navigate to Edit Profile')}
+                        />
+                        <ControlRow
+                            label="Preferences"
+                            icon={GearSixIcon}
+                            onPress={() => router.push('/(main)/preferences' as any)}
+                        />
+                        <ControlRow
+                            label="Sign Out"
+                            icon={SignOutIcon}
+                            iconColor={colors.error}
+                            iconBg={colors.dangerSurfaceBg}
+                            labelColor={colors.error}
+                            chevronColor={colors.error}
+                            isLast
+                            onPress={handleSignOut}
+                        />
+                    </View>
+                </View>
+
+                {/* App Version */}
+                <View style={styles.versionContainer}>
+                    <Text style={styles.versionText}>v1.0.0-beta</Text>
+                </View>
+
+            </ScrollView>
+        </SafeAreaView>
+    );
+}

@@ -23,6 +23,89 @@ export default function SummaryScreen() {
     const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
     const { colors } = useTheme();
 
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        emptyContainer: {
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: 20,
+        },
+        emptyText: {
+            fontSize: 16,
+            color: colors.textSecondary,
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: Layout.spacing.md,
+            paddingVertical: Layout.spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+        },
+        backButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.surface,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        headerCenter: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        topicTitle: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        completedLabel: {
+            fontSize: 11,
+            fontWeight: '600',
+            color: '#10B981',
+            letterSpacing: 1,
+            marginTop: 2,
+        },
+        scrollView: {
+            flex: 1,
+        },
+        scrollContent: {
+            padding: Layout.spacing.lg,
+            paddingBottom: Layout.spacing.md,
+        },
+        buttonContainer: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingVertical: Layout.spacing.md,
+            paddingBottom: Layout.spacing.lg,
+            backgroundColor: colors.background,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+        },
+        doneButton: {
+            height: 56,
+            backgroundColor: colors.primaryBrand,
+            borderRadius: Layout.borderRadius.md,
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: colors.primaryBrand,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 4,
+        },
+        doneButtonText: {
+            color: '#FFFFFF',
+            fontSize: 16,
+            fontWeight: '600',
+        },
+    }), [colors]);
+
     const handleDone = () => {
         dispatch(clearSession());
         router.dismissAll();

@@ -203,8 +203,21 @@ export default function InterviewSessionScreen() {
         ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous: false });
     };
 
+const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        messagesList: {
+            padding: Layout.spacing.lg,
+            paddingBottom: Layout.spacing.xl,
+        },
+    }), [colors]);
 
-        <SafeAreaView style={styles.container} edges={['top']}>
+  return (
+
+
+          <SafeAreaView style={styles.container} edges={['top']}>
             <ChatHeader
                 topicTitle={topicTitle}
                 onBack={() => router.back()}
@@ -240,16 +253,3 @@ export default function InterviewSessionScreen() {
         </SafeAreaView>
     );
 }
-
-    const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colors.background,
-        },
-        messagesList: {
-            padding: Layout.spacing.lg,
-            paddingBottom: Layout.spacing.xl,
-        },
-    }), [colors]);
-
-    return (

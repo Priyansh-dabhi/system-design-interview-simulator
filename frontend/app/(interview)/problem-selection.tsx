@@ -94,59 +94,7 @@ export default function TopicSelectionScreen() {
         }
     };
 
-
-        <SafeAreaView style={styles.container} edges={['top']}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeftIcon size={24} color={colors.text} />
-                </TouchableOpacity>
-                <View style={styles.headerTextContainer}>
-                    <Text style={styles.headerTitle}>Choose a System{'\n'}Design Problem</Text>
-                    <Text style={styles.headerSubtitle}>Select a topic to begin your mock interview</Text>
-                </View>
-            </View>
-
-            {/* Topic Cards */}
-            <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollContent}
-                showsVerticalScrollIndicator={false}
-            >
-                {TOPICS.map((topic) => (
-                    <TopicCard
-                        key={topic.id}
-                        topic={topic}
-                        isSelected={selectedTopic?.id === topic.id}
-                        isExpanded={expandedId === topic.id}
-                        onPress={handleCardPress}
-                        onSelect={handleTopicSelect}
-                    />
-                ))}
-            </ScrollView>
-
-            {/* Start Interview Button */}
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity
-                    style={[styles.startButton, (!selectedTopic || isLoading) && styles.startButtonDisabled]}
-                    activeOpacity={0.8}
-                    onPress={handleStartInterview}
-                    disabled={!selectedTopic || isLoading}
-                >
-                    {isLoading ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                    ) : (
-                        <Text style={[styles.startButtonText, !selectedTopic && styles.startButtonTextDisabled]}>
-                            Start Interview
-                        </Text>
-                    )}
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
-    );
-}
-
-    const styles = React.useMemo(() => StyleSheet.create({
+const styles = React.useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: colors.background,
@@ -224,4 +172,56 @@ export default function TopicSelectionScreen() {
         },
     }), [colors]);
 
-    return (
+  return (
+
+
+          <SafeAreaView style={styles.container} edges={['top']}>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <ArrowLeftIcon size={24} color={colors.text} />
+                </TouchableOpacity>
+                <View style={styles.headerTextContainer}>
+                    <Text style={styles.headerTitle}>Choose a System{'\n'}Design Problem</Text>
+                    <Text style={styles.headerSubtitle}>Select a topic to begin your mock interview</Text>
+                </View>
+            </View>
+
+            {/* Topic Cards */}
+            <ScrollView
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollContent}
+                showsVerticalScrollIndicator={false}
+            >
+                {TOPICS.map((topic) => (
+                    <TopicCard
+                        key={topic.id}
+                        topic={topic}
+                        isSelected={selectedTopic?.id === topic.id}
+                        isExpanded={expandedId === topic.id}
+                        onPress={handleCardPress}
+                        onSelect={handleTopicSelect}
+                    />
+                ))}
+            </ScrollView>
+
+            {/* Start Interview Button */}
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                    style={[styles.startButton, (!selectedTopic || isLoading) && styles.startButtonDisabled]}
+                    activeOpacity={0.8}
+                    onPress={handleStartInterview}
+                    disabled={!selectedTopic || isLoading}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                        <Text style={[styles.startButtonText, !selectedTopic && styles.startButtonTextDisabled]}>
+                            Start Interview
+                        </Text>
+                    )}
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
+    );
+}

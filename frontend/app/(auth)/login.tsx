@@ -61,8 +61,79 @@ export default function LoginScreen() {
     router.push("/(auth)/google-signin");
   };
 
+const styles = React.useMemo(() => StyleSheet.create({
+    content: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    header: {
+      marginBottom: Layout.spacing.xxl,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    form: {
+      marginBottom: Layout.spacing.xl,
+    },
+    loginButton: {
+      marginTop: Layout.spacing.sm,
+    },
+    googleButton: {
+      marginTop: Layout.spacing.sm,
+      borderRadius: 100,
+      borderColor: colors.border,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+    },
+    googleButtonText: {
+      color: colors.text,
+      fontWeight: "600",
+    },
+    dividerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: Layout.spacing.lg,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      color: colors.textSecondary,
+      marginHorizontal: Layout.spacing.md,
+      fontSize: 14,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    footerText: {
+      color: colors.textSecondary,
+    },
+    linkButton: {
+      width: "auto",
+      minHeight: 0,
+      paddingVertical: 0,
+      paddingHorizontal: 4,
+    },
+    linkText: {
+      color: colors.primary,
+    },
+  }), [colors]);
 
-    <ScreenWrapper>
+  return (
+
+
+      <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Welcome Back</Text>
@@ -144,74 +215,3 @@ export default function LoginScreen() {
     </ScreenWrapper>
   );
 }
-
-  const styles = React.useMemo(() => StyleSheet.create({
-    content: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    header: {
-      marginBottom: Layout.spacing.xxl,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-    },
-    form: {
-      marginBottom: Layout.spacing.xl,
-    },
-    loginButton: {
-      marginTop: Layout.spacing.sm,
-    },
-    googleButton: {
-      marginTop: Layout.spacing.sm,
-      borderRadius: 100,
-      borderColor: colors.border,
-      paddingVertical: 12,
-      backgroundColor: colors.surface,
-    },
-    googleButtonText: {
-      color: colors.text,
-      fontWeight: "600",
-    },
-    dividerRow: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginTop: Layout.spacing.lg,
-    },
-    dividerLine: {
-      flex: 1,
-      height: 1,
-      backgroundColor: colors.border,
-    },
-    dividerText: {
-      color: colors.textSecondary,
-      marginHorizontal: Layout.spacing.md,
-      fontSize: 14,
-    },
-    footer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    footerText: {
-      color: colors.textSecondary,
-    },
-    linkButton: {
-      width: "auto",
-      minHeight: 0,
-      paddingVertical: 0,
-      paddingHorizontal: 4,
-    },
-    linkText: {
-      color: colors.primary,
-    },
-  }), [colors]);
-
-  return (

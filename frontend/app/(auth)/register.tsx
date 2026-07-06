@@ -47,8 +47,53 @@ export default function RegisterScreen() {
     }
   };
 
+const styles = React.useMemo(() => StyleSheet.create({
+    content: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    header: {
+      marginBottom: Layout.spacing.xxl,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    form: {
+      marginBottom: Layout.spacing.xl,
+    },
+    button: {
+      marginTop: Layout.spacing.sm,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    footerText: {
+      color: colors.textSecondary,
+    },
+    linkButton: {
+      width: "auto",
+      minHeight: 0,
+      paddingVertical: 0,
+      paddingHorizontal: 4,
+    },
+    linkText: {
+      color: colors.primary,
+    },
+  }), [colors]);
 
-    <ScreenWrapper>
+  return (
+
+
+      <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
           <Text style={styles.title}>Create Account</Text>
@@ -119,48 +164,3 @@ export default function RegisterScreen() {
     </ScreenWrapper>
   );
 }
-
-  const styles = React.useMemo(() => StyleSheet.create({
-    content: {
-      flex: 1,
-      justifyContent: "center",
-    },
-    header: {
-      marginBottom: Layout.spacing.xxl,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
-    },
-    form: {
-      marginBottom: Layout.spacing.xl,
-    },
-    button: {
-      marginTop: Layout.spacing.sm,
-    },
-    footer: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    footerText: {
-      color: colors.textSecondary,
-    },
-    linkButton: {
-      width: "auto",
-      minHeight: 0,
-      paddingVertical: 0,
-      paddingHorizontal: 4,
-    },
-    linkText: {
-      color: colors.primary,
-    },
-  }), [colors]);
-
-  return (

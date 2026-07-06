@@ -66,95 +66,7 @@ export default function HomeScreen() {
     router.push('/(interview)/problem-selection');
   };
 
-
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-
-        {/* Header Section */}
-        <View style={styles.header}>
-          <View>
-            <Text style={styles.greeting}>Good Evening, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
-            <Text style={styles.subGreeting}>Ready to practice today?</Text>
-          </View>
-          <TouchableOpacity style={styles.profileButton}>
-            {/* Placeholder for user avatar or initials */}
-            <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{user?.fullName?.[0] || 'A'}</Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* Weekly Progress Card */}
-        <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <View style={styles.progressCard}>
-            <LinearGradient
-              colors={[colors.surfaceHighlight, colors.surface]}
-              style={styles.progressCardGradient}
-            >
-              <View style={styles.progressContent}>
-                <View>
-                  <Text style={styles.progressLabel}>Interviews Practiced</Text>
-                  <Text style={styles.progressValue}>{interviewsPracticed}</Text>
-                </View>
-                <View style={styles.circularProgressPlaceholder}>
-                  {/* Placeholder for a circular progress chart if needed */}
-                  <ClockCounterClockwiseIcon size={32} color={colors.primaryBrand} />
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
-        </View>
-
-        {/* Action Area - Moved to Center */}
-        <View style={styles.actionArea}>
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.9} onPress={() => router.push('/(interview)/problem-selection')}>
-            <PlayIcon size={24} color="#FFFFFF" weight="fill" />
-            <Text style={styles.primaryButtonText}>Start New Interview</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.9} onPress={() => router.push('/history')}>
-            <ClockCounterClockwiseIcon size={24} color={colors.textSecondary} />
-            <Text style={styles.secondaryButtonText}>Interview History</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Recommended Topics Section - Moved to Last */}
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended Interviews</Text>
-            <TouchableOpacity onPress={()=> router.push('/problem-selection')}>
-              <Text style={styles.seeAllText}>View all</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.topicsList}>
-            {recommendedInterviews.map((topic) => (
-              <TouchableOpacity
-                key={topic.id}
-                style={styles.topicCard}
-                activeOpacity={0.7}
-                onPress={() => handleTopicSelect(topic)}
-              >
-                <View style={[styles.topicIcon, { backgroundColor: topic.color + '20' }]}>
-                  <View style={[styles.topicIconInner, { backgroundColor: topic.color }]} />
-                </View>
-                <View style={styles.topicInfo}>
-                  <Text style={styles.topicTitle}>{topic.title}</Text>
-                  <Text style={styles.topicDescription}>{topic.description}</Text>
-                </View>
-                <CaretRightIcon size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            ))}
-          </View>
-        </View>
-
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
-
-  const styles = React.useMemo(() => StyleSheet.create({
+const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
@@ -327,4 +239,96 @@ export default function HomeScreen() {
       fontWeight: '500',
     },
   }), [colors]);
+
+  return (
+
+
+      <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>Good Evening, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
+            <Text style={styles.subGreeting}>Ready to practice today?</Text>
+          </View>
+          <TouchableOpacity style={styles.profileButton}>
+            {/* Placeholder for user avatar or initials */}
+            <View style={styles.avatarPlaceholder}>
+              <Text style={styles.avatarText}>{user?.fullName?.[0] || 'A'}</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
+
+        {/* Weekly Progress Card */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <View style={styles.progressCard}>
+            <LinearGradient
+              colors={[colors.surfaceHighlight, colors.surface]}
+              style={styles.progressCardGradient}
+            >
+              <View style={styles.progressContent}>
+                <View>
+                  <Text style={styles.progressLabel}>Interviews Practiced</Text>
+                  <Text style={styles.progressValue}>{interviewsPracticed}</Text>
+                </View>
+                <View style={styles.circularProgressPlaceholder}>
+                  {/* Placeholder for a circular progress chart if needed */}
+                  <ClockCounterClockwiseIcon size={32} color={colors.primaryBrand} />
+                </View>
+              </View>
+            </LinearGradient>
+          </View>
+        </View>
+
+        {/* Action Area - Moved to Center */}
+        <View style={styles.actionArea}>
+          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.9} onPress={() => router.push('/(interview)/problem-selection')}>
+            <PlayIcon size={24} color="#FFFFFF" weight="fill" />
+            <Text style={styles.primaryButtonText}>Start New Interview</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.9} onPress={() => router.push('/history')}>
+            <ClockCounterClockwiseIcon size={24} color={colors.textSecondary} />
+            <Text style={styles.secondaryButtonText}>Interview History</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Recommended Topics Section - Moved to Last */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Recommended Interviews</Text>
+            <TouchableOpacity onPress={()=> router.push('/problem-selection')}>
+              <Text style={styles.seeAllText}>View all</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.topicsList}>
+            {recommendedInterviews.map((topic) => (
+              <TouchableOpacity
+                key={topic.id}
+                style={styles.topicCard}
+                activeOpacity={0.7}
+                onPress={() => handleTopicSelect(topic)}
+              >
+                <View style={[styles.topicIcon, { backgroundColor: topic.color + '20' }]}>
+                  <View style={[styles.topicIconInner, { backgroundColor: topic.color }]} />
+                </View>
+                <View style={styles.topicInfo}>
+                  <Text style={styles.topicTitle}>{topic.title}</Text>
+                  <Text style={styles.topicDescription}>{topic.description}</Text>
+                </View>
+                <CaretRightIcon size={20} color={colors.textSecondary} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+  
 

@@ -25,8 +25,72 @@ export default function HistoryScreen() {
         refetch().finally(() => setRefreshing(false));
     }, [refetch]);
 
+const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        header: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingTop: Layout.spacing.md,
+            paddingBottom: Layout.spacing.lg,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+        },
+        headerTitle: {
+            fontSize: 26,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        headerSubtitle: {
+            fontSize: 14,
+            color: colors.textSecondary,
+            marginTop: 4,
+        },
+        scrollView: {
+            flex: 1,
+        },
+        scrollContent: {
+            padding: Layout.spacing.lg,
+            paddingBottom: 120,
+        },
+        statsRow: {
+            flexDirection: 'row',
+            gap: Layout.spacing.sm,
+            marginBottom: Layout.spacing.lg,
+        },
+        statCard: {
+            flex: 1,
+            backgroundColor: colors.surface,
+            borderRadius: Layout.borderRadius.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+            paddingVertical: Layout.spacing.md,
+            alignItems: 'center',
+        },
+        statValue: {
+            fontSize: 22,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        statLabel: {
+            fontSize: 11,
+            fontWeight: '500',
+            color: colors.textSecondary,
+            marginTop: 2,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            textAlign: 'center',
+        },
+        cardsContainer: {
+            gap: Layout.spacing.md,
+        },
+    }), [colors]);
 
-        <SafeAreaView style={styles.container} edges={['top']}>
+  return (
+
+
+          <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Interview History</Text>
@@ -90,67 +154,3 @@ export default function HistoryScreen() {
         </SafeAreaView>
     );
 }
-
-    const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colors.background,
-        },
-        header: {
-            paddingHorizontal: Layout.spacing.lg,
-            paddingTop: Layout.spacing.md,
-            paddingBottom: Layout.spacing.lg,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-        },
-        headerTitle: {
-            fontSize: 26,
-            fontWeight: '700',
-            color: colors.text,
-        },
-        headerSubtitle: {
-            fontSize: 14,
-            color: colors.textSecondary,
-            marginTop: 4,
-        },
-        scrollView: {
-            flex: 1,
-        },
-        scrollContent: {
-            padding: Layout.spacing.lg,
-            paddingBottom: 120,
-        },
-        statsRow: {
-            flexDirection: 'row',
-            gap: Layout.spacing.sm,
-            marginBottom: Layout.spacing.lg,
-        },
-        statCard: {
-            flex: 1,
-            backgroundColor: colors.surface,
-            borderRadius: Layout.borderRadius.md,
-            borderWidth: 1,
-            borderColor: colors.border,
-            paddingVertical: Layout.spacing.md,
-            alignItems: 'center',
-        },
-        statValue: {
-            fontSize: 22,
-            fontWeight: '700',
-            color: colors.text,
-        },
-        statLabel: {
-            fontSize: 11,
-            fontWeight: '500',
-            color: colors.textSecondary,
-            marginTop: 2,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            textAlign: 'center',
-        },
-        cardsContainer: {
-            gap: Layout.spacing.md,
-        },
-    }), [colors]);
-
-    return (
