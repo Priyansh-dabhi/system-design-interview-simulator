@@ -42,6 +42,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "test:db:push": "node -e \"process.env.DATABASE_URL=process.env.TEST_DATABASE_URL; require('child_process').execSync('npx prisma db push', {stdio: 'inherit'})\" -r dotenv/config",
     "test:load": "k6 run load-tests/auth-load-test.js",
     "test:load:chat": "k6 run load-tests/chat-load-test.js"
   },
