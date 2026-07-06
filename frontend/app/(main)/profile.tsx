@@ -121,6 +121,11 @@ export default function ProfileScreen() {
                     </View>
                 </View>
 
+                {/* App Version */}
+                <View style={styles.versionContainer}>
+                    <Text style={styles.versionText}>v1.0.0-beta</Text>
+                </View>
+
             </ScrollView>
         </SafeAreaView>
     );
@@ -189,5 +194,15 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.border,
         overflow: 'hidden',
+    },
+    versionContainer: {
+        alignItems: 'center',
+        paddingVertical: Layout.spacing.xl,
+        marginTop: Layout.spacing.md,
+    },
+    versionText: {
+        fontSize: 13,
+        color: Colors.textSecondary,
+        fontWeight: '500',
     },
 });
