@@ -5,7 +5,7 @@ import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
-import { Colors } from "../../src/constants/Colors";
+import { useTheme } from "../../src/theme/useTheme";
 import { Layout } from "../../src/constants/Layout";
 import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
 import { register } from "../../src/redux/slices/auth";
@@ -14,6 +14,7 @@ import { getErrorMessage } from "../../src/utils/error";
 export default function RegisterScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { colors } = useTheme();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -46,7 +47,7 @@ export default function RegisterScreen() {
     }
   };
 
-  return (
+
     <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
@@ -86,9 +87,9 @@ export default function RegisterScreen() {
                 accessibilityLabel={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
-                  <EyeSlashIcon size={20} color={Colors.textDim} />
+                  <EyeSlashIcon size={20} color={colors.textDim} />
                 ) : (
-                  <EyeIcon size={20} color={Colors.textDim} />
+                  <EyeIcon size={20} color={colors.textDim} />
                 )}
               </Pressable>
             }
@@ -119,45 +120,47 @@ export default function RegisterScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  header: {
-    marginBottom: Layout.spacing.xxl,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  form: {
-    marginBottom: Layout.spacing.xl,
-  },
-  button: {
-    marginTop: Layout.spacing.sm,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  footerText: {
-    color: Colors.textSecondary,
-  },
-  linkButton: {
-    width: "auto",
-    minHeight: 0,
-    paddingVertical: 0,
-    paddingHorizontal: 4,
-  },
-  linkText: {
-    color: Colors.primary,
-  },
-});
+  const styles = React.useMemo(() => StyleSheet.create({
+    content: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    header: {
+      marginBottom: Layout.spacing.xxl,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    form: {
+      marginBottom: Layout.spacing.xl,
+    },
+    button: {
+      marginTop: Layout.spacing.sm,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    footerText: {
+      color: colors.textSecondary,
+    },
+    linkButton: {
+      width: "auto",
+      minHeight: 0,
+      paddingVertical: 0,
+      paddingHorizontal: 4,
+    },
+    linkText: {
+      color: colors.primary,
+    },
+  }), [colors]);
+
+  return (

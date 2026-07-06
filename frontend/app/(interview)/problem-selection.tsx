@@ -9,7 +9,7 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacit
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { TopicCard, Topic } from '../../src/components/interview/TopicCard';
-import { Colors } from '../../src/constants/Colors';
+import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 
 const TOPICS: Topic[] = [
@@ -57,6 +57,7 @@ export default function TopicSelectionScreen() {
     const router = useRouter();
     const [startSession, { isLoading }] = useStartSessionMutation();
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const { colors } = useTheme();
 
     const handleCardPress = (topic: Topic) => {
         setExpandedId(prev => (prev === topic.id ? null : topic.id));
@@ -93,12 +94,12 @@ export default function TopicSelectionScreen() {
         }
     };
 
-    return (
+
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeftIcon size={24} color={Colors.text} />
+                    <ArrowLeftIcon size={24} color={colors.text} />
                 </TouchableOpacity>
                 <View style={styles.headerTextContainer}>
                     <Text style={styles.headerTitle}>Choose a System{'\n'}Design Problem</Text>
@@ -145,80 +146,82 @@ export default function TopicSelectionScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    header: {
-        paddingHorizontal: Layout.spacing.lg,
-        paddingTop: Layout.spacing.md,
-        paddingBottom: Layout.spacing.xl,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Layout.spacing.lg,
-        borderWidth: 1,
-        borderColor: Colors.border,
-    },
-    headerTextContainer: {
-        gap: Layout.spacing.sm,
-    },
-    headerTitle: {
-        fontSize: 28,
-        fontWeight: 'bold',
-        color: Colors.text,
-        lineHeight: 36,
-    },
-    headerSubtitle: {
-        fontSize: 15,
-        color: Colors.textSecondary,
-        lineHeight: 22,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        paddingHorizontal: Layout.spacing.lg,
-        paddingBottom: Layout.spacing.md,
-        gap: Layout.spacing.md,
-    },
-    buttonContainer: {
-        paddingHorizontal: Layout.spacing.lg,
-        paddingVertical: Layout.spacing.md,
-        paddingBottom: Layout.spacing.lg,
-        backgroundColor: Colors.background,
-        borderTopWidth: 1,
-        borderTopColor: Colors.border,
-    },
-    startButton: {
-        height: 56,
-        backgroundColor: Colors.primaryBrand,
-        borderRadius: Layout.borderRadius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: Colors.primaryBrand,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    startButtonDisabled: {
-        backgroundColor: Colors.surfaceHighlight,
-        shadowOpacity: 0,
-        elevation: 0,
-    },
-    startButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    startButtonTextDisabled: {
-        color: Colors.textSecondary,
-    },
-});
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        header: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingTop: Layout.spacing.md,
+            paddingBottom: Layout.spacing.xl,
+        },
+        backButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: colors.surface,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: Layout.spacing.lg,
+            borderWidth: 1,
+            borderColor: colors.border,
+        },
+        headerTextContainer: {
+            gap: Layout.spacing.sm,
+        },
+        headerTitle: {
+            fontSize: 28,
+            fontWeight: 'bold',
+            color: colors.text,
+            lineHeight: 36,
+        },
+        headerSubtitle: {
+            fontSize: 15,
+            color: colors.textSecondary,
+            lineHeight: 22,
+        },
+        scrollView: {
+            flex: 1,
+        },
+        scrollContent: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingBottom: Layout.spacing.md,
+            gap: Layout.spacing.md,
+        },
+        buttonContainer: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingVertical: Layout.spacing.md,
+            paddingBottom: Layout.spacing.lg,
+            backgroundColor: colors.background,
+            borderTopWidth: 1,
+            borderTopColor: colors.border,
+        },
+        startButton: {
+            height: 56,
+            backgroundColor: colors.primaryBrand,
+            borderRadius: Layout.borderRadius.md,
+            alignItems: 'center',
+            justifyContent: 'center',
+            shadowColor: colors.primaryBrand,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 8,
+            elevation: 4,
+        },
+        startButtonDisabled: {
+            backgroundColor: colors.surfaceHighlight,
+            shadowOpacity: 0,
+            elevation: 0,
+        },
+        startButtonText: {
+            color: '#FFFFFF',
+            fontSize: 16,
+            fontWeight: '600',
+        },
+        startButtonTextDisabled: {
+            color: colors.textSecondary,
+        },
+    }), [colors]);
+
+    return (

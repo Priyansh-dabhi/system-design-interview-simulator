@@ -1,9 +1,29 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
-import { Colors } from "../../src/constants/Colors";
+import { useTheme } from "../../src/theme/useTheme";
 
 export default function PracticeScreen() {
+    const { colors } = useTheme();
+
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+        },
+        text: {
+            fontSize: 24,
+            fontWeight: "bold",
+            color: colors.text,
+        },
+        subtext: {
+            marginTop: 8,
+            fontSize: 16,
+            color: colors.textSecondary,
+        },
+    }), [colors]);
+
     return (
         <ScreenWrapper>
             <View style={styles.container}>
@@ -14,20 +34,3 @@ export default function PracticeScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    text: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: Colors.text,
-    },
-    subtext: {
-        marginTop: 8,
-        fontSize: 16,
-        color: Colors.textSecondary,
-    },
-});

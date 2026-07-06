@@ -1,25 +1,29 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { Colors } from "../src/constants/Colors";
+import { useTheme } from "../src/theme/useTheme";
+import React from "react";
 
 export default function ExpoAuthSessionScreen() {
+  const { colors } = useTheme();
+  
+  const styles = React.useMemo(() => StyleSheet.create({
+    container: {
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: colors.background,
+      gap: 16,
+    },
+    text: {
+      color: colors.textSecondary,
+      fontSize: 16,
+    },
+  }), [colors]);
+
   return (
     <View style={styles.container}>
-      <ActivityIndicator size="large" color={Colors.primary} />
+      <ActivityIndicator size="large" color={colors.primaryBrand} />
       <Text style={styles.text}>Finishing sign-in...</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: Colors.background,
-    gap: 16,
-  },
-  text: {
-    color: Colors.textSecondary,
-    fontSize: 16,
-  },
-});

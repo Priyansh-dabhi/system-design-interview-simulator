@@ -2,22 +2,23 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from "expo-router";
 import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon } from "phosphor-react-native";
 import { Platform } from "react-native";
-import { Colors } from "../../src/constants/Colors";
+import { useTheme } from "../../src/theme/useTheme";
 
 export default function MainLayout() {
+  const { colors } = useTheme();
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: Colors.surface,
-          borderTopColor: Colors.border,
+          backgroundColor: colors.surface,
+          borderTopColor: colors.border,
           height: Platform.OS === 'ios' ? 96 : 70, // Increased height
           paddingBottom: Platform.OS === 'ios' ? 32 : 12, // Increased padding
           paddingTop: 8,
         },
-        tabBarActiveTintColor: Colors.primaryBrand,
-        tabBarInactiveTintColor: Colors.textSecondary,
+        tabBarActiveTintColor: colors.primaryBrand,
+        tabBarInactiveTintColor: colors.textSecondary,
         tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontSize: 10,
@@ -60,6 +61,13 @@ export default function MainLayout() {
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person" size={size} color={color} />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="preferences"
+        options={{
+          href: null,
+          title: "Preferences",
         }}
       />
     </Tabs>

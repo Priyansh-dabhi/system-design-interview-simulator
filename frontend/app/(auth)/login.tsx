@@ -6,7 +6,7 @@ import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
 import { GoogleIcon } from "../../src/components/ui/GoogleIcon";
-import { Colors } from "../../src/constants/Colors";
+import { useTheme } from "../../src/theme/useTheme";
 import { Layout } from "../../src/constants/Layout";
 import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
 import { clearAuthNotice, login } from "../../src/redux/slices/auth";
@@ -15,6 +15,7 @@ import { getErrorMessage } from "../../src/utils/error";
 export default function LoginScreen() {
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { colors } = useTheme();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -60,7 +61,7 @@ export default function LoginScreen() {
     router.push("/(auth)/google-signin");
   };
 
-  return (
+
     <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
@@ -93,9 +94,9 @@ export default function LoginScreen() {
                 accessibilityLabel={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
-                  <EyeSlash size={20} color={Colors.textDim} />
+                  <EyeSlash size={20} color={colors.textDim} />
                 ) : (
-                  <Eye size={20} color={Colors.textDim} />
+                  <Eye size={20} color={colors.textDim} />
                 )}
               </Pressable>
             }
@@ -144,71 +145,73 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    justifyContent: "center",
-  },
-  header: {
-    marginBottom: Layout.spacing.xxl,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: Colors.text,
-    marginBottom: Layout.spacing.sm,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: Colors.textSecondary,
-  },
-  form: {
-    marginBottom: Layout.spacing.xl,
-  },
-  loginButton: {
-    marginTop: Layout.spacing.sm,
-  },
-  googleButton: {
-    marginTop: Layout.spacing.sm,
-    borderRadius: 100,
-    borderColor: Colors.border,
-    paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
-  },
-  googleButtonText: {
-    color: "#1F2937",
-    fontWeight: "600",
-  },
-  dividerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: Layout.spacing.lg,
-  },
-  dividerLine: {
-    flex: 1,
-    height: 1,
-    backgroundColor: Colors.border,
-  },
-  dividerText: {
-    color: Colors.textSecondary,
-    marginHorizontal: Layout.spacing.md,
-    fontSize: 14,
-  },
-  footer: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  footerText: {
-    color: Colors.textSecondary,
-  },
-  linkButton: {
-    width: "auto",
-    minHeight: 0,
-    paddingVertical: 0,
-    paddingHorizontal: 4,
-  },
-  linkText: {
-    color: Colors.primary,
-  },
-});
+  const styles = React.useMemo(() => StyleSheet.create({
+    content: {
+      flex: 1,
+      justifyContent: "center",
+    },
+    header: {
+      marginBottom: Layout.spacing.xxl,
+    },
+    title: {
+      fontSize: 32,
+      fontWeight: "bold",
+      color: colors.text,
+      marginBottom: Layout.spacing.sm,
+    },
+    subtitle: {
+      fontSize: 16,
+      color: colors.textSecondary,
+    },
+    form: {
+      marginBottom: Layout.spacing.xl,
+    },
+    loginButton: {
+      marginTop: Layout.spacing.sm,
+    },
+    googleButton: {
+      marginTop: Layout.spacing.sm,
+      borderRadius: 100,
+      borderColor: colors.border,
+      paddingVertical: 12,
+      backgroundColor: colors.surface,
+    },
+    googleButtonText: {
+      color: colors.text,
+      fontWeight: "600",
+    },
+    dividerRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: Layout.spacing.lg,
+    },
+    dividerLine: {
+      flex: 1,
+      height: 1,
+      backgroundColor: colors.border,
+    },
+    dividerText: {
+      color: colors.textSecondary,
+      marginHorizontal: Layout.spacing.md,
+      fontSize: 14,
+    },
+    footer: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    footerText: {
+      color: colors.textSecondary,
+    },
+    linkButton: {
+      width: "auto",
+      minHeight: 0,
+      paddingVertical: 0,
+      paddingHorizontal: 4,
+    },
+    linkText: {
+      color: colors.primary,
+    },
+  }), [colors]);
+
+  return (

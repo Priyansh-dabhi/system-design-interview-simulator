@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { Colors } from "../src/constants/Colors";
+
 import { useState } from "react";
 import { LoadingSplash } from "../src/components/LoadingSplash";
 import { store } from "@/src/redux/store";
@@ -11,6 +11,8 @@ import { Provider } from "react-redux";
 import { useAppDispatch, useAppSelector } from "@/src/redux/hooks";
 import { bootstrapAuth, clearGoogleAuthPhase } from "@/src/redux/slices/auth";
 import { OfflineScreen } from "../src/components/OfflineScreen";
+import { ThemeProvider } from "../src/theme/ThemeContext";
+import { useTheme } from "../src/theme/useTheme";
 
 function AuthGuard() {
   const dispatch = useAppDispatch();
@@ -88,15 +90,24 @@ function AuthGuard() {
   );
 }
 
+function RootApp() {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <AuthGuard />
+      <OfflineScreen />
+    </View>
+  );
+}
+
 export default function RootLayout() {
   return (
     <Provider store={store}>
-      <SafeAreaProvider>
-        <View style={{ flex: 1, backgroundColor: Colors.background }}>
-          <AuthGuard />
-          <OfflineScreen />
-        </View>
-      </SafeAreaProvider>
+      <ThemeProvider>
+        <SafeAreaProvider>
+          <RootApp />
+        </SafeAreaProvider>
+      </ThemeProvider>
     </Provider>
   );
 }

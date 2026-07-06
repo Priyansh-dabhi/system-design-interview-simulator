@@ -1,7 +1,7 @@
 import React from "react";
 import { KeyboardAvoidingView, Platform, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Colors } from "../constants/Colors";
+import { useTheme } from "../theme/useTheme";
 import { Layout } from "../constants/Layout";
 
 import { ScreenWrapperProps } from "../types/types";
@@ -11,9 +11,26 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   style,
   withPadding = true,
 }) => {
+  const { colors, isDark } = useTheme();
+
+  const styles = React.useMemo(() => StyleSheet.create({
+    safeArea: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    container: {
+      flex: 1,
+      backgroundColor: colors.background,
+    },
+    padding: {
+      paddingHorizontal: Layout.spacing.lg,
+      paddingTop: Layout.spacing.md,
+    },
+  }), [colors]);
+
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.background} />
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -26,17 +43,4 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  container: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  padding: {
-    paddingHorizontal: Layout.spacing.lg,
-    paddingTop: Layout.spacing.md,
-  },
-});
+

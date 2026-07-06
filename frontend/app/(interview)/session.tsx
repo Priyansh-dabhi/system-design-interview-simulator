@@ -28,7 +28,7 @@ import { ChatInput } from '../../src/components/interview/ChatInput';
 import { MessageBubble, Message } from '../../src/components/interview/MessageBubble';
 import { TypingIndicator } from '../../src/components/interview/TypingIndicator';
 import { LoadingOverlay } from '../../src/components/shared/LoadingOverlay';
-import { Colors } from '../../src/constants/Colors';
+import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 
 export default function InterviewSessionScreen() {
@@ -51,6 +51,7 @@ export default function InterviewSessionScreen() {
     const [isNavigatingAway, setIsNavigatingAway] = useState(false);
     const flatListRef = useRef<FlatList>(null);
     const baseTextRef = useRef('');
+    const { colors } = useTheme();
 
     // Keep track of text before recording to allow appending on resume
     useEffect(() => {
@@ -202,7 +203,7 @@ export default function InterviewSessionScreen() {
         ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous: false });
     };
 
-    return (
+
         <SafeAreaView style={styles.container} edges={['top']}>
             <ChatHeader
                 topicTitle={topicTitle}
@@ -240,13 +241,15 @@ export default function InterviewSessionScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    messagesList: {
-        padding: Layout.spacing.lg,
-        paddingBottom: Layout.spacing.xl,
-    },
-});
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        messagesList: {
+            padding: Layout.spacing.lg,
+            paddingBottom: Layout.spacing.xl,
+        },
+    }), [colors]);
+
+    return (

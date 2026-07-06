@@ -5,7 +5,7 @@ import {
 } from 'phosphor-react-native';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { Colors } from '../../constants/Colors';
+import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 
 interface SummarySectionProps {
@@ -15,19 +15,21 @@ interface SummarySectionProps {
 }
 
 function BulletCard({ text, dotColor, borderColor }: { text: string; dotColor: string; borderColor: string }) {
+    const { colors } = useTheme();
     return (
-        <View style={[styles.bulletCard, { borderColor }]}>
+        <View style={[styles.bulletCard, { borderColor, backgroundColor: colors.background }]}>
             <View style={[styles.bulletDot, { backgroundColor: dotColor }]} />
-            <Text style={styles.bulletText}>{text}</Text>
+            <Text style={[styles.bulletText, { color: colors.textSecondary }]}>{text}</Text>
         </View>
     );
 }
 
 function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
+    const { colors } = useTheme();
     return (
         <View style={styles.reviewSectionHeader}>
             {icon}
-            <Text style={styles.reviewSectionTitle}>{title}</Text>
+            <Text style={[styles.reviewSectionTitle, { color: colors.text }]}>{title}</Text>
         </View>
     );
 }
@@ -106,12 +108,10 @@ const styles = StyleSheet.create({
     reviewSectionTitle: {
         fontSize: 14,
         fontWeight: '600',
-        color: Colors.text,
     },
     bulletCard: {
         flexDirection: 'row',
         alignItems: 'flex-start',
-        backgroundColor: Colors.background,
         paddingHorizontal: Layout.spacing.sm + 4,
         paddingVertical: Layout.spacing.sm + 2,
         borderRadius: Layout.borderRadius.sm + 2,
@@ -128,6 +128,5 @@ const styles = StyleSheet.create({
         flex: 1,
         fontSize: 13,
         lineHeight: 19,
-        color: Colors.textSecondary,
     },
 });

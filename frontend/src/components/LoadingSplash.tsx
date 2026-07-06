@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
-import { Colors } from "../constants/Colors";
+import { useTheme } from "../theme/useTheme";
 
 export const LoadingSplash = () => {
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const { colors } = useTheme();
 
     useEffect(() => {
         // Fade in animation
@@ -13,6 +14,44 @@ export const LoadingSplash = () => {
             useNativeDriver: true,
         }).start();
     }, []);
+
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+            alignItems: "center",
+            justifyContent: "center",
+        },
+        content: {
+            alignItems: "center",
+        },
+        logoPlaceholder: {
+            width: 80,
+            height: 80,
+            backgroundColor: colors.surface,
+            borderRadius: 20,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 1,
+            borderColor: colors.border,
+            marginBottom: 24,
+        },
+        logoText: {
+            fontSize: 32,
+            fontWeight: "bold",
+            color: colors.text,
+        },
+        title: {
+            fontSize: 24,
+            fontWeight: "bold",
+            color: colors.text,
+            marginBottom: 8,
+        },
+        tagline: {
+            fontSize: 16,
+            color: colors.textSecondary,
+        },
+    }), [colors]);
 
     return (
         <View style={styles.container}>
@@ -27,40 +66,4 @@ export const LoadingSplash = () => {
     );
 };
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    content: {
-        alignItems: "center",
-    },
-    logoPlaceholder: {
-        width: 80,
-        height: 80,
-        backgroundColor: Colors.surface,
-        borderRadius: 20,
-        alignItems: "center",
-        justifyContent: "center",
-        borderWidth: 1,
-        borderColor: Colors.border,
-        marginBottom: 24,
-    },
-    logoText: {
-        fontSize: 32,
-        fontWeight: "bold",
-        color: Colors.text,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        color: Colors.text,
-        marginBottom: 8,
-    },
-    tagline: {
-        fontSize: 16,
-        color: Colors.textSecondary,
-    },
-});
+

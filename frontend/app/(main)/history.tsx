@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '../../src/components/history/EmptyState';
 import { InterviewCard } from '../../src/components/history/InterviewCard';
-import { Colors } from '../../src/constants/Colors';
+import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
 
@@ -18,13 +18,14 @@ export default function HistoryScreen() {
     const { data, isFetching, refetch } = useGetHistoryQuery();
     const history = data?.history ?? [];
     const stats = data?.stats;
+    const { colors } = useTheme();
 
     const onRefresh = useCallback(() => {
         setRefreshing(true);
         refetch().finally(() => setRefreshing(false));
     }, [refetch]);
 
-    return (
+
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
@@ -46,9 +47,9 @@ export default function HistoryScreen() {
                         <RefreshControl
                             refreshing={refreshing || isFetching}
                             onRefresh={onRefresh}
-                            tintColor={Colors.primaryBrand}
-                            colors={[Colors.primaryBrand]}
-                            progressBackgroundColor={Colors.surface}
+                            tintColor={colors.primaryBrand}
+                            colors={[colors.primaryBrand]}
+                            progressBackgroundColor={colors.surface}
                         />
                     }
                 >
@@ -90,64 +91,66 @@ export default function HistoryScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    header: {
-        paddingHorizontal: Layout.spacing.lg,
-        paddingTop: Layout.spacing.md,
-        paddingBottom: Layout.spacing.lg,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-    },
-    headerTitle: {
-        fontSize: 26,
-        fontWeight: '700',
-        color: Colors.text,
-    },
-    headerSubtitle: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-        marginTop: 4,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        padding: Layout.spacing.lg,
-        paddingBottom: 120,
-    },
-    statsRow: {
-        flexDirection: 'row',
-        gap: Layout.spacing.sm,
-        marginBottom: Layout.spacing.lg,
-    },
-    statCard: {
-        flex: 1,
-        backgroundColor: Colors.surface,
-        borderRadius: Layout.borderRadius.md,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        paddingVertical: Layout.spacing.md,
-        alignItems: 'center',
-    },
-    statValue: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: Colors.text,
-    },
-    statLabel: {
-        fontSize: 11,
-        fontWeight: '500',
-        color: Colors.textSecondary,
-        marginTop: 2,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-        textAlign: 'center',
-    },
-    cardsContainer: {
-        gap: Layout.spacing.md,
-    },
-});
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        header: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingTop: Layout.spacing.md,
+            paddingBottom: Layout.spacing.lg,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+        },
+        headerTitle: {
+            fontSize: 26,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        headerSubtitle: {
+            fontSize: 14,
+            color: colors.textSecondary,
+            marginTop: 4,
+        },
+        scrollView: {
+            flex: 1,
+        },
+        scrollContent: {
+            padding: Layout.spacing.lg,
+            paddingBottom: 120,
+        },
+        statsRow: {
+            flexDirection: 'row',
+            gap: Layout.spacing.sm,
+            marginBottom: Layout.spacing.lg,
+        },
+        statCard: {
+            flex: 1,
+            backgroundColor: colors.surface,
+            borderRadius: Layout.borderRadius.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+            paddingVertical: Layout.spacing.md,
+            alignItems: 'center',
+        },
+        statValue: {
+            fontSize: 22,
+            fontWeight: '700',
+            color: colors.text,
+        },
+        statLabel: {
+            fontSize: 11,
+            fontWeight: '500',
+            color: colors.textSecondary,
+            marginTop: 2,
+            textTransform: 'uppercase',
+            letterSpacing: 0.5,
+            textAlign: 'center',
+        },
+        cardsContainer: {
+            gap: Layout.spacing.md,
+        },
+    }), [colors]);
+
+    return (

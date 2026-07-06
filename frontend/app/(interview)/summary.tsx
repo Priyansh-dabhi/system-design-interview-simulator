@@ -12,7 +12,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { SummarySection } from '../../src/components/shared/SummarySection';
-import { Colors } from '../../src/constants/Colors';
+import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 
 export default function SummaryScreen() {
@@ -21,6 +21,7 @@ export default function SummaryScreen() {
 
     const summary = useSelector((state: RootState) => state.session.summary);
     const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
+    const { colors } = useTheme();
 
     const handleDone = () => {
         dispatch(clearSession());
@@ -45,7 +46,7 @@ export default function SummaryScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleDone} style={styles.backButton}>
-                    <ArrowLeftIcon size={24} color={Colors.text} />
+                    <ArrowLeftIcon size={24} color={colors.text} />
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
                     <Text style={styles.topicTitle}>{topicTitle}</Text>
@@ -75,86 +76,3 @@ export default function SummaryScreen() {
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    emptyContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 20,
-    },
-    emptyText: {
-        fontSize: 16,
-        color: Colors.textSecondary,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Layout.spacing.md,
-        paddingVertical: Layout.spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: Colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-        borderColor: Colors.border,
-    },
-    headerCenter: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    topicTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: Colors.text,
-    },
-    completedLabel: {
-        fontSize: 11,
-        fontWeight: '600',
-        color: '#10B981',
-        letterSpacing: 1,
-        marginTop: 2,
-    },
-    scrollView: {
-        flex: 1,
-    },
-    scrollContent: {
-        padding: Layout.spacing.lg,
-        paddingBottom: Layout.spacing.md,
-    },
-    buttonContainer: {
-        paddingHorizontal: Layout.spacing.lg,
-        paddingVertical: Layout.spacing.md,
-        paddingBottom: Layout.spacing.lg,
-        backgroundColor: Colors.background,
-        borderTopWidth: 1,
-        borderTopColor: Colors.border,
-    },
-    doneButton: {
-        height: 56,
-        backgroundColor: Colors.primaryBrand,
-        borderRadius: Layout.borderRadius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-        shadowColor: Colors.primaryBrand,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.2,
-        shadowRadius: 8,
-        elevation: 4,
-    },
-    doneButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '600',
-    },
-});

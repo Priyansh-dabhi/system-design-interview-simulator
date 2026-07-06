@@ -1,7 +1,7 @@
 import { CaretRightIcon } from 'phosphor-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/Colors';
+import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 
 interface ControlRowProps {
@@ -18,13 +18,51 @@ interface ControlRowProps {
 export function ControlRow({
     label,
     icon: Icon,
-    iconColor = Colors.text,
-    iconBg = Colors.surfaceHighlight + '60',
-    labelColor = Colors.text,
-    chevronColor = Colors.textSecondary,
+    iconColor,
+    iconBg,
+    labelColor,
+    chevronColor,
     isLast = false,
     onPress,
 }: ControlRowProps) {
+    const { colors } = useTheme();
+
+    const currentIconColor = iconColor || colors.text;
+    const currentIconBg = iconBg || (colors.surfaceHighlight + '60');
+    const currentLabelColor = labelColor || colors.text;
+    const currentChevronColor = chevronColor || colors.textSecondary;
+
+    const styles = React.useMemo(() => StyleSheet.create({
+        controlRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingHorizontal: Layout.spacing.md,
+            paddingVertical: Layout.spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+        },
+        controlRowLast: {
+            borderBottomWidth: 0,
+        },
+        controlLeft: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: Layout.spacing.sm + 4,
+        },
+        controlIconContainer: {
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        controlLabel: {
+            fontSize: 15,
+            fontWeight: '500',
+        },
+    }), [colors]);
+
     return (
         <TouchableOpacity
             style={[styles.controlRow, isLast && styles.controlRowLast]}
@@ -32,43 +70,13 @@ export function ControlRow({
             onPress={onPress}
         >
             <View style={styles.controlLeft}>
-                <View style={[styles.controlIconContainer, { backgroundColor: iconBg }]}>
-                    <Icon size={20} color={iconColor} />
+                <View style={[styles.controlIconContainer, { backgroundColor: currentIconBg }]}>
+                    <Icon size={20} color={currentIconColor} />
                 </View>
-                <Text style={[styles.controlLabel, { color: labelColor }]}>{label}</Text>
+                <Text style={[styles.controlLabel, { color: currentLabelColor }]}>{label}</Text>
             </View>
-            <CaretRightIcon size={16} color={chevronColor} />
+            <CaretRightIcon size={16} color={currentChevronColor} />
         </TouchableOpacity>
     );
 }
 
-const styles = StyleSheet.create({
-    controlRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: Layout.spacing.md,
-        paddingVertical: Layout.spacing.md,
-        borderBottomWidth: 1,
-        borderBottomColor: Colors.border,
-    },
-    controlRowLast: {
-        borderBottomWidth: 0,
-    },
-    controlLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: Layout.spacing.sm + 4,
-    },
-    controlIconContainer: {
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    controlLabel: {
-        fontSize: 15,
-        fontWeight: '500',
-    },
-});

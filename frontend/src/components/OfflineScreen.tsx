@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WifiSlashIcon } from "phosphor-react-native";
-import { Colors } from "../constants/Colors";
 import { Layout } from "../constants/Layout";
 
 // Zero-dependency connectivity check using a plain fetch ping.
@@ -65,7 +64,7 @@ export const OfflineScreen = () => {
         >
             <View style={styles.content}>
                 <View style={styles.iconContainer}>
-                    <WifiSlashIcon size={44} color={Colors.text} weight="duotone" />
+                    <WifiSlashIcon size={44} color="#FFFFFF" weight="duotone" />
                 </View>
 
                 <Text style={styles.title}>You're Offline</Text>
@@ -86,7 +85,7 @@ export const OfflineScreen = () => {
 const styles = StyleSheet.create({
     container: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: Colors.background,
+        backgroundColor: "#09090B", // Black theme background
         alignItems: "center",
         justifyContent: "center",
         zIndex: 9999, // Ensure it sits on top of everything
@@ -98,24 +97,24 @@ const styles = StyleSheet.create({
     iconContainer: {
         width: 96,
         height: 96,
-        backgroundColor: Colors.surface,
+        backgroundColor: "#18181B", // Black theme surface
         borderRadius: 24,
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: "#27272A", // Black theme border
         marginBottom: Layout.spacing.lg,
     },
     title: {
         fontSize: 26,
         fontWeight: "bold",
-        color: Colors.text,
+        color: "#FFFFFF", // Black theme text
         marginBottom: Layout.spacing.sm,
         textAlign: "center",
     },
     subtitle: {
         fontSize: 15,
-        color: Colors.textSecondary,
+        color: "#A1A1AA", // Black theme textSecondary
         textAlign: "center",
         lineHeight: 22,
         marginBottom: Layout.spacing.xl,
@@ -123,14 +122,15 @@ const styles = StyleSheet.create({
     retryButton: {
         paddingVertical: Layout.spacing.sm + 4,
         paddingHorizontal: Layout.spacing.xl,
-        backgroundColor: Colors.surface,
+        backgroundColor: "#18181B", // Black theme surface
         borderRadius: Layout.borderRadius.lg,
         borderWidth: 1,
-        borderColor: Colors.border,
+        borderColor: "#27272A", // Black theme border
     },
     retryText: {
-        color: Colors.text,
+        color: "#FFFFFF",
         fontSize: 15,
         fontWeight: "600",
     },
 });
+

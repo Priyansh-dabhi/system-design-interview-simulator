@@ -1,7 +1,7 @@
 import { CheckIcon } from 'phosphor-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Colors } from '../../constants/Colors';
+import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 
 export type TopicDifficulty = 'Easy' | 'Medium' | 'Hard';
@@ -31,6 +31,102 @@ interface TopicCardProps {
 }
 
 export function TopicCard({ topic, isSelected, isExpanded, onPress, onSelect }: TopicCardProps) {
+    const { colors } = useTheme();
+
+    const styles = React.useMemo(() => StyleSheet.create({
+        topicCard: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            backgroundColor: colors.surface,
+            padding: Layout.spacing.lg,
+            borderRadius: Layout.borderRadius.lg,
+            borderWidth: 1,
+            borderColor: colors.border,
+            gap: Layout.spacing.md,
+            position: 'relative',
+        },
+        topicCardSelected: {
+            borderColor: colors.primaryBrand,
+            backgroundColor: colors.surfaceHighlight,
+        },
+        topicIconContainer: {
+            width: 48,
+            height: 48,
+            borderRadius: Layout.borderRadius.md,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginTop: 2,
+        },
+        topicContent: {
+            flex: 1,
+            gap: 8,
+        },
+        topicHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+        },
+        topicTitle: {
+            fontSize: 16,
+            fontWeight: '600',
+            color: colors.text,
+        },
+        metadataRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+        },
+        typeBadge: {
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 4,
+            backgroundColor: colors.surfaceHighlight,
+        },
+        typeText: {
+            fontSize: 11,
+            fontWeight: '500',
+            color: colors.textSecondary,
+        },
+        difficultyBadge: {
+            paddingHorizontal: 8,
+            paddingVertical: 3,
+            borderRadius: 4,
+        },
+        difficultyText: {
+            fontSize: 11,
+            fontWeight: '600',
+        },
+        topicDescription: {
+            fontSize: 13,
+            color: colors.textSecondary,
+            lineHeight: 18,
+            textAlign: 'left',
+        },
+        expandHint: {
+            fontSize: 11,
+            color: colors.textSecondary,
+            opacity: 0.55,
+            marginTop: -2,
+        },
+        checkbox: {
+            position: 'absolute',
+            top: Layout.spacing.md,
+            right: Layout.spacing.md,
+            width: 24,
+            height: 24,
+            borderRadius: 12,
+            borderWidth: 2,
+            borderColor: colors.border,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'transparent',
+        },
+        checkboxSelected: {
+            backgroundColor: colors.primaryBrand,
+            borderColor: colors.primaryBrand,
+        },
+    }), [colors]);
+
     return (
         <TouchableOpacity
             style={[styles.topicCard, isSelected && styles.topicCardSelected]}
@@ -87,96 +183,3 @@ export function TopicCard({ topic, isSelected, isExpanded, onPress, onSelect }: 
     );
 }
 
-const styles = StyleSheet.create({
-    topicCard: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        backgroundColor: Colors.surface,
-        padding: Layout.spacing.lg,
-        borderRadius: Layout.borderRadius.lg,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        gap: Layout.spacing.md,
-        position: 'relative',
-    },
-    topicCardSelected: {
-        borderColor: Colors.primaryBrand,
-        backgroundColor: Colors.surfaceHighlight,
-    },
-    topicIconContainer: {
-        width: 48,
-        height: 48,
-        borderRadius: Layout.borderRadius.md,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginTop: 2,
-    },
-    topicContent: {
-        flex: 1,
-        gap: 8,
-    },
-    topicHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    topicTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: Colors.text,
-    },
-    metadataRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    typeBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 4,
-        backgroundColor: Colors.surfaceHighlight,
-    },
-    typeText: {
-        fontSize: 11,
-        fontWeight: '500',
-        color: Colors.textSecondary,
-    },
-    difficultyBadge: {
-        paddingHorizontal: 8,
-        paddingVertical: 3,
-        borderRadius: 4,
-    },
-    difficultyText: {
-        fontSize: 11,
-        fontWeight: '600',
-    },
-    topicDescription: {
-        fontSize: 13,
-        color: Colors.textSecondary,
-        lineHeight: 18,
-        textAlign: 'left',
-    },
-    expandHint: {
-        fontSize: 11,
-        color: Colors.textSecondary,
-        opacity: 0.55,
-        marginTop: -2,
-    },
-    checkbox: {
-        position: 'absolute',
-        top: Layout.spacing.md,
-        right: Layout.spacing.md,
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: Colors.border,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: 'transparent',
-    },
-    checkboxSelected: {
-        backgroundColor: Colors.primaryBrand,
-        borderColor: Colors.primaryBrand,
-    },
-});

@@ -1,6 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { Colors } from "../../constants/Colors";
+import { useTheme } from "../../theme/useTheme";
 import { Layout } from "../../constants/Layout";
 
 import { InputProps } from "../../types/types";
@@ -12,6 +12,52 @@ export const Input: React.FC<InputProps> = ({
   rightAccessory,
   ...props
 }) => {
+  const { colors } = useTheme();
+
+  const styles = React.useMemo(() => StyleSheet.create({
+    container: {
+      marginBottom: Layout.spacing.md,
+      width: "100%",
+    },
+    label: {
+      color: colors.textSecondary,
+      fontSize: 14,
+      marginBottom: Layout.spacing.xs,
+      fontWeight: "500",
+    },
+    inputWrapper: {
+      position: "relative",
+      justifyContent: "center",
+    },
+    input: {
+      backgroundColor: colors.inputBackground,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: Layout.borderRadius.md,
+      padding: Layout.spacing.md,
+      color: colors.text,
+      fontSize: 16,
+      minHeight: 48,
+    },
+    inputWithAccessory: {
+      paddingRight: 52,
+    },
+    inputError: {
+      borderColor: colors.error,
+    },
+    accessory: {
+      position: "absolute",
+      right: Layout.spacing.md,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    errorText: {
+      color: colors.error,
+      fontSize: 12,
+      marginTop: Layout.spacing.xs,
+    },
+  }), [colors]);
+
   return (
     <View style={styles.container}>
       {label && <Text style={styles.label}>{label}</Text>}
@@ -23,8 +69,8 @@ export const Input: React.FC<InputProps> = ({
             error ? styles.inputError : null,
             style,
           ]}
-          placeholderTextColor={Colors.textDim}
-          selectionColor={Colors.primary}
+          placeholderTextColor={colors.textDim}
+          selectionColor={colors.primary}
           {...props}
         />
         {rightAccessory ? <View style={styles.accessory}>{rightAccessory}</View> : null}
@@ -34,46 +80,3 @@ export const Input: React.FC<InputProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  container: {
-    marginBottom: Layout.spacing.md,
-    width: "100%",
-  },
-  label: {
-    color: Colors.textSecondary,
-    fontSize: 14,
-    marginBottom: Layout.spacing.xs,
-    fontWeight: "500",
-  },
-  inputWrapper: {
-    position: "relative",
-    justifyContent: "center",
-  },
-  input: {
-    backgroundColor: Colors.inputBackground,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.md,
-    color: Colors.text,
-    fontSize: 16,
-    minHeight: 48,
-  },
-  inputWithAccessory: {
-    paddingRight: 52,
-  },
-  inputError: {
-    borderColor: Colors.error,
-  },
-  accessory: {
-    position: "absolute",
-    right: Layout.spacing.md,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  errorText: {
-    color: Colors.error,
-    fontSize: 12,
-    marginTop: Layout.spacing.xs,
-  },
-});

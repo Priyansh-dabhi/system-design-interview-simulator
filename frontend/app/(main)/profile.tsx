@@ -18,17 +18,20 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ControlRow } from '../../src/components/profile/ControlRow';
 import { MetricCard } from '../../src/components/profile/MetricCard';
-import { Colors } from '../../src/constants/Colors';
+import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
 import { useAppDispatch, useAppSelector } from '../../src/redux/hooks';
 import { logout } from '../../src/redux/slices/auth';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+    const router = useRouter();
     const user = useAppSelector((state) => state.auth.user);
     const { data } = useGetHistoryQuery();
     const dispatch = useAppDispatch();
     const stats = data?.stats;
+    const { colors } = useTheme();
 
     const completionRate =
         stats && stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : '0%';
@@ -64,7 +67,7 @@ export default function ProfileScreen() {
         );
     };
 
-    return (
+
         <SafeAreaView style={styles.container} edges={['top']}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
 
@@ -106,15 +109,15 @@ export default function ProfileScreen() {
                         <ControlRow
                             label="Preferences"
                             icon={GearSixIcon}
-                            onPress={() => console.log('Navigate to Preferences')}
+                            onPress={() => router.push('/(main)/preferences')}
                         />
                         <ControlRow
                             label="Sign Out"
                             icon={SignOutIcon}
-                            iconColor={Colors.error}
-                            iconBg="#EF444418"
-                            labelColor={Colors.error}
-                            chevronColor={Colors.error}
+                            iconColor={colors.error}
+                            iconBg={colors.dangerSurfaceBg}
+                            labelColor={colors.error}
+                            chevronColor={colors.error}
                             isLast
                             onPress={handleSignOut}
                         />
@@ -131,78 +134,80 @@ export default function ProfileScreen() {
     );
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: Colors.background,
-    },
-    scrollContent: {
-        padding: Layout.spacing.lg,
-        paddingBottom: 120,
-    },
-    profileHeader: {
-        alignItems: 'center',
-        paddingVertical: Layout.spacing.xl,
-        marginBottom: Layout.spacing.md,
-    },
-    avatar: {
-        width: 88,
-        height: 88,
-        borderRadius: 44,
-        backgroundColor: Colors.primaryBrand,
-        alignItems: 'center',
-        justifyContent: 'center',
-        marginBottom: Layout.spacing.md,
-        shadowColor: Colors.primaryBrand,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.25,
-        shadowRadius: 12,
-        elevation: 6,
-    },
-    avatarText: {
-        fontSize: 32,
-        fontWeight: '700',
-        color: '#FFFFFF',
-    },
-    userName: {
-        fontSize: 22,
-        fontWeight: '700',
-        color: Colors.text,
-        marginBottom: 4,
-    },
-    userEmail: {
-        fontSize: 14,
-        color: Colors.textSecondary,
-    },
-    sectionContainer: {
-        marginBottom: Layout.spacing.xl,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: Colors.text,
-        marginBottom: Layout.spacing.md,
-    },
-    metricsGrid: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: Layout.spacing.sm,
-    },
-    controlsList: {
-        backgroundColor: Colors.surface,
-        borderRadius: Layout.borderRadius.lg,
-        borderWidth: 1,
-        borderColor: Colors.border,
-        overflow: 'hidden',
-    },
-    versionContainer: {
-        alignItems: 'center',
-        paddingVertical: Layout.spacing.xl,
-        marginTop: Layout.spacing.md,
-    },
-    versionText: {
-        fontSize: 13,
-        color: Colors.textSecondary,
-        fontWeight: '500',
-    },
-});
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        scrollContent: {
+            padding: Layout.spacing.lg,
+            paddingBottom: 120,
+        },
+        profileHeader: {
+            alignItems: 'center',
+            paddingVertical: Layout.spacing.xl,
+            marginBottom: Layout.spacing.md,
+        },
+        avatar: {
+            width: 88,
+            height: 88,
+            borderRadius: 44,
+            backgroundColor: colors.primaryBrand,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: Layout.spacing.md,
+            shadowColor: colors.primaryBrand,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.25,
+            shadowRadius: 12,
+            elevation: 6,
+        },
+        avatarText: {
+            fontSize: 32,
+            fontWeight: '700',
+            color: '#FFFFFF',
+        },
+        userName: {
+            fontSize: 22,
+            fontWeight: '700',
+            color: colors.text,
+            marginBottom: 4,
+        },
+        userEmail: {
+            fontSize: 14,
+            color: colors.textSecondary,
+        },
+        sectionContainer: {
+            marginBottom: Layout.spacing.xl,
+        },
+        sectionTitle: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: colors.text,
+            marginBottom: Layout.spacing.md,
+        },
+        metricsGrid: {
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            gap: Layout.spacing.sm,
+        },
+        controlsList: {
+            backgroundColor: colors.surface,
+            borderRadius: Layout.borderRadius.lg,
+            borderWidth: 1,
+            borderColor: colors.border,
+            overflow: 'hidden',
+        },
+        versionContainer: {
+            alignItems: 'center',
+            paddingVertical: Layout.spacing.xl,
+            marginTop: Layout.spacing.md,
+        },
+        versionText: {
+            fontSize: 13,
+            color: colors.textSecondary,
+            fontWeight: '500',
+        },
+    }), [colors]);
+
+    return (
