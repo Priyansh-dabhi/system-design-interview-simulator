@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 
 import { useState } from "react";
 import { LoadingSplash } from "../src/components/LoadingSplash";
@@ -91,9 +92,10 @@ function AuthGuard() {
 }
 
 function RootApp() {
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <StatusBar style={isDark ? "light" : "dark"} />
       <AuthGuard />
       <OfflineScreen />
     </View>
