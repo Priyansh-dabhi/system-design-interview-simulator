@@ -6,6 +6,8 @@ import {
     TargetIcon,
     TrophyIcon,
     UserCircleIcon,
+    FileTextIcon,
+    ShieldCheckIcon,
 } from 'phosphor-react-native';
 import React from 'react';
 import {
@@ -14,6 +16,7 @@ import {
     StyleSheet,
     Text,
     View,
+    Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ControlRow } from '../../src/components/profile/ControlRow';
@@ -32,6 +35,14 @@ export default function ProfileScreen() {
     const dispatch = useAppDispatch();
     const stats = data?.stats;
     const { colors } = useTheme();
+
+    const openPrivacyPolicy = () => {
+        Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
+    };
+
+    const openTermsAndConditions = () => {
+        Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#terms');
+    };
 
     const completionRate =
         stats && stats.total > 0 ? `${Math.round((stats.completed / stats.total) * 100)}%` : '0%';
@@ -172,6 +183,24 @@ const styles = React.useMemo(() => StyleSheet.create({
                                 bg={metric.bg}
                             />
                         ))}
+                    </View>
+                </View>
+
+                {/* Legal Section */}
+                <View style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>Legal</Text>
+                    <View style={styles.controlsList}>
+                        <ControlRow
+                            label="Privacy Policy"
+                            icon={FileTextIcon}
+                            onPress={openPrivacyPolicy}
+                        />
+                        <ControlRow
+                            label="Terms & Conditions"
+                            icon={ClipboardTextIcon}
+                            isLast
+                            onPress={openTermsAndConditions}
+                        />
                     </View>
                 </View>
 
