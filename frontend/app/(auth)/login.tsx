@@ -1,7 +1,7 @@
 import { Link, useRouter } from "expo-router";
 import { Eye, EyeSlash } from "phosphor-react-native";
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View, Linking } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
@@ -59,6 +59,14 @@ export default function LoginScreen() {
 
   const handleGoogleLogin = () => {
     router.push("/(auth)/google-signin");
+  };
+
+  const openPrivacyPolicy = () => {
+    Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
+  };
+
+  const openTermsAndConditions = () => {
+    Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#terms');
   };
 
 const styles = React.useMemo(() => StyleSheet.create({
@@ -128,11 +136,25 @@ const styles = React.useMemo(() => StyleSheet.create({
     linkText: {
       color: colors.primary,
     },
+    legalFooter: {
+      marginTop: Layout.spacing.xl,
+      marginBottom: Layout.spacing.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      paddingHorizontal: Layout.spacing.lg,
+    },
+    legalText: {
+      fontSize: 12,
+      color: colors.textSecondary,
+      textAlign: "center",
+    },
+    legalLink: {
+      color: colors.primary,
+      fontWeight: "600",
+    },
   }), [colors]);
 
   return (
-
-
       <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
@@ -210,6 +232,15 @@ const styles = React.useMemo(() => StyleSheet.create({
               onPress={() => router.push("/(auth)/register")}
             />
           </Link>
+        </View>
+
+        <View style={styles.legalFooter}>
+          <Text style={styles.legalText}>
+            By continuing, you agree to our{" "}
+            <Text style={styles.legalLink} onPress={openTermsAndConditions}>Terms & Conditions</Text>
+            {" "}and{" "}
+            <Text style={styles.legalLink} onPress={openPrivacyPolicy}>Privacy Policy</Text>
+          </Text>
         </View>
       </View>
     </ScreenWrapper>
