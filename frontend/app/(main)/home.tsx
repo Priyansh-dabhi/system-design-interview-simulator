@@ -87,6 +87,9 @@ const styles = React.useMemo(() => StyleSheet.create({
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: Layout.spacing.xl,
+      // paddingHorizontal: 20,
+      paddingTop: 16,
+      paddingBottom: 8,
     },
     greeting: {
       fontSize: 24,
@@ -102,12 +105,19 @@ const styles = React.useMemo(() => StyleSheet.create({
       padding: 4,
     },
     avatarPlaceholder: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
+      width: 48,
+      height: 48,
+      borderRadius: 24,
       backgroundColor: colors.primaryBrand,
       alignItems: 'center',
       justifyContent: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4,
+      elevation: 3,
+      borderWidth: 2,
+      borderColor: colors.surface,
     },
     avatarText: {
       color: '#FFF',
@@ -255,12 +265,11 @@ const styles = React.useMemo(() => StyleSheet.create({
 
         {/* Header Section */}
         <View style={styles.header}>
-          <View>
+          <View style={{ flex: 1 }}>
             <Text style={styles.greeting}>{getGreeting()}, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
             <Text style={styles.subGreeting}>Ready to practice today?</Text>
           </View>
-          <TouchableOpacity style={styles.profileButton}>
-            {/* Placeholder for user avatar or initials */}
+          <TouchableOpacity style={styles.profileButton} activeOpacity={0.8}>
             <View style={styles.avatarPlaceholder}>
               <Text style={styles.avatarText}>{user?.fullName?.[0] || 'A'}</Text>
             </View>
