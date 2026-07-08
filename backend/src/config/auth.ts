@@ -14,4 +14,4 @@ const requireEnv = (name: string, fallback?: string) => {
 
 export const ACCESS_TOKEN_SECRET = requireEnv("ACCESS_TOKEN_SECRET", "JWT_SECRET");
 export const ACCESS_TOKEN_EXPIRES_IN = "15m";
-export const REFRESH_TOKEN_TTL_DAYS = 7;
+export const REFRESH_TOKEN_TTL_DAYS = 90;
