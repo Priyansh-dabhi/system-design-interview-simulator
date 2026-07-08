@@ -61,6 +61,13 @@ export default function HomeScreen() {
     },
   ];
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   const handleTopicSelect = (topic: { id: string; title: string }) => {
     dispatch(setSelectedTopic({ id: topic.id, title: topic.title }));
     router.push('/(interview)/problem-selection');
@@ -249,7 +256,7 @@ const styles = React.useMemo(() => StyleSheet.create({
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Good Evening, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
+            <Text style={styles.greeting}>{getGreeting()}, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
             <Text style={styles.subGreeting}>Ready to practice today?</Text>
           </View>
           <TouchableOpacity style={styles.profileButton}>
