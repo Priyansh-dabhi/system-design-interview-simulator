@@ -1,22 +1,26 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WifiSlashIcon } from "phosphor-react-native";
 import { Layout } from "../constants/Layout";
 
-// Zero-dependency connectivity check using a plain fetch ping.
-// This is critical for EAS updates to avoid native module crashes.
+// On web, navigator.onLine is instant and requires no network request, so it
+// avoids the CORS issue that causes `fetch` to fail against third-party URLs
+// when running in a browser.
+// On native (iOS/Android), we fall back to a lightweight fetch ping.
 const checkIsOnline = async (): Promise<boolean> => {
+    if (Platform.OS === "web") {
+        return typeof navigator !== "undefined" ? navigator.onLine : true;
+    }
+
+    // Native: lightweight ping to a public, CORS-free endpoint
     try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 4000);
 
-        // Standard captive portal check endpoint
         const res = await fetch("https://clients3.google.com/generate_204", {
             method: "HEAD",
             cache: "no-store",
-            headers: {
-                "Cache-Control": "no-cache",
-            },
+            headers: { "Cache-Control": "no-cache" },
             signal: controller.signal,
         });
 
@@ -40,8 +44,22 @@ export const OfflineScreen = () => {
         // Initial check delayed slightly to not block app boot
         const initialTimer = setTimeout(refresh, 1000);
 
-        // Poll every 5 seconds
-        const interval = setInterval(refresh, 5000);
+        if (Platform.OS === "web") {
+            // On web, rely on browser events — no polling needed
+            const handleOnline = () => setIsOffline(false);
+            const handleOffline = () => setIsOffline(true);
+            window.addEventListener("online", handleOnline);
+            window.addEventListener("offline", handleOffline);
+
+            return () => {
+                clearTimeout(initialTimer);
+                window.removeEventListener("online", handleOnline);
+                window.removeEventListener("offline", handleOffline);
+            };
+        }
+
+        // On native, poll every 10 seconds
+        const interval = setInterval(refresh, 10000);
 
         return () => {
             clearTimeout(initialTimer);
