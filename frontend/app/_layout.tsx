@@ -6,6 +6,10 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 import { useState } from "react";
+import * as SplashScreen from 'expo-splash-screen';
+
+// Keep the native splash screen visible while we fetch resources from Redux
+SplashScreen.preventAutoHideAsync();
 import { LoadingSplash } from "../src/components/LoadingSplash";
 import { store } from "@/src/redux/store";
 import { Provider } from "react-redux";
@@ -23,21 +27,18 @@ function AuthGuard() {
   const googleAuthPhase = useAppSelector((state) => state.auth.googleAuthPhase);
   const segments = useSegments();
   const router = useRouter();
-  const [isSplashReady, setSplashReady] = useState(false);
-
   useEffect(() => {
     dispatch(bootstrapAuth());
   }, [dispatch]);
 
+  // Hide the native splash screen once Redux finishes hydrating
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setSplashReady(true);
-    }, 2000); // Show splash for at least 2 seconds
+    if (!isLoading) {
+      SplashScreen.hideAsync();
+    }
+  }, [isLoading]);
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  const showSplash = isLoading || !isSplashReady;
+  const showSplash = isLoading;
   const inAuthGroup = segments[0] === '(auth)';
 
   // Only clear googleAuthPhase after user is authenticated and has left the
@@ -64,7 +65,7 @@ function AuthGuard() {
   }, [user, showSplash, segments, isAuthInFlight]);
 
   if (showSplash) {
-    return <LoadingSplash />;
+    return null; // Return nothing so the native splash screen is all that is visible
   }
 
   // Show LoadingSplash as an overlay (not a replacement) while Google auth
