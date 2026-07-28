@@ -33,9 +33,7 @@ export const authLimiter = createLimiter({
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
     handler: rateLimitErrorHandler,
-    keyGenerator: (req: Request) => {
-        return req.ip || "unknown";
-    }
+    // Using default keyGenerator for IP
 });
 
 /**
@@ -52,7 +50,9 @@ export const chatLimiter = createLimiter({
     keyGenerator: (req: Request) => {
         // We typecast to AuthRequest to access the user object attached by auth.middleware
         const authReq = req as AuthRequest;
-        return authReq.user ? authReq.user.userId.toString() : req.ip || "unknown";
+        if (authReq.user) return authReq.user.userId.toString();
+        // Fallback to IP address manually to avoid express-rate-limit req.ip warning
+        return (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
     }
 });
 
@@ -67,7 +67,5 @@ export const generalLimiter = createLimiter({
     standardHeaders: true,
     legacyHeaders: false,
     handler: rateLimitErrorHandler,
-    keyGenerator: (req: Request) => {
-        return req.ip || "unknown";
-    }
+    // Using default keyGenerator for IP
 });
