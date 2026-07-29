@@ -124,6 +124,9 @@ export const verifyGoogleIdToken = async (idToken: string): Promise<VerifiedGoog
             throw error;
         }
 
+        // Log the actual Firebase Admin error so it appears in Render logs
+        console.error("[Firebase Admin] Token verification failed:", error);
+
         throw new AuthServiceError("Invalid or expired Firebase ID token", 401);
     }
 };

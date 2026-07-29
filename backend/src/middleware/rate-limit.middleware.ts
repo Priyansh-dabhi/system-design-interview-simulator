@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { Request, Response, NextFunction } from "express";
 import { AuthRequest } from "./auth.middleware.js";
 
@@ -51,8 +51,8 @@ export const chatLimiter = createLimiter({
         // We typecast to AuthRequest to access the user object attached by auth.middleware
         const authReq = req as AuthRequest;
         if (authReq.user) return authReq.user.userId.toString();
-        // Fallback to IP address manually to avoid express-rate-limit req.ip warning
-        return (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "unknown";
+        // Use the ipKeyGenerator helper to properly handle IPv6 addresses
+        return ipKeyGenerator(req.ip ?? "");
     }
 });
 
