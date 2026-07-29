@@ -1,6 +1,7 @@
 import { GoogleSignin, statusCodes } from "@react-native-google-signin/google-signin";
 import { GoogleAuthProvider, signInWithCredential, signOut } from "firebase/auth";
 import { getFirebaseAuth, googleAuthConfig, isFirebaseConfigured } from "../config/firebase";
+import { Platform } from "react-native";
 
 type GoogleAuthErrorCode = "cancelled" | "config" | "oauth" | "firebase";
 
@@ -14,13 +15,14 @@ export class GoogleAuthError extends Error {
     }
 }
 
-// Initialize Google Signin. We only need the webClientId to get the idToken for Firebase.
-GoogleSignin.configure({
-    webClientId: googleAuthConfig.webClientId,
-    offlineAccess: false,
-});
-
 export const signInWithGoogleAsync = async () => {
+    if (Platform.OS === "web") {
+        throw new GoogleAuthError(
+            "Native Google Sign-In is not available on the web platform.",
+            "config"
+        );
+    }
+
     if (!isFirebaseConfigured()) {
         throw new GoogleAuthError(
             "Google sign-in is not configured. Add the Firebase app settings first.",
@@ -34,6 +36,12 @@ export const signInWithGoogleAsync = async () => {
             "config"
         );
     }
+
+    GoogleSignin.configure({
+        webClientId: googleAuthConfig.webClientId,
+        ...(googleAuthConfig.iosClientId ? { iosClientId: googleAuthConfig.iosClientId } : {}),
+        offlineAccess: false,
+    });
 
     try {
         await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
@@ -85,13 +93,15 @@ export const signInWithGoogleAsync = async () => {
 export const signOutFirebaseSession = async () => {
     try {
         const auth = getFirebaseAuth();
-        
+
         if (auth.currentUser) {
             await signOut(auth);
         }
 
-        // Also sign out from Google locally
-        await GoogleSignin.signOut();
+        if (Platform.OS !== "web") {
+            // Also sign out from Google locally
+            await GoogleSignin.signOut();
+        }
     } catch {
         // Ignore Firebase/Google sign-out failures so local cleanup can still finish.
     }

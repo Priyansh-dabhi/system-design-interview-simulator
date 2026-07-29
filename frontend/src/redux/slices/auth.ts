@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { createSessionStartAPi } from "../api/interview_api";
 import { clearSelectedTopic } from "./problem";
 import { clearSession } from "./session";
+import { createSessionStartAPi } from "../api/interview_api";
 import {
     AuthApiError,
     loginWithGoogleToken,
@@ -115,7 +115,8 @@ export const login = createAsyncThunk(
             await persistSession(payload);
             return payload;
         } catch (error) {
-            return rejectWithValue(error instanceof Error ? error : "Login failed");
+            const message = error instanceof Error ? error.message : "Login failed";
+            return rejectWithValue(message);
         }
     }
 );
@@ -129,7 +130,8 @@ export const loginWithGoogle = createAsyncThunk(
             return payload;
         } catch (error) {
             await signOutFirebaseSession();
-            return rejectWithValue(error instanceof Error ? error : "Google login failed");
+            const message = error instanceof Error ? error.message : "Google login failed";
+            return rejectWithValue(message);
         }
     }
 );
@@ -142,7 +144,8 @@ export const register = createAsyncThunk(
             await persistSession(payload);
             return payload;
         } catch (error) {
-            return rejectWithValue(error instanceof Error ? error : "Registration failed");
+            const message = error instanceof Error ? error.message : "Registration failed";
+            return rejectWithValue(message);
         }
     }
 );
@@ -164,7 +167,7 @@ export const logout = createAsyncThunk(
             dispatch(authSlice.actions.clearAuthState());
             dispatch(clearSession());
             dispatch(clearSelectedTopic());
-            dispatch(createSessionStartAPi.util.resetApiState());
+            dispatch({ type: "interviewApi/resetApiState" });
         }
     }
 );

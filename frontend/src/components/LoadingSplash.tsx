@@ -60,7 +60,7 @@ export const LoadingSplash = () => {
                     <Text style={styles.logoText}>AI</Text>
                 </View>
                 <Text style={styles.title}>System Design Interview</Text>
-                <Text style={styles.tagline}>Practice like it's real</Text>
+                <Text style={styles.tagline}>Practice like it&apos;s real</Text>
             </Animated.View>
         </View>
     );

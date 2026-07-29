@@ -80,7 +80,6 @@ function AuthGuard() {
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(main)" />
         <Stack.Screen name="(interview)" />
-        <Stack.Screen name="expo-auth-session" />
         <Stack.Screen name="index" />
       </Stack>
       {showAuthOverlay && (

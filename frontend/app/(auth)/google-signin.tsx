@@ -1,3 +1,7 @@
+// Google OAuth uses native @react-native-google-signin/google-signin (not Expo AuthSession).
+// Flow: Native Google UI → Google ID token → Firebase credential → Firebase ID token
+//       → POST /api/auth/google → backend JWT + refresh token
+
 import { useRouter } from "expo-router";
 import { useEffect, useRef } from "react";
 import { Alert } from "react-native";

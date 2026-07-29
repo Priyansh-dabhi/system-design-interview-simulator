@@ -1,7 +1,7 @@
 import { Link, useRouter } from "expo-router";
 import { Eye, EyeSlash } from "phosphor-react-native";
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View, Linking } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View, Linking, Platform } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
@@ -209,20 +209,26 @@ const styles = React.useMemo(() => StyleSheet.create({
             <View style={styles.dividerLine} />
           </View>
 
-          <Button
-            title="Sign in with Google"
-            onPress={handleGoogleLogin}
-            variant="outline"
-            isLoading={false}
-            style={styles.googleButton}
-            textStyle={styles.googleButtonText}
-            leftIcon={<GoogleIcon size={20} />}
-            disabled={isBusy}
-          />
+          {Platform.OS === "web" ? (
+            <Text style={{ textAlign: "center", color: colors.textSecondary, marginTop: Layout.spacing.sm }}>
+              Native Google Sign-In is not available on the web.
+            </Text>
+          ) : (
+            <Button
+              title="Sign in with Google"
+              onPress={handleGoogleLogin}
+              variant="outline"
+              isLoading={false}
+              style={styles.googleButton}
+              textStyle={styles.googleButtonText}
+              leftIcon={<GoogleIcon size={20} />}
+              disabled={isBusy}
+            />
+          )}
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don't have an account? </Text>
+          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
           <Link href="/(auth)/register" asChild>
             <Button
               title="Sign Up"

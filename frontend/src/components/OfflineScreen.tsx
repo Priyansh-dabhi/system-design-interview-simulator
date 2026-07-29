@@ -85,7 +85,7 @@ export const OfflineScreen = () => {
                     <WifiSlashIcon size={44} color="#FFFFFF" weight="duotone" />
                 </View>
 
-                <Text style={styles.title}>You're Offline</Text>
+                <Text style={styles.title}>You&apos;re Offline</Text>
 
                 <Text style={styles.subtitle}>
                     No internet connection detected.{"\n"}

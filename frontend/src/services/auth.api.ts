@@ -129,7 +129,6 @@ export const loginWithGoogleToken = async (firebaseIdToken: string): Promise<Aut
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            idToken: firebaseIdToken,
             firebaseIdToken,
         }),
     });
