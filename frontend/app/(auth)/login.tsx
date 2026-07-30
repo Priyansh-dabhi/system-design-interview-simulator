@@ -9,8 +9,9 @@ import { GoogleIcon } from "../../src/components/ui/GoogleIcon";
 import { useTheme } from "../../src/theme/useTheme";
 import { Layout } from "../../src/constants/Layout";
 import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
-import { clearAuthNotice, login } from "../../src/redux/slices/auth";
+import { clearAuthNotice, login, loginWithGoogle, setGoogleAuthPhase, clearGoogleAuthPhase } from "../../src/redux/slices/auth";
 import { getErrorMessage } from "../../src/utils/error";
+import { GoogleAuthError, signInWithGoogleAsync } from "../../src/services/googleAuth";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -57,8 +58,22 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    router.push("/(auth)/google-signin");
+  const handleGoogleLogin = async () => {
+    try {
+      setActiveMethod("google");
+      const { firebaseIdToken } = await signInWithGoogleAsync();
+      dispatch(setGoogleAuthPhase("redirecting"));
+      await dispatch(loginWithGoogle(firebaseIdToken)).unwrap();
+    } catch (error) {
+      dispatch(clearGoogleAuthPhase());
+      if (error instanceof GoogleAuthError && error.code === "cancelled") {
+        return;
+      }
+      console.error("Google sign-in failed:", error);
+      Alert.alert("Google sign-in failed", getErrorMessage(error, "Please try again."));
+    } finally {
+      setActiveMethod(null);
+    }
   };
 
   const openPrivacyPolicy = () => {

@@ -42,9 +42,8 @@ function AuthGuard() {
   const inAuthGroup = segments[0] === '(auth)';
 
   // Only clear googleAuthPhase after user is authenticated and has left the
-  // auth group.  Previously this fired during the browser-to-app transition
-  // (when segments briefly leave "(auth)") and prematurely reset the phase,
-  // allowing the AuthGuard to redirect to the login page.
+  // auth group. Previously this fired prematurely and caused AuthGuard
+  // to redirect to the login page.
   useEffect(() => {
     if (googleAuthPhase !== "idle" && !inAuthGroup && user) {
       dispatch(clearGoogleAuthPhase());
@@ -68,12 +67,6 @@ function AuthGuard() {
     return null; // Return nothing so the native splash screen is all that is visible
   }
 
-  // Show LoadingSplash as an overlay (not a replacement) while Google auth
-  // is in-flight.  This keeps the Stack — and the google-signin screen —
-  // mounted so its async flow can finish, while hiding the underlying
-  // screens from the user (no login-page flash).
-  const showAuthOverlay = isAuthInFlight && !user;
-
   return (
     <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
@@ -82,11 +75,6 @@ function AuthGuard() {
         <Stack.Screen name="(interview)" />
         <Stack.Screen name="index" />
       </Stack>
-      {showAuthOverlay && (
-        <View style={StyleSheet.absoluteFill}>
-          <LoadingSplash />
-        </View>
-      )}
     </View>
   );
 }
