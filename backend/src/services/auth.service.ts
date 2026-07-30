@@ -8,10 +8,11 @@ import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
 import { DatabaseError } from "../utils/errors.js";
 import crypto from "crypto";
 
-const toAuthUser = (user: { id: number; fullName: string; email: string }) => ({
+const toAuthUser = (user: { id: number; fullName: string; email: string; acceptedTermsAt: Date | null }) => ({
     id: user.id,
     fullName: user.fullName,
     email: user.email,
+    acceptedTermsAt: user.acceptedTermsAt ? user.acceptedTermsAt.toISOString() : null,
 });
 
 const createOauthPasswordPlaceholder = async () => {
@@ -45,6 +46,7 @@ export const registerUser = async (full_name: string, email: string, password: s
                 id: true,
                 fullName: true,
                 email: true,
+                acceptedTermsAt: true,
             },
         }));
 
@@ -97,6 +99,7 @@ export const loginWithGoogle = async (firebaseIdToken: string, deviceInfo?: stri
             providerId: true,
             avatarUrl: true,
             oauthEnabled: true,
+            acceptedTermsAt: true,
         },
     }));
 
@@ -115,6 +118,7 @@ export const loginWithGoogle = async (firebaseIdToken: string, deviceInfo?: stri
             providerId: true,
             avatarUrl: true,
             oauthEnabled: true,
+            acceptedTermsAt: true,
         },
     }));
 
@@ -141,6 +145,7 @@ export const loginWithGoogle = async (firebaseIdToken: string, deviceInfo?: stri
                       id: true,
                       fullName: true,
                       email: true,
+                      acceptedTermsAt: true,
                   },
               }))
             : await withDbErrorHandling(async () => prisma.user.create({
@@ -157,6 +162,7 @@ export const loginWithGoogle = async (firebaseIdToken: string, deviceInfo?: stri
                       id: true,
                       fullName: true,
                       email: true,
+                      acceptedTermsAt: true,
                   },
               })));
 
@@ -176,12 +182,28 @@ export const getAuthenticatedUser = async (userId: number) => {
             id: true,
             fullName: true,
             email: true,
+            acceptedTermsAt: true,
         },
     }));
 
     if (!user) {
         throw new AuthServiceError("User not found", 404, "AUTH_USER_NOT_FOUND");
     }
+
+    return toAuthUser(user);
+};
+
+export const acceptUserTerms = async (userId: number) => {
+    const user = await withDbErrorHandling(() => prisma.user.update({
+        where: { id: userId },
+        data: { acceptedTermsAt: new Date() },
+        select: {
+            id: true,
+            fullName: true,
+            email: true,
+            acceptedTermsAt: true,
+        },
+    }));
 
     return toAuthUser(user);
 };

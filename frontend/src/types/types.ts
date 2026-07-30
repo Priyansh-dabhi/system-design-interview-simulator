@@ -5,6 +5,7 @@ export interface User {
     id: number;
     fullName: string;
     email: string;
+    acceptedTermsAt: string | null;
 }
 
 export interface AuthResponse {

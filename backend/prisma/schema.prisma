@@ -17,6 +17,7 @@ model User {
   providerId  String?  @unique @map("provider_id")
   avatarUrl   String?  @map("avatar_url")
   oauthEnabled Boolean @default(false) @map("oauth_enabled")
+  acceptedTermsAt DateTime? @map("accepted_terms_at")
   createdAt   DateTime @default(now())
 
   sessions      InterviewSession[]

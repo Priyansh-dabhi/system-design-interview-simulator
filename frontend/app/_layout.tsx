@@ -56,12 +56,16 @@ function AuthGuard() {
   useEffect(() => {
     if (showSplash) return;
 
+    const isOnAcceptTerms = segments[0] === '(auth)' && segments[1] === 'accept-terms';
+
     if (!user && !inAuthGroup && !isAuthInFlight) {
       router.replace('/(auth)/login');
-    } else if (user && segments[0] !== '(main)' && segments[0] !== '(interview)') {
+    } else if (user && !user.acceptedTermsAt && !isOnAcceptTerms) {
+      router.replace('/(auth)/accept-terms');
+    } else if (user && user.acceptedTermsAt && segments[0] !== '(main)' && segments[0] !== '(interview)') {
       router.replace('/(main)/home');
     }
-  }, [user, showSplash, segments, isAuthInFlight]);
+  }, [user, showSplash, segments, isAuthInFlight, inAuthGroup]);
 
   if (showSplash) {
     return null; // Return nothing so the native splash screen is all that is visible

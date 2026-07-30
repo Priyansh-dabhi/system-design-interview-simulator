@@ -10,6 +10,7 @@ import {
     logoutUserRequest,
     refreshSession,
     registerUser,
+    acceptTermsRequest,
 } from "../../services/auth.api";
 import { signOutFirebaseSession } from "../../services/googleAuth";
 import { clearStoredAuth, getStoredRefreshToken, getStoredUser, setStoredRefreshToken, setStoredUser } from "../../storage/authStorage";
@@ -145,6 +146,27 @@ export const register = createAsyncThunk(
             return payload;
         } catch (error) {
             const message = error instanceof Error ? error.message : "Registration failed";
+            return rejectWithValue(message);
+        }
+    }
+);
+
+export const acceptTerms = createAsyncThunk(
+    "auth/acceptTerms",
+    async (_, { getState, rejectWithValue }) => {
+        const state = getState() as { auth: AuthState };
+        const accessToken = state.auth.accessToken;
+
+        if (!accessToken) {
+            return rejectWithValue("Not authenticated");
+        }
+
+        try {
+            const payload = await acceptTermsRequest(accessToken);
+            await setStoredUser(payload.user);
+            return payload;
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Accepting terms failed";
             return rejectWithValue(message);
         }
     }
@@ -294,6 +316,17 @@ const authSlice = createSlice({
                 state.authNotice = null;
             })
             .addCase(register.rejected, (state) => {
+                state.isSubmitting = false;
+            })
+            .addCase(acceptTerms.pending, (state) => {
+                state.isSubmitting = true;
+                state.authNotice = null;
+            })
+            .addCase(acceptTerms.fulfilled, (state, action) => {
+                state.user = action.payload.user;
+                state.isSubmitting = false;
+            })
+            .addCase(acceptTerms.rejected, (state) => {
                 state.isSubmitting = false;
             })
             .addCase(logout.pending, (state) => {

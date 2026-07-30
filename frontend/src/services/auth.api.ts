@@ -1,5 +1,5 @@
 import { API_URL } from "../config/api";
-import { AuthResponse, LoginCredentials, RefreshResponse, RegisterCredentials } from "../types/types";
+import { AuthResponse, LoginCredentials, RefreshResponse, RegisterCredentials, User } from "../types/types";
 
 type ApiErrorCategory = "auth" | "validation" | "network" | "server" | "config";
 
@@ -157,6 +157,15 @@ export const logoutUserRequest = async (refreshToken: string, accessToken?: stri
 
 export const logoutAllSessionsRequest = async (accessToken: string) => {
     return requestNoContent("/api/auth/logout-all", {
+        method: "POST",
+        headers: {
+            authorization: `Bearer ${accessToken}`,
+        },
+    });
+};
+
+export const acceptTermsRequest = async (accessToken: string): Promise<{ user: User }> => {
+    return requestJson<{ user: User }>("/api/auth/accept-terms", {
         method: "POST",
         headers: {
             authorization: `Bearer ${accessToken}`,

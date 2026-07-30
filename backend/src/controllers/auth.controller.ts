@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser, loginUser, loginWithGoogle, getAuthenticatedUser } from "../services/auth.service.js";
+import { registerUser, loginUser, loginWithGoogle, getAuthenticatedUser, acceptUserTerms } from "../services/auth.service.js";
 import {
     refreshAuthSession,
     revokeAllUserSessions,
@@ -78,4 +78,15 @@ export const logoutAll = async (req: AuthRequest, res: Response) => {
 
     await revokeAllUserSessions(req.user.userId);
     return res.status(204).send();
+};
+
+export const acceptTerms = async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized", code: "UNAUTHORIZED" });
+    }
+    const user = await acceptUserTerms(req.user.userId);
+    return res.status(200).json({
+        message: "Terms accepted successfully",
+        user,
+    });
 };
