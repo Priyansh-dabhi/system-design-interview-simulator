@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet, Pressable, ScrollView, Linking, Alert } from "react-native";
-import { CheckSquareOffset, Square } from "phosphor-react-native";
+import { CheckSquareOffsetIcon, SquareIcon } from "phosphor-react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { useTheme } from "../../src/theme/useTheme";
@@ -81,7 +81,7 @@ export default function AcceptTermsScreen() {
           marginBottom: Layout.spacing.sm,
         },
         linkText: {
-          color: colors.primary,
+          color: "#0000EE",
           fontWeight: "600",
         },
         checkboxContainer: {
@@ -140,9 +140,9 @@ export default function AcceptTermsScreen() {
           >
             <View style={styles.checkboxIcon}>
               {hasAccepted ? (
-                <CheckSquareOffset size={28} color={colors.primary} weight="fill" />
+                <CheckSquareOffsetIcon size={28} color={colors.primary} weight="fill" />
               ) : (
-                <Square size={28} color={colors.textSecondary} />
+                <SquareIcon size={28} color={colors.textSecondary} />
               )}
             </View>
             <Text style={styles.checkboxLabel}>
