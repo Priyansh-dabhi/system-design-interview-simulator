@@ -4,7 +4,7 @@
     "slug": "ai-interview-simulator",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app_icon_pure_black_1024.png",
     "scheme": "frontend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,8 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#1A5DDB",
-        "foregroundImage": "./assets/images/android-icon-foreground.png"
+        "backgroundColor": "#000000",
+        "foregroundImage": "./assets/images/app_icon_pure_black_1024.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -36,14 +36,14 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/icon.png",
+          "image": "./assets/images/app_icon_pure_black_1024.png",
           "imageWidth": 144,
           "resizeMode": "contain",
-          "backgroundColor": "#d8e1ea",
+          "backgroundColor": "#000000",
           "dark": {
-            "image": "./assets/images/icon.png",
+            "image": "./assets/images/app_icon_pure_black_1024.png",
             "imageWidth": 144,
-            "backgroundColor": "#d8e1ea"
+            "backgroundColor": "#000000"
           }
         }
       ],
