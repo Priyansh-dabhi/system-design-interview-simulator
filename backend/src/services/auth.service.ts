@@ -58,7 +58,12 @@ export const registerUser = async (full_name: string, email: string, password: s
             error instanceof DatabaseError &&
             error.code === "DB_UNIQUE_VIOLATION"
         ) {
-            throw new AuthServiceError("Email already in use", 409, "AUTH_EMAIL_IN_USE");
+            // Check how the user originally registered to give a helpful error message
+            const existingUser = await prisma.user.findUnique({ where: { email } });
+            if (existingUser?.authProvider === "google") {
+                throw new AuthServiceError("This email is already registered. Please go back and tap 'Sign in with Google' to access your account.", 409, "AUTH_EMAIL_IN_USE");
+            }
+            throw new AuthServiceError("This email is already registered. Please log in with your password.", 409, "AUTH_EMAIL_IN_USE");
         }
 
         throw error;
