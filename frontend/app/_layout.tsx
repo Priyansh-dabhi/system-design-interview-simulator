@@ -25,7 +25,10 @@ function AuthGuard() {
   const isLoading = useAppSelector((state) => state.auth.isHydrating);
   const isSubmitting = useAppSelector((state) => state.auth.isSubmitting);
   const googleAuthPhase = useAppSelector((state) => state.auth.googleAuthPhase);
-  const segments = useSegments();
+  // Cast to string[] so indexing beyond [0] type-checks. Expo Router's typed
+  // routes infer a length-1 tuple ([string]) when route types aren't generated
+  // (e.g. in CI), which makes segments[1] a compile error otherwise.
+  const segments = useSegments() as string[];
   const router = useRouter();
   useEffect(() => {
     dispatch(bootstrapAuth());
