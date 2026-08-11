@@ -81,8 +81,9 @@ export default function AcceptTermsScreen() {
           marginBottom: Layout.spacing.sm,
         },
         linkText: {
-          color: "#0000EE",
+          color: "#0056b3",
           fontWeight: "600",
+          textDecorationLine: "underline",
         },
         checkboxContainer: {
           flexDirection: "row",

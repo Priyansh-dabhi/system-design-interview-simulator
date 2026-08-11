@@ -8,6 +8,7 @@ type SessionUser = {
     id: number;
     fullName: string;
     email: string;
+    acceptedTermsAt?: Date | null;
 };
 
 const buildTokenPair = async (user: SessionUser, deviceInfo?: string | null) => {
@@ -84,6 +85,7 @@ export const refreshAuthSession = async (refreshToken: string, deviceInfo?: stri
             id: existingToken.user.id,
             fullName: existingToken.user.fullName,
             email: existingToken.user.email,
+            acceptedTermsAt: existingToken.user.acceptedTermsAt ? existingToken.user.acceptedTermsAt.toISOString() : null,
         },
     };
 };

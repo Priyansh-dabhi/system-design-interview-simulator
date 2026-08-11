@@ -33,6 +33,7 @@ export const findRefreshTokenByHash = async (tokenHash: string) => {
                     id: true,
                     fullName: true,
                     email: true,
+                    acceptedTermsAt: true,
                 },
             },
         },

@@ -67,10 +67,8 @@ function AuthGuard() {
     }
   }, [user, showSplash, segments, isAuthInFlight, inAuthGroup]);
 
-  if (showSplash) {
-    return null; // Return nothing so the native splash screen is all that is visible
-  }
-
+  // Remove the early return null so that Expo Router's <Stack> always mounts.
+  // The native splash screen will remain visible until SplashScreen.hideAsync() is called.
   return (
     <View style={{ flex: 1 }}>
       <Stack screenOptions={{ headerShown: false }}>
