@@ -7,7 +7,6 @@ import {
     TrophyIcon,
     UserCircleIcon,
     FileTextIcon,
-    ShieldCheckIcon,
 } from 'phosphor-react-native';
 import React from 'react';
 import {

@@ -9,9 +9,10 @@ import fs from "fs";
 import dotenv from "dotenv";
 dotenv.config();
 
-import { ingestFile } from "../src/services/rag/ingestion.service.js";
-
+// Use dynamic import so dotenv.config() runs BEFORE the module is evaluated
+// Otherwise, ES module imports are hoisted and process.env is undefined
 async function run() {
+    const { ingestFile } = await import("../src/services/rag/ingestion.service.js");
     const dir = path.join(process.cwd(), "knowledge/topics");
 
     const files = fs.readdirSync(dir);
