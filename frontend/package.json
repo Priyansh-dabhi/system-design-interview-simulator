@@ -9,6 +9,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "typecheck": "tsc --noEmit",
     "clean": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"@('android/app/build','android/app/.cxx','android/.gradle','android/build','.expo','dist') | ForEach-Object { if (Test-Path $_) { Remove-Item -Recurse -Force $_ } }\""
   },
   "dependencies": {

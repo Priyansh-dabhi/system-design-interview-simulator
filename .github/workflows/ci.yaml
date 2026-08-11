@@ -28,6 +28,8 @@ jobs:
     env:
       DATABASE_URL: postgresql://sd_user:sd_password@localhost:5432/sd_interview
       TEST_DATABASE_URL: postgresql://sd_user:sd_password@localhost:5432/sd_interview
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      ACCESS_TOKEN_SECRET: ${{ secrets.JWT_TOKEN_SECRET }}
 
     steps:
       - uses: actions/checkout@v4
