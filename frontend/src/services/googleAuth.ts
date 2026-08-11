@@ -63,7 +63,6 @@ export const signInWithGoogleAsync = async () => {
              // fallback for older API versions
              idToken = (response as any).idToken;
         }
-
         if (!idToken) {
             throw new GoogleAuthError("Google did not return an ID token.", "oauth");
         }

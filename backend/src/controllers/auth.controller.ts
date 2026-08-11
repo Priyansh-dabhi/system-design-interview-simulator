@@ -14,7 +14,6 @@ const getDeviceInfo = (req: Request) => {
     if (typeof headerDeviceInfo === "string" && headerDeviceInfo.trim()) {
         return headerDeviceInfo.trim();
     }
-
     if (typeof userAgent === "string" && userAgent.trim()) {
         return userAgent.trim();
     }

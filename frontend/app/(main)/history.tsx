@@ -98,7 +98,7 @@ const styles = React.useMemo(() => StyleSheet.create({
                     Review your past performance and technical growth
                 </Text>
             </View>
-
+            
             {/* Content */}
             {history.length === 0 ? (
                 <EmptyState />
