@@ -9,11 +9,6 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
-    if: |
-      contains(toJson(github.event.commits.*.added), 'backend/') ||
-      contains(toJson(github.event.commits.*.modified), 'backend/') ||
-      contains(toJson(github.event.commits.*.removed), 'backend/') ||
-      github.event_name == 'pull_request'
 
     services:
       postgres:
@@ -65,11 +60,6 @@ jobs:
 
   frontend:
     runs-on: ubuntu-latest
-    if: |
-      contains(toJson(github.event.commits.*.added), 'frontend/') ||
-      contains(toJson(github.event.commits.*.modified), 'frontend/') ||
-      contains(toJson(github.event.commits.*.removed), 'frontend/') ||
-      github.event_name == 'pull_request'
 
     steps:
       - uses: actions/checkout@v4
