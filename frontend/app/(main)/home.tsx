@@ -8,33 +8,21 @@ import { useDispatch } from 'react-redux';
 import { useTheme } from "../../src/theme/useTheme";
 import { Layout } from "../../src/constants/Layout";
 import { setSelectedTopic } from '@/src/redux/slices/problem';
-import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
-import { logout } from '@/src/redux/slices/auth';
+import { useAppSelector } from '@/src/redux/hooks';
 import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
-
-// Safe import: expo-speech-recognition requires a development build (not Expo Go)
-let ExpoSpeechRecognitionModule: any = null;
-try {
-    const speechModule = require('expo-speech-recognition');
-    ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
-} catch {
-    // Native module not available (Expo Go)
-}
+import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 
 export default function HomeScreen() {
   const user = useAppSelector((state) => state.auth.user);
   const { data } = useGetHistoryQuery();
   const router = useRouter();
   const dispatch = useDispatch();
-  const appDispatch = useAppDispatch();
   const { colors } = useTheme();
 
   useEffect(() => {
     // Request permissions upfront when user first lands on the home screen
     const requestPermissions = async () => {
-      if (ExpoSpeechRecognitionModule) {
-        await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      }
+      await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     };
     requestPermissions();
   }, []);

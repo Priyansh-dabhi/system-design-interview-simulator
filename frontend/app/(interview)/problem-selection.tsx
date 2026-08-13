@@ -3,7 +3,7 @@ import { clearSelectedTopic, setSelectedTopic, setDuration } from '@/src/redux/s
 import { setSession } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { useRouter } from 'expo-router';
-import { ArrowLeftIcon, ChatCircleDotsIcon, FilmReelIcon, LinkIcon, MapPinIcon } from 'phosphor-react-native';
+import { ArrowLeftIcon, ChatCircleDotsIcon, ClockIcon, FilmReelIcon, LinkIcon, MapPinIcon } from 'phosphor-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -79,7 +79,7 @@ export default function TopicSelectionScreen() {
             } else {
                 dispatch(setSelectedTopic({ id: topic.id, title: topic.title }));
             }
-        } catch (err) { }
+        } catch { }
         console.log('Selected topic:', topic.id);
     };
 
@@ -144,7 +144,7 @@ const styles = React.useMemo(() => StyleSheet.create({
         },
         scrollContent: {
             paddingHorizontal: Layout.spacing.lg,
-            paddingBottom: Layout.spacing.md,
+            paddingBottom: Layout.spacing.xl,
             gap: Layout.spacing.md,
         },
         buttonContainer: {
@@ -155,15 +155,40 @@ const styles = React.useMemo(() => StyleSheet.create({
             borderTopWidth: 1,
             borderTopColor: colors.border,
         },
-        durationContainer: {
-            paddingHorizontal: Layout.spacing.lg,
-            paddingTop: Layout.spacing.md,
+        durationCard: {
+            marginBottom: Layout.spacing.lg,
+            padding: Layout.spacing.md,
+            backgroundColor: colors.surface,
+            borderWidth: 1,
+            borderColor: colors.border,
+            borderRadius: Layout.borderRadius.lg,
+            gap: Layout.spacing.md,
+        },
+        durationHeading: {
+            flexDirection: 'row',
+            alignItems: 'center',
             gap: Layout.spacing.sm,
         },
+        durationIcon: {
+            width: 36,
+            height: 36,
+            borderRadius: 18,
+            backgroundColor: colors.primaryBrand + '18',
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        durationCopy: {
+            flex: 1,
+        },
         durationLabel: {
-            fontSize: 14,
-            fontWeight: '600',
+            fontSize: 16,
+            fontWeight: '700',
             color: colors.text,
+        },
+        durationHint: {
+            marginTop: 2,
+            fontSize: 13,
+            color: colors.textSecondary,
         },
         startButton: {
             height: 56,
@@ -207,12 +232,28 @@ const styles = React.useMemo(() => StyleSheet.create({
                 </View>
             </View>
 
-            {/* Topic Cards */}
+            {/* Interview setup and topic cards share one scroll area. */}
             <ScrollView
                 style={styles.scrollView}
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
+                <View style={styles.durationCard}>
+                    <View style={styles.durationHeading}>
+                        <View style={styles.durationIcon}>
+                            <ClockIcon size={19} color={colors.primaryBrand} weight="fill" />
+                        </View>
+                        <View style={styles.durationCopy}>
+                            <Text style={styles.durationLabel}>Interview duration</Text>
+                            <Text style={styles.durationHint}>Choose a pace that fits your practice time</Text>
+                        </View>
+                    </View>
+                    <SegmentedControl
+                        options={DURATION_OPTIONS}
+                        value={durationMinutes}
+                        onChange={(value) => dispatch(setDuration(value))}
+                    />
+                </View>
                 {TOPICS.map((topic) => (
                     <TopicCard
                         key={topic.id}
@@ -224,16 +265,6 @@ const styles = React.useMemo(() => StyleSheet.create({
                     />
                 ))}
             </ScrollView>
-
-            {/* Duration Picker */}
-            <View style={styles.durationContainer}>
-                <Text style={styles.durationLabel}>Duration</Text>
-                <SegmentedControl
-                    options={DURATION_OPTIONS}
-                    value={durationMinutes}
-                    onChange={(value) => dispatch(setDuration(value))}
-                />
-            </View>
 
             {/* Start Interview Button */}
             <View style={styles.buttonContainer}>

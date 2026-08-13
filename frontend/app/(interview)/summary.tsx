@@ -3,9 +3,6 @@ import type { RootState } from '@/src/redux/store';
 import { useRouter } from 'expo-router';
 import {
     ArrowLeftIcon,
-    CheckCircleIcon,
-    LightbulbIcon,
-    WarningCircleIcon,
 } from 'phosphor-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';

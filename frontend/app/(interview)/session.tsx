@@ -2,20 +2,13 @@ import { useChatMutation, useEndSessionMutation } from '@/src/redux/api/intervie
 import { setSummary } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { useNavigation, useRouter } from 'expo-router';
-// Safe import: expo-speech-recognition requires a development build (not Expo Go)
-let ExpoSpeechRecognitionModule: any = null;
-let useSpeechRecognitionEvent: any = null;
-try {
-    const speechModule = require('expo-speech-recognition');
-    ExpoSpeechRecognitionModule = speechModule.ExpoSpeechRecognitionModule;
-    useSpeechRecognitionEvent = speechModule.useSpeechRecognitionEvent;
-} catch {
-    // Native module not available (Expo Go)
-}
+import {
+    ExpoSpeechRecognitionModule,
+    useSpeechRecognitionEvent,
+} from 'expo-speech-recognition';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
-    BackHandler,
     FlatList,
     KeyboardAvoidingView,
     Platform,
@@ -73,7 +66,7 @@ export default function InterviewSessionScreen() {
         }
     }, [openingMessage]);
 
-    const performEndSession = async () => {
+    const performEndSession = useCallback(async () => {
         if (!sessionId || !problem) return;
         if (hasEndedRef.current) return; // already ending/ended — don't double-fire
         hasEndedRef.current = true;
@@ -91,7 +84,7 @@ export default function InterviewSessionScreen() {
                 [{ text: 'OK' }]
             );
         }
-    };
+    }, [dispatch, endSession, problem, router, sessionId]);
 
     // Keep a live ref to performEndSession so the countdown interval always
     // calls the latest closure without needing to re-create the interval.
@@ -127,7 +120,7 @@ export default function InterviewSessionScreen() {
                 { text: 'End Interview', style: 'destructive', onPress: performEndSession },
             ]
         );
-    }, [sessionId, problem]);
+    }, [performEndSession]);
 
     // Intercept back button and gestures
     useEffect(() => {
@@ -144,7 +137,7 @@ export default function InterviewSessionScreen() {
             );
         });
         return unsubscribe;
-    }, [navigation, isNavigatingAway, isEnding, sessionId, problem]);
+    }, [navigation, isNavigatingAway, isEnding, performEndSession]);
 
     const handleSend = async () => {
         if (!inputText.trim() || !sessionId || !problem) return;
@@ -180,13 +173,10 @@ export default function InterviewSessionScreen() {
         }
     };
 
-    // --- Speech Recognition Hooks (only register if native module is available) ---
-    const noopHook = (_event: string, _cb: Function) => {};
-    const safeUseSpeechEvent = useSpeechRecognitionEvent || noopHook;
-
-    safeUseSpeechEvent('start', () => setIsRecording(true));
-    safeUseSpeechEvent('end', () => setIsRecording(false));
-    safeUseSpeechEvent('result', (event: any) => {
+    // --- Speech Recognition Hooks ---
+    useSpeechRecognitionEvent('start', () => setIsRecording(true));
+    useSpeechRecognitionEvent('end', () => setIsRecording(false));
+    useSpeechRecognitionEvent('result', (event) => {
         const transcript = event.results[0]?.transcript;
         if (transcript) {
             const baseText = baseTextRef.current;
@@ -194,7 +184,7 @@ export default function InterviewSessionScreen() {
             setInputText(baseText + separator + transcript);
         }
     });
-    safeUseSpeechEvent('error', (event: any) => {
+    useSpeechRecognitionEvent('error', (event) => {
         console.error('Speech recognition error:', event.error, event.message);
         setIsRecording(false);
         if (event.error === 'not-allowed') {
@@ -213,14 +203,6 @@ export default function InterviewSessionScreen() {
     });
 
     const handleVoiceInput = async () => {
-        if (!ExpoSpeechRecognitionModule) {
-            Alert.alert(
-                'Voice Input Unavailable',
-                'Speech recognition requires a development build. Please run "npx expo prebuild" and rebuild the app.',
-                [{ text: 'OK' }]
-            );
-            return;
-        }
         if (isRecording) {
             ExpoSpeechRecognitionModule.stop();
             return;
