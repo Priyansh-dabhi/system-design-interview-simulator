@@ -11,6 +11,7 @@ interface ChatInputProps {
     onVoiceInput: () => void;
     isSending: boolean;
     isRecording: boolean;
+    disabled?: boolean;
 }
 
 export function ChatInput({
@@ -20,9 +21,10 @@ export function ChatInput({
     onVoiceInput,
     isSending,
     isRecording,
+    disabled = false,
 }: ChatInputProps) {
     const { colors } = useTheme();
-    const canSend = value.trim().length > 0 && !isSending;
+    const canSend = value.trim().length > 0 && !isSending && !disabled;
 
     const styles = React.useMemo(() => StyleSheet.create({
         inputContainer: {
@@ -79,11 +81,11 @@ export function ChatInput({
                 style={styles.input}
                 value={value}
                 onChangeText={onChangeText}
-                placeholder="Type your response..."
+                placeholder={disabled ? "Time's up — interview ended" : "Type your response..."}
                 placeholderTextColor={colors.textSecondary}
                 multiline
                 maxLength={1000}
-                editable={!isSending}
+                editable={!isSending && !disabled}
             />
             <TouchableOpacity
                 onPress={onVoiceInput}

@@ -12,6 +12,11 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { SummarySection } from '../../src/components/shared/SummarySection';
+import { ScoreHeader } from '../../src/components/interview/ScoreHeader';
+import { DimensionBars } from '../../src/components/interview/DimensionBars';
+import { CoverageChecklist } from '../../src/components/interview/CoverageChecklist';
+import { StudyPlanList } from '../../src/components/interview/StudyPlanList';
+import { IdealAnswerCard } from '../../src/components/interview/IdealAnswerCard';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 
@@ -79,6 +84,9 @@ export default function SummaryScreen() {
             padding: Layout.spacing.lg,
             paddingBottom: Layout.spacing.md,
         },
+        content: {
+            gap: Layout.spacing.lg,
+        },
         buttonContainer: {
             paddingHorizontal: Layout.spacing.lg,
             paddingVertical: Layout.spacing.md,
@@ -143,11 +151,31 @@ export default function SummaryScreen() {
                 contentContainerStyle={styles.scrollContent}
                 showsVerticalScrollIndicator={false}
             >
-                <SummarySection
-                    strengths={summary.strengths}
-                    missedTopics={summary.missed_topics}
-                    suggestions={summary.suggestions}
-                />
+                <View style={styles.content}>
+                    {typeof summary.overall_score === 'number' && (
+                        <ScoreHeader
+                            overallScore={summary.overall_score}
+                            durationSeconds={summary.durationSeconds}
+                        />
+                    )}
+                    {summary.dimension_scores && (
+                        <DimensionBars scores={summary.dimension_scores} />
+                    )}
+                    <SummarySection
+                        strengths={summary.strengths}
+                        missedTopics={summary.missed_topics}
+                        suggestions={summary.suggestions}
+                    />
+                    {summary.topic_coverage && summary.topic_coverage.length > 0 && (
+                        <CoverageChecklist items={summary.topic_coverage} />
+                    )}
+                    {summary.study_plan && summary.study_plan.length > 0 && (
+                        <StudyPlanList items={summary.study_plan} />
+                    )}
+                    {summary.ideal_answer ? (
+                        <IdealAnswerCard text={summary.ideal_answer} />
+                    ) : null}
+                </View>
             </ScrollView>
 
             {/* Done Button */}

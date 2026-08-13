@@ -1,4 +1,4 @@
-import { ArrowLeftIcon } from 'phosphor-react-native';
+import { ArrowLeftIcon, ClockIcon } from 'phosphor-react-native';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
@@ -8,10 +8,30 @@ interface ChatHeaderProps {
     topicTitle: string;
     onBack: () => void;
     onEnd: () => void;
+    remainingSeconds?: number;
 }
 
-export function ChatHeader({ topicTitle, onBack, onEnd }: ChatHeaderProps) {
+const AMBER = '#F59E0B';
+
+const formatTime = (totalSeconds: number) => {
+    const clamped = Math.max(0, totalSeconds);
+    const minutes = Math.floor(clamped / 60);
+    const seconds = clamped % 60;
+    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+};
+
+export function ChatHeader({ topicTitle, onBack, onEnd, remainingSeconds }: ChatHeaderProps) {
     const { colors } = useTheme();
+    const showTimer = typeof remainingSeconds === 'number';
+
+    // Colour-shift as time runs low: amber in the last 5 min, red in the last minute.
+    const timerColor = !showTimer
+        ? colors.textSecondary
+        : remainingSeconds! <= 60
+            ? colors.error
+            : remainingSeconds! <= 300
+                ? AMBER
+                : colors.primaryBrand;
 
     const styles = React.useMemo(() => StyleSheet.create({
         header: {
@@ -39,6 +59,7 @@ export function ChatHeader({ topicTitle, onBack, onEnd }: ChatHeaderProps) {
             alignItems: 'center',
             justifyContent: 'center',
             marginHorizontal: Layout.spacing.md,
+            gap: 4,
         },
         topicTitle: {
             fontSize: 16,
@@ -50,8 +71,24 @@ export function ChatHeader({ topicTitle, onBack, onEnd }: ChatHeaderProps) {
             fontSize: 11,
             fontWeight: '500',
             color: colors.textSecondary,
-            marginTop: 2,
             letterSpacing: 0.5,
+        },
+        timerPill: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            paddingHorizontal: 8,
+            paddingVertical: 2,
+            borderRadius: Layout.borderRadius.full,
+            backgroundColor: timerColor + '1A',
+            borderWidth: 1,
+            borderColor: timerColor + '40',
+        },
+        timerText: {
+            fontSize: 13,
+            fontWeight: '700',
+            color: timerColor,
+            fontVariant: ['tabular-nums'],
         },
         endButton: {
             paddingHorizontal: 15,
@@ -66,7 +103,7 @@ export function ChatHeader({ topicTitle, onBack, onEnd }: ChatHeaderProps) {
             fontWeight: '600',
             color: colors.error,
         },
-    }), [colors]);
+    }), [colors, timerColor]);
 
     return (
         <View style={styles.header}>
@@ -75,8 +112,15 @@ export function ChatHeader({ topicTitle, onBack, onEnd }: ChatHeaderProps) {
             </TouchableOpacity>
 
             <View style={styles.headerCenter}>
-                <Text style={styles.topicTitle}>{topicTitle}</Text>
-                <Text style={styles.aiLabel}>AI INTERVIEWER</Text>
+                <Text style={styles.topicTitle} numberOfLines={1}>{topicTitle}</Text>
+                {showTimer ? (
+                    <View style={styles.timerPill}>
+                        <ClockIcon size={13} color={timerColor} weight="fill" />
+                        <Text style={styles.timerText}>{formatTime(remainingSeconds!)}</Text>
+                    </View>
+                ) : (
+                    <Text style={styles.aiLabel}>AI INTERVIEWER</Text>
+                )}
             </View>
 
             <TouchableOpacity onPress={onEnd} style={styles.endButton}>
@@ -85,4 +129,3 @@ export function ChatHeader({ topicTitle, onBack, onEnd }: ChatHeaderProps) {
         </View>
     );
 }
-

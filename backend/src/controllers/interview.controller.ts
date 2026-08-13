@@ -31,6 +31,18 @@ export const getScore = (missedTopicsCount: number): "good" | "average" | "needs
     return "needs_improvement";
 };
 
+export const scoreFromOverall = (overall: number): "good" | "average" | "needs_improvement" => {
+    if (overall >= 75) {
+        return "good";
+    }
+
+    if (overall >= 50) {
+        return "average";
+    }
+
+    return "needs_improvement";
+};
+
 const getOwnedSessionOrRespond = async (
     req: AuthRequest,
     res: Response,
@@ -54,9 +66,9 @@ const getOwnedSessionOrRespond = async (
 };
 
 export const start_session = async (req: AuthRequest, res: Response) => {
-    const { problem } = req.body;
+    const { problem, durationMinutes } = req.body;
     const userId = req.user!.userId;
-    const session = await sessionRepo.createSession(userId, problem);
+    const session = await sessionRepo.createSession(userId, problem, durationMinutes);
 
     const { response: openingQuestion, stage } = await orchestrateResponse(
         session.id,
@@ -109,17 +121,24 @@ export const interview_summary = async (req: AuthRequest, res: Response) => {
     }
 
     const conversation = await messageRepo.getConversationForOwnedSession(sessionId, req.user.userId);
-    const result = await generateSummary(problem ?? ownedSession.problemName, conversation);
+    const messageCount = await messageRepo.getMessageCountForOwnedSession(sessionId, req.user.userId);
 
-    await summaryRepo.saveSummary(
-        sessionId,
-        req.user.userId,
-        result.strengths,
-        result.missed_topics,
-        result.suggestions
+    const result = await generateSummary(problem ?? ownedSession.problemName, conversation, {
+        difficulty: ownedSession.difficultyLevel,
+        stage: ownedSession.stage,
+        durationMinutes: ownedSession.durationMinutes,
+        messageCount,
+    });
+
+    await summaryRepo.saveSummary(sessionId, req.user.userId, result);
+
+    // createdAt is the start anchor; saveSummary stamps endedAt = now().
+    const durationSeconds = Math.max(
+        0,
+        Math.floor((Date.now() - new Date(ownedSession.createdAt).getTime()) / 1000)
     );
 
-    res.json(result);
+    res.json({ ...result, durationSeconds });
 };
 
 export const interview_history = async (req: AuthRequest, res: Response) => {
@@ -134,6 +153,15 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
         const strengths = parseSummaryList(session.summary?.strengths);
         const missedTopics = parseSummaryList(session.summary?.missedTopics);
         const suggestions = parseSummaryList(session.summary?.suggestions);
+        const overallScore = session.summary?.overallScore ?? null;
+
+        // Prefer the stored 0-100 score; fall back to the legacy heuristic for
+        // summaries created before rich scoring existed.
+        const score = session.summary
+            ? (typeof overallScore === "number"
+                ? scoreFromOverall(overallScore)
+                : getScore(missedTopics.length))
+            : "average";
 
         return {
             id: session.id,
@@ -142,7 +170,8 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
             stage: session.stage,
             date: session.createdAt.toISOString(),
             messageCount: session.messages.length,
-            score: session.summary ? getScore(missedTopics.length) : "average",
+            overallScore,
+            score,
             summary: {
                 strengths,
                 missed_topics: missedTopics,

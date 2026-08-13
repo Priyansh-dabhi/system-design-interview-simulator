@@ -1,5 +1,5 @@
 import { useStartSessionMutation } from '@/src/redux/api/interview_api';
-import { clearSelectedTopic, setSelectedTopic } from '@/src/redux/slices/problem';
+import { clearSelectedTopic, setSelectedTopic, setDuration } from '@/src/redux/slices/problem';
 import { setSession } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { useRouter } from 'expo-router';
@@ -9,8 +9,16 @@ import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacit
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { TopicCard, Topic } from '../../src/components/interview/TopicCard';
+import { SegmentedControl, SegmentedControlOption } from '../../src/components/ui/SegmentedControl';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
+
+const DURATION_OPTIONS: SegmentedControlOption<number>[] = [
+    { label: '15 min', value: 15 },
+    { label: '30 min', value: 30 },
+    { label: '45 min', value: 45 },
+    { label: '60 min', value: 60 },
+];
 
 const TOPICS: Topic[] = [
     {
@@ -54,6 +62,7 @@ const TOPICS: Topic[] = [
 export default function TopicSelectionScreen() {
     const dispatch = useDispatch();
     const selectedTopic = useSelector((state: RootState) => state.problem.selectedTopic);
+    const durationMinutes = useSelector((state: RootState) => state.problem.durationMinutes);
     const router = useRouter();
     const [startSession, { isLoading }] = useStartSessionMutation();
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -77,11 +86,12 @@ export default function TopicSelectionScreen() {
     const handleStartInterview = async () => {
         if (!selectedTopic?.title) return;
         try {
-            const result = await startSession(selectedTopic.title).unwrap();
+            const result = await startSession({ problem: selectedTopic.title, durationMinutes }).unwrap();
             dispatch(setSession({
                 sessionId: result.sessionId,
                 openingMessage: result.message,
                 problem: selectedTopic.title,
+                durationMinutes,
             }));
             router.push('/session');
         } catch (err: any) {
@@ -145,6 +155,16 @@ const styles = React.useMemo(() => StyleSheet.create({
             borderTopWidth: 1,
             borderTopColor: colors.border,
         },
+        durationContainer: {
+            paddingHorizontal: Layout.spacing.lg,
+            paddingTop: Layout.spacing.md,
+            gap: Layout.spacing.sm,
+        },
+        durationLabel: {
+            fontSize: 14,
+            fontWeight: '600',
+            color: colors.text,
+        },
         startButton: {
             height: 56,
             backgroundColor: colors.primaryBrand,
@@ -204,6 +224,16 @@ const styles = React.useMemo(() => StyleSheet.create({
                     />
                 ))}
             </ScrollView>
+
+            {/* Duration Picker */}
+            <View style={styles.durationContainer}>
+                <Text style={styles.durationLabel}>Duration</Text>
+                <SegmentedControl
+                    options={DURATION_OPTIONS}
+                    value={durationMinutes}
+                    onChange={(value) => dispatch(setDuration(value))}
+                />
+            </View>
 
             {/* Start Interview Button */}
             <View style={styles.buttonContainer}>

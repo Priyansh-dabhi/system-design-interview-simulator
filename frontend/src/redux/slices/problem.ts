@@ -5,10 +5,12 @@ type problemState = {
     id: string;
     title: string;
   } | null;
+  durationMinutes: number;
 };
 
 const initialState: problemState = {
   selectedTopic: null,
+  durationMinutes: 30,
 };
 
 const problemSlice = createSlice({
@@ -24,10 +26,13 @@ const problemSlice = createSlice({
     clearSelectedTopic: (state) => {
       state.selectedTopic = null;
     },
+    setDuration: (state, action: PayloadAction<number>) => {
+      state.durationMinutes = action.payload;
+    },
   },
 });
 
-export const { setSelectedTopic, clearSelectedTopic } =
+export const { setSelectedTopic, clearSelectedTopic, setDuration } =
   problemSlice.actions;
 
 export default problemSlice.reducer;

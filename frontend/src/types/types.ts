@@ -20,10 +20,32 @@ export interface RefreshResponse {
     user: User;
 }
 
+export interface DimensionScore {
+    score: number;
+    comment: string;
+}
+
+export interface TopicCoverageItem {
+    topic: string;
+    covered: boolean;
+}
+
+export interface StudyPlanItem {
+    topic: string;
+    why: string;
+}
+
 export interface InterviewSummary {
     strengths: string[];
     missed_topics: string[];
     suggestions: string[];
+    // Rich fields (present for interviews scored by the upgraded summary model).
+    overall_score?: number;
+    dimension_scores?: Record<string, DimensionScore>;
+    topic_coverage?: TopicCoverageItem[];
+    study_plan?: StudyPlanItem[];
+    ideal_answer?: string;
+    durationSeconds?: number;
 }
 
 export type InterviewScore = 'good' | 'average' | 'needs_improvement';
@@ -35,6 +57,7 @@ export interface InterviewHistoryItem {
     stage: string;
     date: string;
     messageCount: number;
+    overallScore?: number | null;
     score: InterviewScore;
     summary: InterviewSummary;
 }

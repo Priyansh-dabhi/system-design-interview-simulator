@@ -1,12 +1,11 @@
 import prisma from "../config/prisma.js";
 import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
+import type { InterviewSummaryResult } from "../services/ai/summarySchema.js";
 
 export const saveSummary = async (
     sessionId: string,
     userId: number,
-    strengths: string[],
-    missedTopics: string[],
-    suggestions: string[]
+    result: InterviewSummaryResult
 ) => {
     await withDbErrorHandling(() => prisma.$transaction(async (tx) => {
         const ownedSession = await tx.interviewSession.findFirst({
@@ -26,15 +25,22 @@ export const saveSummary = async (
         await tx.interviewSummary.create({
             data: {
                 sessionId,
-                strengths: JSON.stringify(strengths),
-                missedTopics: JSON.stringify(missedTopics),
-                suggestions: JSON.stringify(suggestions),
+                // Keep the original three lists as JSON strings for back-compat.
+                strengths: JSON.stringify(result.strengths),
+                missedTopics: JSON.stringify(result.missed_topics),
+                suggestions: JSON.stringify(result.suggestions),
+                // Rich fields.
+                overallScore: result.overall_score,
+                dimensionScores: result.dimension_scores,
+                topicCoverage: result.topic_coverage,
+                studyPlan: result.study_plan,
+                idealAnswer: result.ideal_answer,
             },
         });
 
         await tx.interviewSession.update({
             where: { id: sessionId },
-            data: { status: "completed" },
+            data: { status: "completed", endedAt: new Date() },
         });
     }));
 };

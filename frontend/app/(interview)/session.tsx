@@ -40,6 +40,7 @@ export default function InterviewSessionScreen() {
     const sessionId = useSelector((state: RootState) => state.session.sessionId);
     const openingMessage = useSelector((state: RootState) => state.session.openingMessage);
     const problem = useSelector((state: RootState) => state.session.problem);
+    const durationMinutes = useSelector((state: RootState) => state.session.durationMinutes);
     const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
 
     const [sendChat, { isLoading: isSending }] = useChatMutation();
@@ -49,8 +50,13 @@ export default function InterviewSessionScreen() {
     const [inputText, setInputText] = useState('');
     const [isRecording, setIsRecording] = useState(false);
     const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+    const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
     const flatListRef = useRef<FlatList>(null);
     const baseTextRef = useRef('');
+    // Guards against ending the session more than once (timer + back gesture + End button).
+    const hasEndedRef = useRef(false);
+    const endsAtRef = useRef<number | null>(null);
+    const performEndSessionRef = useRef<() => void>(() => {});
     const { colors } = useTheme();
 
     // Keep track of text before recording to allow appending on resume
@@ -69,12 +75,15 @@ export default function InterviewSessionScreen() {
 
     const performEndSession = async () => {
         if (!sessionId || !problem) return;
+        if (hasEndedRef.current) return; // already ending/ended — don't double-fire
+        hasEndedRef.current = true;
         try {
             const result = await endSession({ sessionId, problem }).unwrap();
             dispatch(setSummary(result));
             setIsNavigatingAway(true);
             router.replace('/summary');
         } catch (err: any) {
+            hasEndedRef.current = false; // allow retry on failure
             console.error('End session error:', err);
             Alert.alert(
                 'Summary Failed',
@@ -83,6 +92,31 @@ export default function InterviewSessionScreen() {
             );
         }
     };
+
+    // Keep a live ref to performEndSession so the countdown interval always
+    // calls the latest closure without needing to re-create the interval.
+    useEffect(() => {
+        performEndSessionRef.current = performEndSession;
+    });
+
+    // Countdown: derive a fixed deadline once, tick every second, and auto-end
+    // (exactly once, via hasEndedRef) when it reaches zero.
+    useEffect(() => {
+        if (!durationMinutes) return; // untimed session — no countdown
+        if (endsAtRef.current === null) {
+            endsAtRef.current = Date.now() + durationMinutes * 60 * 1000;
+        }
+        const tick = () => {
+            const remaining = Math.max(0, Math.round((endsAtRef.current! - Date.now()) / 1000));
+            setRemainingSeconds(remaining);
+            if (remaining <= 0) {
+                performEndSessionRef.current();
+            }
+        };
+        tick();
+        const intervalId = setInterval(tick, 1000);
+        return () => clearInterval(intervalId);
+    }, [durationMinutes]);
 
     const handleEndInterview = useCallback(() => {
         Alert.alert(
@@ -222,6 +256,7 @@ const styles = React.useMemo(() => StyleSheet.create({
                 topicTitle={topicTitle}
                 onBack={() => router.back()}
                 onEnd={handleEndInterview}
+                remainingSeconds={remainingSeconds ?? undefined}
             />
 
             <KeyboardAvoidingView
@@ -246,6 +281,7 @@ const styles = React.useMemo(() => StyleSheet.create({
                     onVoiceInput={handleVoiceInput}
                     isSending={isSending}
                     isRecording={isRecording}
+                    disabled={remainingSeconds !== null && remainingSeconds <= 0}
                 />
             </KeyboardAvoidingView>
 

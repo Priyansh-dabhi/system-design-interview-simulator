@@ -1,11 +1,12 @@
 import prisma from "../config/prisma.js";
 import { withDbErrorHandling } from "../utils/prisma-error-mapper.js";
 
-export const createSession = async (userId: number, problem: string) => {
+export const createSession = async (userId: number, problem: string, durationMinutes?: number) => {
     return withDbErrorHandling(() => prisma.interviewSession.create({
         data: {
             userId,
             problemName: problem,
+            durationMinutes: durationMinutes ?? null,
         },
         select: {
             id: true,
@@ -25,6 +26,10 @@ export const findOwnedSessionById = async (sessionId: string, userId: number) =>
             problemName: true,
             status: true,
             stage: true,
+            difficultyLevel: true,
+            durationMinutes: true,
+            createdAt: true,
+            endedAt: true,
         },
     }));
 };

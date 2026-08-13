@@ -11,10 +11,10 @@ export const createSessionStartAPi = createApi({
 
     endpoints: (builder) => ({
         startSession: builder.mutation({
-            query: (problemName: string) => ({
+            query: ({ problem, durationMinutes }: { problem: string; durationMinutes: number }) => ({
                 url: "/api/interview/start_session",
                 method: "POST",
-                body: { problem: problemName },
+                body: { problem, durationMinutes },
             }),
             invalidatesTags: ["InterviewHistory"],
         }),

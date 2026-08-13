@@ -12,9 +12,20 @@ jest.mock("../../services/ai/interviewOrchestrator.js", () => ({
 
 jest.mock("../../services/ai/ai.service.js", () => ({
   generateSummary: jest.fn().mockResolvedValue({
+    overall_score: 78,
+    dimension_scores: {
+      requirements: { score: 8, comment: "Clear scope" },
+      scalability: { score: 7, comment: "Discussed sharding" },
+      data_modeling: { score: 8, comment: "Solid schema" },
+      tradeoffs: { score: 7, comment: "Weighed options" },
+      communication: { score: 8, comment: "Structured" },
+    },
     strengths: ["Great communication"],
     missed_topics: ["Scalability"],
     suggestions: ["Read about CDNs"],
+    topic_coverage: [{ topic: "CDN", covered: false }],
+    study_plan: [{ topic: "CDN", why: "Not addressed" }],
+    ideal_answer: "Use a CDN with origin shield and adaptive bitrate...",
   }),
 }));
 
@@ -39,6 +50,34 @@ describe("Interview Routes", () => {
       expect(res.body.sessionId).toBeDefined();
       expect(res.body.message).toBe("Mocked AI question");
       expect(res.body.stage).toBe("warmup");
+    });
+
+    it("should start a session with a chosen duration", async () => {
+      const res = await request(app)
+        .post("/api/interview/start_session")
+        .set("Authorization", authHeader(token))
+        .send({ problem: "Design Netflix", durationMinutes: 30 });
+
+      expect(res.status).toBe(201);
+      expect(res.body.sessionId).toBeDefined();
+    });
+
+    it("should reject an out-of-allowlist duration", async () => {
+      const res = await request(app)
+        .post("/api/interview/start_session")
+        .set("Authorization", authHeader(token))
+        .send({ problem: "Design Netflix", durationMinutes: 25 });
+
+      expect(res.status).toBe(400);
+    });
+
+    it("should reject a missing problem", async () => {
+      const res = await request(app)
+        .post("/api/interview/start_session")
+        .set("Authorization", authHeader(token))
+        .send({ durationMinutes: 30 });
+
+      expect(res.status).toBe(400);
     });
 
     it("should reject without token", async () => {
@@ -101,7 +140,7 @@ describe("Interview Routes", () => {
       sessionId = res.body.sessionId;
     });
 
-    it("should generate a summary", async () => {
+    it("should generate a rich scored summary", async () => {
       const res = await request(app)
         .post("/api/interview/summary")
         .set("Authorization", authHeader(token))
@@ -110,6 +149,10 @@ describe("Interview Routes", () => {
       expect(res.status).toBe(200);
       expect(res.body.strengths).toContain("Great communication");
       expect(res.body.missed_topics).toContain("Scalability");
+      expect(res.body.overall_score).toBe(78);
+      expect(res.body.dimension_scores.requirements.score).toBe(8);
+      expect(Array.isArray(res.body.topic_coverage)).toBe(true);
+      expect(typeof res.body.durationSeconds).toBe("number");
     });
 
     it("should return 404 for invalid session id", async () => {

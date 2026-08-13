@@ -34,6 +34,8 @@ model InterviewSession {
   stage          String   @default("greeting")
   coveredTopics  Json     @default("[]")          // ← Phase 3 (add now, use later)
   difficultyLevel String  @default("mid")          // ← Phase 3 (add now, use later)
+  durationMinutes Int?                             // chosen interview length (15/30/45/60); null = untimed
+  endedAt        DateTime?                         // set when the summary is generated; createdAt is the start anchor
   createdAt      DateTime @default(now())
 
   user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -61,6 +63,11 @@ model InterviewSummary {
   strengths    String
   missedTopics String
   suggestions  String
+  overallScore    Int?                          // 0-100 aggregate score
+  dimensionScores Json?                          // { requirements|scalability|data_modeling|tradeoffs|communication: { score, comment } }
+  topicCoverage   Json?                          // [{ topic, covered }]
+  studyPlan       Json?                          // [{ topic, why }]
+  idealAnswer     String?                        // concise reference design
   createdAt    DateTime @default(now())
 
   session      InterviewSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
