@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { generateSummary } from "../services/ai/ai.service.js";
+import { generateSummary, generateHint } from "../services/ai/ai.service.js";
 import { orchestrateResponse } from "../services/ai/interviewOrchestrator.js";
 import * as messageRepo from "../repositories/message.repository.js";
 import * as summaryRepo from "../repositories/summary.repository.js";
@@ -66,15 +66,16 @@ const getOwnedSessionOrRespond = async (
 };
 
 export const start_session = async (req: AuthRequest, res: Response) => {
-    const { problem, durationMinutes } = req.body;
+    const { problem, durationMinutes, difficultyLevel } = req.body;
     const userId = req.user!.userId;
-    const session = await sessionRepo.createSession(userId, problem, durationMinutes);
+    const session = await sessionRepo.createSession(userId, problem, durationMinutes, difficultyLevel);
 
     const { response: openingQuestion, stage } = await orchestrateResponse(
         session.id,
         problem,
         "",
-        0
+        0,
+        difficultyLevel ?? "mid"
     );
 
     await messageRepo.saveMessage(session.id, userId, "ai", openingQuestion);
@@ -103,13 +104,38 @@ export const interview_chat = async (req: AuthRequest, res: Response) => {
         sessionId,
         problem ?? ownedSession.problemName,
         conversation,
-        messageCount
+        messageCount,
+        ownedSession.difficultyLevel
     );
 
     await messageRepo.saveMessage(sessionId, req.user.userId, "ai", aiResponse);
     await sessionRepo.updateOwnedSessionStage(sessionId, req.user.userId, stage);
 
     res.json({ message: aiResponse, stage });
+};
+
+export const interview_hint = async (req: AuthRequest, res: Response) => {
+    const { sessionId } = req.body;
+    const ownedSession = await getOwnedSessionOrRespond(req, res, sessionId);
+
+    if (!ownedSession || !req.user) {
+        return;
+    }
+
+    const conversation = await messageRepo.getConversationForOwnedSession(sessionId, req.user.userId);
+    const problem = ownedSession.problemName;
+
+    const { hint } = await generateHint(
+        problem,
+        conversation,
+        ownedSession.difficultyLevel,
+        ownedSession.stage
+    );
+
+    await sessionRepo.incrementHintCount(sessionId, req.user.userId);
+
+    // Return the updated hint count (current + 1)
+    res.json({ hint, hintCount: ownedSession.hintCount + 1 });
 };
 
 export const interview_summary = async (req: AuthRequest, res: Response) => {
@@ -190,6 +216,47 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
     }, {});
     const strongestDomain = Object.entries(topicCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "Not enough data";
 
+    // --- Phase 2C Analytics ---
+    
+    // 1. Score Over Time (last 20 completed interviews with a score)
+    const scoredInterviews = completed
+        .filter(item => typeof item.overallScore === 'number')
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    
+    const scoreOverTime = scoredInterviews.slice(-20).map(item => ({
+        date: item.date,
+        score: item.overallScore as number,
+    }));
+
+    // 2. Topic Mastery (avg score per topic)
+    const topicMasteryMap = scoredInterviews.reduce<Record<string, { sum: number, count: number }>>((acc, item) => {
+        if (!acc[item.topic]) {
+            acc[item.topic] = { sum: 0, count: 0 };
+        }
+        acc[item.topic].sum += item.overallScore as number;
+        acc[item.topic].count += 1;
+        return acc;
+    }, {});
+
+    const topicMastery = Object.entries(topicMasteryMap).map(([topic, stats]) => ({
+        topic,
+        avgScore: Math.round(stats.sum / stats.count),
+        count: stats.count
+    })).sort((a, b) => b.avgScore - a.avgScore);
+
+    // 3. Streaks (score >= 50)
+    let currentStreak = 0;
+    let bestStreak = 0;
+    
+    for (const session of scoredInterviews) {
+        if (session.overallScore! >= 50) {
+            currentStreak += 1;
+            bestStreak = Math.max(bestStreak, currentStreak);
+        } else {
+            currentStreak = 0;
+        }
+    }
+
     return res.json({
         history,
         stats: {
@@ -200,6 +267,10 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
             average,
             needsImprovement,
             strongestDomain,
+            scoreOverTime,
+            topicMastery,
+            currentStreak,
+            bestStreak,
         },
     });
 };

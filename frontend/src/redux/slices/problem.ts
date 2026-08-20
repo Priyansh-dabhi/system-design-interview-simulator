@@ -6,11 +6,13 @@ type problemState = {
     title: string;
   } | null;
   durationMinutes: number;
+  difficultyLevel: 'junior' | 'mid' | 'senior';
 };
 
 const initialState: problemState = {
   selectedTopic: null,
   durationMinutes: 30,
+  difficultyLevel: 'mid',
 };
 
 const problemSlice = createSlice({
@@ -29,10 +31,13 @@ const problemSlice = createSlice({
     setDuration: (state, action: PayloadAction<number>) => {
       state.durationMinutes = action.payload;
     },
+    setDifficulty: (state, action: PayloadAction<'junior' | 'mid' | 'senior'>) => {
+      state.difficultyLevel = action.payload;
+    },
   },
 });
 
-export const { setSelectedTopic, clearSelectedTopic, setDuration } =
+export const { setSelectedTopic, clearSelectedTopic, setDuration, setDifficulty } =
   problemSlice.actions;
 
 export default problemSlice.reducer;

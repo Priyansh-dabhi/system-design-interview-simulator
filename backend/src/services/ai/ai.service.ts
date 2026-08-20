@@ -1,4 +1,4 @@
-import { summaryChain } from "./chains.js";
+import { summaryChain, hintChain } from "./chains.js";
 import { findRelevantChunks } from "../rag/retriever.service.js";
 import {
     emptySummaryResult,
@@ -10,6 +10,7 @@ export interface GenerateSummaryContext {
     stage?: string;
     durationMinutes?: number | null;
     messageCount?: number;
+    hintCount?: number;
 }
 
 export const generateSummary = async (
@@ -35,6 +36,7 @@ export const generateSummary = async (
             stage: ctx.stage ?? "evaluation",
             durationMinutes: ctx.durationMinutes ?? "unspecified",
             messageCount: ctx.messageCount ?? 0,
+            hintCount: ctx.hintCount ?? 0,
         });
         return response as InterviewSummaryResult;
     } catch (e) {
@@ -42,5 +44,35 @@ export const generateSummary = async (
         // model returned malformed output — return an empty (but valid) summary.
         console.error("Structured summary generation failed:", e);
         return emptySummaryResult();
+    }
+};
+
+export const generateHint = async (
+    problem: string,
+    conversation: string,
+    difficulty: string,
+    stage: string
+): Promise<{ hint: string }> => {
+    let context = "";
+    try {
+        const query = `${problem}\n${conversation.slice(-500)}`;
+        const chunks = await findRelevantChunks(query, 3);
+        context = chunks.join("\n\n");
+    } catch (e) {
+        console.warn("Hint retriever unavailable or error:", e);
+    }
+
+    try {
+        const response = await hintChain.invoke({
+            problem,
+            conversation,
+            context,
+            difficulty,
+            stage,
+        });
+        return response as { hint: string };
+    } catch (e) {
+        console.error("Structured hint generation failed:", e);
+        return { hint: "Try breaking down the problem into smaller components and identifying the core bottlenecks." };
     }
 };

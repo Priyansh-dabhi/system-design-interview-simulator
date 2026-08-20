@@ -70,6 +70,10 @@ export interface InterviewStats {
     average: number;
     needsImprovement: number;
     strongestDomain: string;
+    scoreOverTime: { date: string; score: number }[];
+    topicMastery: { topic: string; avgScore: number; count: number }[];
+    currentStreak: number;
+    bestStreak: number;
 }
 
 export interface InterviewHistoryResponse {

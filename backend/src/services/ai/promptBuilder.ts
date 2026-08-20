@@ -20,10 +20,18 @@ Rules:
 `;
 
 // Builds a ChatPromptTemplate dynamically based on stage
-export function buildInterviewPrompt(stage: InterviewStage): ChatPromptTemplate {
+export function buildInterviewPrompt(stage: InterviewStage, difficulty: string = "mid"): ChatPromptTemplate {
+    const difficultyInstruction = 
+        difficulty === "junior" ? "Keep questions introductory. Accept high-level answers without demanding deep trade-off analysis." :
+        difficulty === "senior" ? "Demand rigorous trade-off analysis, failure modes, and back-of-the-envelope calculations." :
+        "Expect reasonable depth. Probe trade-offs but don't demand production-grade nuance.";
+
     return ChatPromptTemplate.fromMessages([
         ["system", `You are a FAANG-level system design interviewer. 
         Interview Stage: ${stage}
+        Difficulty Level: ${difficulty}
+        
+        ${difficultyInstruction}
         
         ${stageInstructions[stage]}
         

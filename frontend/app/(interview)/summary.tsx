@@ -14,16 +14,20 @@ import { DimensionBars } from '../../src/components/interview/DimensionBars';
 import { CoverageChecklist } from '../../src/components/interview/CoverageChecklist';
 import { StudyPlanList } from '../../src/components/interview/StudyPlanList';
 import { IdealAnswerCard } from '../../src/components/interview/IdealAnswerCard';
+import { ExportButton } from '../../src/components/interview/ExportButton';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
+import { useExportTranscript } from '../../src/utils/useExportTranscript';
 
 export default function SummaryScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
 
     const summary = useSelector((state: RootState) => state.session.summary);
+    const messages = useSelector((state: RootState) => state.session.messages);
     const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
     const { colors } = useTheme();
+    const { exportPdf, isExporting } = useExportTranscript();
 
     const styles = React.useMemo(() => StyleSheet.create({
         container: {
@@ -116,6 +120,11 @@ export default function SummaryScreen() {
         router.dismissAll();
     };
 
+    const handleExport = () => {
+        if (!summary) return;
+        exportPdf({ topicTitle, messages, summary });
+    };
+
     if (!summary) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
@@ -140,7 +149,7 @@ export default function SummaryScreen() {
                     <Text style={styles.topicTitle}>{topicTitle}</Text>
                     <Text style={styles.completedLabel}>INTERVIEW COMPLETE</Text>
                 </View>
-                <View style={{ width: 40 }} />
+                <ExportButton onPress={handleExport} isLoading={isExporting} />
             </View>
 
             <ScrollView

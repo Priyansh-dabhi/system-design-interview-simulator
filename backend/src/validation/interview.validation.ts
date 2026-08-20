@@ -12,6 +12,7 @@ export const startSessionSchema = z.object({
             z.literal(60),
         ])
         .optional(),
+    difficultyLevel: z.enum(['junior', 'mid', 'senior']).optional(),
 });
 
 export type StartSessionInput = z.infer<typeof startSessionSchema>;

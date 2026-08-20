@@ -36,6 +36,7 @@ model InterviewSession {
   difficultyLevel String  @default("mid")          // ← Phase 3 (add now, use later)
   durationMinutes Int?                             // chosen interview length (15/30/45/60); null = untimed
   endedAt        DateTime?                         // set when the summary is generated; createdAt is the start anchor
+  hintCount      Int      @default(0)              // Phase 2B: Real-time hints
   createdAt      DateTime @default(now())
 
   user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)

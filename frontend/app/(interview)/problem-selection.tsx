@@ -1,9 +1,9 @@
 import { useStartSessionMutation } from '@/src/redux/api/interview_api';
-import { clearSelectedTopic, setSelectedTopic, setDuration } from '@/src/redux/slices/problem';
+import { clearSelectedTopic, setSelectedTopic, setDuration, setDifficulty } from '@/src/redux/slices/problem';
 import { setSession } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { useRouter } from 'expo-router';
-import { ArrowLeftIcon, ChatCircleDotsIcon, ClockIcon, FilmReelIcon, LinkIcon, MapPinIcon } from 'phosphor-react-native';
+import { ArrowLeftIcon, ChatCircleDotsIcon, ClockIcon, FilmReelIcon, LinkIcon, MapPinIcon, TargetIcon } from 'phosphor-react-native';
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -18,6 +18,12 @@ const DURATION_OPTIONS: SegmentedControlOption<number>[] = [
     { label: '30 min', value: 30 },
     { label: '45 min', value: 45 },
     { label: '60 min', value: 60 },
+];
+
+const DIFFICULTY_OPTIONS: SegmentedControlOption<'junior' | 'mid' | 'senior'>[] = [
+    { label: 'Junior', value: 'junior' },
+    { label: 'Mid', value: 'mid' },
+    { label: 'Senior', value: 'senior' },
 ];
 
 const TOPICS: Topic[] = [
@@ -63,6 +69,7 @@ export default function TopicSelectionScreen() {
     const dispatch = useDispatch();
     const selectedTopic = useSelector((state: RootState) => state.problem.selectedTopic);
     const durationMinutes = useSelector((state: RootState) => state.problem.durationMinutes);
+    const difficultyLevel = useSelector((state: RootState) => state.problem.difficultyLevel);
     const router = useRouter();
     const [startSession, { isLoading }] = useStartSessionMutation();
     const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -86,12 +93,13 @@ export default function TopicSelectionScreen() {
     const handleStartInterview = async () => {
         if (!selectedTopic?.title) return;
         try {
-            const result = await startSession({ problem: selectedTopic.title, durationMinutes }).unwrap();
+            const result = await startSession({ problem: selectedTopic.title, durationMinutes, difficultyLevel }).unwrap();
             dispatch(setSession({
                 sessionId: result.sessionId,
                 openingMessage: result.message,
                 problem: selectedTopic.title,
                 durationMinutes,
+                difficultyLevel,
             }));
             router.push('/session');
         } catch (err: any) {
@@ -254,6 +262,24 @@ const styles = React.useMemo(() => StyleSheet.create({
                         onChange={(value) => dispatch(setDuration(value))}
                     />
                 </View>
+
+                <View style={styles.durationCard}>
+                    <View style={styles.durationHeading}>
+                        <View style={styles.durationIcon}>
+                            <TargetIcon size={19} color={colors.primaryBrand} weight="fill" />
+                        </View>
+                        <View style={styles.durationCopy}>
+                            <Text style={styles.durationLabel}>Difficulty level</Text>
+                            <Text style={styles.durationHint}>Adjusts the depth of AI probing</Text>
+                        </View>
+                    </View>
+                    <SegmentedControl
+                        options={DIFFICULTY_OPTIONS}
+                        value={difficultyLevel}
+                        onChange={(value) => dispatch(setDifficulty(value))}
+                    />
+                </View>
+
                 {TOPICS.map((topic) => (
                     <TopicCard
                         key={topic.id}

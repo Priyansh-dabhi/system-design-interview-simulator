@@ -8,7 +8,8 @@ export async function orchestrateResponse(
     sessionId: string,
     problem: string,
     conversation: string,
-    messageCount: number
+    messageCount: number,
+    difficultyLevel: string = "mid"
 ): Promise<{ response: string; stage: InterviewStage }> {
     
     // 1. Determine current interview stage
@@ -25,7 +26,7 @@ export async function orchestrateResponse(
     }
 
     // 3. Build the prompt dynamically based on the stage
-    const prompt = buildInterviewPrompt(stage);
+    const prompt = buildInterviewPrompt(stage, difficultyLevel);
     
     // 4. Create the chain and invoke it
     const chain = prompt.pipe(model);

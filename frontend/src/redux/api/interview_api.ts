@@ -11,10 +11,10 @@ export const createSessionStartAPi = createApi({
 
     endpoints: (builder) => ({
         startSession: builder.mutation({
-            query: ({ problem, durationMinutes }: { problem: string; durationMinutes: number }) => ({
+            query: ({ problem, durationMinutes, difficultyLevel }: { problem: string; durationMinutes: number; difficultyLevel: string }) => ({
                 url: "/api/interview/start_session",
                 method: "POST",
-                body: { problem, durationMinutes },
+                body: { problem, durationMinutes, difficultyLevel },
             }),
             invalidatesTags: ["InterviewHistory"],
         }),
@@ -33,6 +33,13 @@ export const createSessionStartAPi = createApi({
             }),
             invalidatesTags: ["InterviewHistory"],
         }),
+        getHint: builder.mutation({
+            query: ({ sessionId }: { sessionId: string }) => ({
+                url: "/api/interview/hint",
+                method: "POST",
+                body: { sessionId },
+            }),
+        }),
         getHistory: builder.query<InterviewHistoryResponse, void>({
             query: () => ({
                 url: "/api/interview/history",
@@ -46,4 +53,4 @@ export const createSessionStartAPi = createApi({
 })
 
 // custom hooks
-export const { useStartSessionMutation, useChatMutation, useEndSessionMutation, useGetHistoryQuery } = createSessionStartAPi;
+export const { useStartSessionMutation, useChatMutation, useEndSessionMutation, useGetHistoryQuery, useGetHintMutation } = createSessionStartAPi;

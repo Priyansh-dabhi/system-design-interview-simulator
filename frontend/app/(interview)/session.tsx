@@ -1,5 +1,5 @@
-import { useChatMutation, useEndSessionMutation } from '@/src/redux/api/interview_api';
-import { setSummary } from '@/src/redux/slices/session';
+import { useChatMutation, useEndSessionMutation, useGetHintMutation } from '@/src/redux/api/interview_api';
+import { setSummary, incrementHintCount, setMessages as persistMessages } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { useNavigation, useRouter } from 'expo-router';
 import {
@@ -34,10 +34,12 @@ export default function InterviewSessionScreen() {
     const openingMessage = useSelector((state: RootState) => state.session.openingMessage);
     const problem = useSelector((state: RootState) => state.session.problem);
     const durationMinutes = useSelector((state: RootState) => state.session.durationMinutes);
+    const hintCount = useSelector((state: RootState) => state.session.hintCount);
     const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
 
     const [sendChat, { isLoading: isSending }] = useChatMutation();
     const [endSession, { isLoading: isEnding }] = useEndSessionMutation();
+    const [getHint, { isLoading: isHintLoading }] = useGetHintMutation();
 
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
@@ -73,6 +75,10 @@ export default function InterviewSessionScreen() {
         try {
             const result = await endSession({ sessionId, problem }).unwrap();
             dispatch(setSummary(result));
+            
+            // Persist current messages for transcript export
+            dispatch(persistMessages(messages.map(m => ({ role: m.role, text: m.text }))));
+            
             setIsNavigatingAway(true);
             router.replace('/summary');
         } catch (err: any) {
@@ -173,6 +179,21 @@ export default function InterviewSessionScreen() {
         }
     };
 
+    const handleHint = async () => {
+        if (!sessionId || isHintLoading) return;
+        try {
+            const result = await getHint({ sessionId }).unwrap();
+            dispatch(incrementHintCount());
+            
+            // Show hint as an alert/toast. Alternatively, it could be injected into chat, 
+            // but the plan requested a dismissible overlay/toast. Using Alert for simplicity as a toast.
+            Alert.alert("Hint", result.hint, [{ text: "Got it!" }]);
+        } catch (err: any) {
+            console.error('Hint error:', err);
+            Alert.alert('Hint Failed', 'Failed to get a hint. Please try again.');
+        }
+    };
+
     // --- Speech Recognition Hooks ---
     useSpeechRecognitionEvent('start', () => setIsRecording(true));
     useSpeechRecognitionEvent('end', () => setIsRecording(false));
@@ -261,8 +282,11 @@ const styles = React.useMemo(() => StyleSheet.create({
                     onChangeText={setInputText}
                     onSend={handleSend}
                     onVoiceInput={handleVoiceInput}
+                    onHint={handleHint}
                     isSending={isSending}
                     isRecording={isRecording}
+                    isHintLoading={isHintLoading}
+                    hintCount={hintCount}
                     disabled={remainingSeconds !== null && remainingSeconds <= 0}
                 />
             </KeyboardAvoidingView>

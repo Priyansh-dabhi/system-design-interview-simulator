@@ -1,3 +1,4 @@
+import { HintButton } from './HintButton';
 import { MicrophoneIcon, PaperPlaneRightIcon } from 'phosphor-react-native';
 import React from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -9,8 +10,11 @@ interface ChatInputProps {
     onChangeText: (text: string) => void;
     onSend: () => void;
     onVoiceInput: () => void;
+    onHint: () => void;
     isSending: boolean;
     isRecording: boolean;
+    isHintLoading: boolean;
+    hintCount: number;
     disabled?: boolean;
 }
 
@@ -19,8 +23,11 @@ export function ChatInput({
     onChangeText,
     onSend,
     onVoiceInput,
+    onHint,
     isSending,
     isRecording,
+    isHintLoading,
+    hintCount,
     disabled = false,
 }: ChatInputProps) {
     const { colors } = useTheme();
@@ -86,6 +93,12 @@ export function ChatInput({
                 multiline
                 maxLength={1000}
                 editable={!isSending && !disabled}
+            />
+            <HintButton
+                onPress={onHint}
+                isLoading={isHintLoading}
+                hintCount={hintCount}
+                disabled={disabled}
             />
             <TouchableOpacity
                 onPress={onVoiceInput}

@@ -12,9 +12,13 @@ import { InterviewCard } from '../../src/components/history/InterviewCard';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
+import { ScoreChart } from '../../src/components/history/ScoreChart';
+import { TopicMasteryCard } from '../../src/components/history/TopicMasteryCard';
+import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
 
 export default function HistoryScreen() {
     const [refreshing, setRefreshing] = useState(false);
+    const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
     const { data, isFetching, refetch } = useGetHistoryQuery();
     const history = data?.history ?? [];
     const stats = data?.stats;
@@ -82,6 +86,21 @@ const styles = React.useMemo(() => StyleSheet.create({
             letterSpacing: 0.5,
             textAlign: 'center',
         },
+        sectionHeader: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            paddingVertical: Layout.spacing.md,
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderColor: colors.border,
+            marginBottom: Layout.spacing.md,
+        },
+        sectionTitle: {
+            fontSize: 18,
+            fontWeight: '600',
+            color: colors.text,
+        },
         cardsContainer: {
             gap: Layout.spacing.md,
         },
@@ -143,7 +162,31 @@ const styles = React.useMemo(() => StyleSheet.create({
                         </View>
                     </View>
 
+                    {/* Analytics Section */}
+                    {stats?.scoreOverTime && stats.scoreOverTime.length > 0 && (
+                        <View style={{ marginBottom: Layout.spacing.lg }}>
+                            <View 
+                                style={styles.sectionHeader} 
+                                onTouchEnd={() => setAnalyticsExpanded(!analyticsExpanded)}
+                            >
+                                <Text style={styles.sectionTitle}>Deep Analytics</Text>
+                                {analyticsExpanded ? (
+                                    <CaretUpIcon size={20} color={colors.textSecondary} />
+                                ) : (
+                                    <CaretDownIcon size={20} color={colors.textSecondary} />
+                                )}
+                            </View>
+                            {analyticsExpanded && (
+                                <View style={{ gap: Layout.spacing.md }}>
+                                    <ScoreChart data={stats.scoreOverTime} />
+                                    <TopicMasteryCard data={stats.topicMastery || []} />
+                                </View>
+                            )}
+                        </View>
+                    )}
+
                     {/* Interview Cards */}
+                    <Text style={[styles.sectionTitle, { marginBottom: Layout.spacing.md }]}>Recent Interviews</Text>
                     <View style={styles.cardsContainer}>
                         {history.map((item) => (
                             <InterviewCard key={item.id} item={item} />

@@ -24,6 +24,7 @@ Difficulty: {difficulty}
 Interview stage reached: {stage}
 Planned duration (minutes): {durationMinutes}
 Candidate message count: {messageCount}
+Hints used: {hintCount}
 
 Technical context (knowledge base):
 {context}
