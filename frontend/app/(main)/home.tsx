@@ -11,8 +11,6 @@ import { setSelectedTopic } from '@/src/redux/slices/problem';
 import { useAppSelector } from '@/src/redux/hooks';
 import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
-import { ScoreChart } from '../../src/components/history/ScoreChart';
-import { StreakBadge } from '../../src/components/history/StreakBadge';
 
 export default function HomeScreen() {
   const user = useAppSelector((state) => state.auth.user);
@@ -266,35 +264,25 @@ const styles = React.useMemo(() => StyleSheet.create({
           </TouchableOpacity>
         </View>
 
-        {/* Your Progress Card */}
+        {/* Weekly Progress Card */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Your Progress</Text>
-          {data?.stats.bestStreak ? (
-            <StreakBadge 
-              currentStreak={data.stats.currentStreak} 
-              bestStreak={data.stats.bestStreak} 
-            />
-          ) : null}
-          {data?.stats.scoreOverTime && data.stats.scoreOverTime.length > 0 ? (
-            <ScoreChart data={data.stats.scoreOverTime} />
-          ) : (
-            <View style={styles.progressCard}>
-              <LinearGradient
-                colors={[colors.surfaceHighlight, colors.surface]}
-                style={styles.progressCardGradient}
-              >
-                <View style={styles.progressContent}>
-                  <View>
-                    <Text style={styles.progressLabel}>Interviews Practiced</Text>
-                    <Text style={styles.progressValue}>{interviewsPracticed}</Text>
-                  </View>
-                  <View style={styles.circularProgressPlaceholder}>
-                    <ClockCounterClockwiseIcon size={32} color={colors.primaryBrand} />
-                  </View>
+          <Text style={styles.sectionTitle}>Weekly Progress</Text>
+          <View style={styles.progressCard}>
+            <LinearGradient
+              colors={[colors.surfaceHighlight, colors.surface]}
+              style={styles.progressCardGradient}
+            >
+              <View style={styles.progressContent}>
+                <View>
+                  <Text style={styles.progressLabel}>Interviews Practiced</Text>
+                  <Text style={styles.progressValue}>{interviewsPracticed}</Text>
                 </View>
-              </LinearGradient>
-            </View>
-          )}
+                <View style={styles.circularProgressPlaceholder}>
+                  <ClockCounterClockwiseIcon size={32} color={colors.primaryBrand} />
+                </View>
+              </View>
+            </LinearGradient>
+          </View>
         </View>
 
         {/* Action Area - Moved to Center */}

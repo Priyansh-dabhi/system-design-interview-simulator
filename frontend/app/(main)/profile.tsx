@@ -7,8 +7,9 @@ import {
     TrophyIcon,
     UserCircleIcon,
     FileTextIcon,
+    ChartLineUpIcon,
 } from 'phosphor-react-native';
-import React from 'react';
+import React, { useState } from 'react';
 import {
     Alert,
     ScrollView,
@@ -26,6 +27,7 @@ import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
 import { useAppDispatch, useAppSelector } from '../../src/redux/hooks';
 import { logout } from '../../src/redux/slices/auth';
 import { useRouter } from 'expo-router';
+import { ScoreChart } from '../../src/components/history/ScoreChart';
 
 export default function ProfileScreen() {
     const router = useRouter();
@@ -34,6 +36,7 @@ export default function ProfileScreen() {
     const dispatch = useAppDispatch();
     const stats = data?.stats;
     const { colors } = useTheme();
+    const [isActivityExpanded, setIsActivityExpanded] = useState(false);
 
     const openPrivacyPolicy = () => {
         Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
@@ -183,6 +186,24 @@ const styles = React.useMemo(() => StyleSheet.create({
                             />
                         ))}
                     </View>
+                </View>
+
+                {/* Your Activity */}
+                <View style={styles.sectionContainer}>
+                    <Text style={styles.sectionTitle}>Your Activity</Text>
+                    <View style={styles.controlsList}>
+                        <ControlRow
+                            label="Score Trend"
+                            icon={ChartLineUpIcon}
+                            onPress={() => setIsActivityExpanded(!isActivityExpanded)}
+                            isLast
+                        />
+                    </View>
+                    {isActivityExpanded && stats?.scoreOverTime && stats.scoreOverTime.length > 0 && (
+                        <View style={{ marginTop: Layout.spacing.md }}>
+                            <ScoreChart data={stats.scoreOverTime} />
+                        </View>
+                    )}
                 </View>
 
                 {/* Legal Section */}
