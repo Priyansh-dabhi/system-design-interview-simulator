@@ -281,7 +281,7 @@ const styles = React.useMemo(() => StyleSheet.create({
 
       {/* Full-screen loading overlay shown after Google picker closes,
           while AuthGuard waits to redirect to home. */}
-      {(googleAuthPhase === "redirecting" || activeMethod === "google") && (
+      {googleAuthPhase === "redirecting" && (
         <View style={styles.googleLoadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.googleLoadingText}>Signing you in…</Text>
