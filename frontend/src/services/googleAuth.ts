@@ -98,8 +98,16 @@ export const signOutFirebaseSession = async () => {
         }
 
         if (Platform.OS !== "web") {
-            // Also sign out from Google locally
+            // Sign out from Google locally
             await GoogleSignin.signOut();
+            // Revoke access so the account picker always appears on next sign-in.
+            // Without this, GoogleSignin.signIn() silently re-selects the cached
+            // account and the user cannot switch to a different Google account.
+            try {
+                await GoogleSignin.revokeAccess();
+            } catch {
+                // revokeAccess can fail if already revoked; safe to ignore.
+            }
         }
     } catch {
         // Ignore Firebase/Google sign-out failures so local cleanup can still finish.
