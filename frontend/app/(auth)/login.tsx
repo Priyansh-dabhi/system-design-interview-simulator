@@ -1,7 +1,7 @@
 import { Link, useRouter } from "expo-router";
 import { Eye, EyeSlash } from "phosphor-react-native";
 import React, { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View, Linking, Platform } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View, Linking, Platform } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
@@ -24,6 +24,7 @@ export default function LoginScreen() {
   const [activeMethod, setActiveMethod] = useState<"password" | "google" | null>(null);
   const isLoading = useAppSelector((state) => state.auth.isSubmitting);
   const authNotice = useAppSelector((state) => state.auth.authNotice);
+  const googleAuthPhase = useAppSelector((state) => state.auth.googleAuthPhase);
   const isBusy = isLoading || activeMethod !== null;
 
   useEffect(() => {
@@ -167,6 +168,19 @@ const styles = React.useMemo(() => StyleSheet.create({
       color: colors.primary,
       fontWeight: "600",
     },
+    googleLoadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: colors.background,
+      alignItems: "center" as const,
+      justifyContent: "center" as const,
+      zIndex: 10,
+    },
+    googleLoadingText: {
+      marginTop: Layout.spacing.md,
+      fontSize: 16,
+      color: colors.textSecondary,
+      fontWeight: "500" as const,
+    },
   }), [colors]);
 
   return (
@@ -233,7 +247,7 @@ const styles = React.useMemo(() => StyleSheet.create({
               title="Sign in with Google"
               onPress={handleGoogleLogin}
               variant="outline"
-              isLoading={false}
+              isLoading={activeMethod === "google"}
               style={styles.googleButton}
               textStyle={styles.googleButtonText}
               leftIcon={<GoogleIcon size={20} />}
@@ -264,6 +278,15 @@ const styles = React.useMemo(() => StyleSheet.create({
           </Text>
         </View>
       </View>
+
+      {/* Full-screen loading overlay shown after Google picker closes,
+          while AuthGuard waits to redirect to home. */}
+      {(googleAuthPhase === "redirecting" || activeMethod === "google") && (
+        <View style={styles.googleLoadingOverlay}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.googleLoadingText}>Signing you in…</Text>
+        </View>
+      )}
     </ScreenWrapper>
   );
 }
