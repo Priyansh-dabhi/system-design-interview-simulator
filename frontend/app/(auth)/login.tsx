@@ -170,7 +170,7 @@ const styles = React.useMemo(() => StyleSheet.create({
     },
     googleLoadingOverlay: {
       ...StyleSheet.absoluteFillObject,
-      backgroundColor: colors.background,
+      backgroundColor: "transparent",
       alignItems: "center" as const,
       justifyContent: "center" as const,
       zIndex: 10,
