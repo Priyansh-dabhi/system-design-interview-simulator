@@ -1,71 +1,28 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Platform, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WifiSlashIcon } from "phosphor-react-native";
+import NetInfo from "@react-native-community/netinfo";
 import { Layout } from "../constants/Layout";
-
-// On web, navigator.onLine is instant and requires no network request, so it
-// avoids the CORS issue that causes `fetch` to fail against third-party URLs
-// when running in a browser.
-// On native (iOS/Android), we fall back to a lightweight fetch ping.
-const checkIsOnline = async (): Promise<boolean> => {
-    if (Platform.OS === "web") {
-        return typeof navigator !== "undefined" ? navigator.onLine : true;
-    }
-
-    // Native: lightweight ping to a public, CORS-free endpoint
-    try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 4000);
-
-        const res = await fetch("https://clients3.google.com/generate_204", {
-            method: "HEAD",
-            cache: "no-store",
-            headers: { "Cache-Control": "no-cache" },
-            signal: controller.signal,
-        });
-
-        clearTimeout(timeout);
-        return res.status === 204 || res.ok;
-    } catch {
-        return false;
-    }
-};
 
 export const OfflineScreen = () => {
     const [isOffline, setIsOffline] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    const refresh = useCallback(async () => {
-        const online = await checkIsOnline();
-        setIsOffline(!online);
+    const checkNetwork = useCallback(() => {
+        NetInfo.fetch().then(state => {
+            setIsOffline(state.isConnected === false);
+        });
     }, []);
 
     useEffect(() => {
-        // Initial check delayed slightly to not block app boot
-        const initialTimer = setTimeout(refresh, 1000);
+        // NetInfo automatically fires this listener on mount with the initial state,
+        // so we instantly know if we are offline without any delays.
+        const unsubscribe = NetInfo.addEventListener(state => {
+            setIsOffline(state.isConnected === false);
+        });
 
-        if (Platform.OS === "web") {
-            // On web, rely on browser events — no polling needed
-            const handleOnline = () => setIsOffline(false);
-            const handleOffline = () => setIsOffline(true);
-            window.addEventListener("online", handleOnline);
-            window.addEventListener("offline", handleOffline);
-
-            return () => {
-                clearTimeout(initialTimer);
-                window.removeEventListener("online", handleOnline);
-                window.removeEventListener("offline", handleOffline);
-            };
-        }
-
-        // On native, poll every 10 seconds
-        const interval = setInterval(refresh, 10000);
-
-        return () => {
-            clearTimeout(initialTimer);
-            clearInterval(interval);
-        };
-    }, [refresh]);
+        return () => unsubscribe();
+    }, []);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
@@ -92,7 +49,7 @@ export const OfflineScreen = () => {
                     Check your Wi-Fi or mobile data.
                 </Text>
 
-                <TouchableOpacity style={styles.retryButton} onPress={refresh} activeOpacity={0.7}>
+                <TouchableOpacity style={styles.retryButton} onPress={checkNetwork} activeOpacity={0.7}>
                     <Text style={styles.retryText}>Try Again</Text>
                 </TouchableOpacity>
             </View>
@@ -151,4 +108,3 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
 });
-
