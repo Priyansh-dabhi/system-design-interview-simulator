@@ -2,18 +2,19 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WifiSlashIcon } from "phosphor-react-native";
 import NetInfo from "@react-native-community/netinfo";
+import { useDispatch } from "react-redux";
 import { Layout } from "../constants/Layout";
-import { useGetHistoryQuery } from "../redux/api/interview_api";
+import { createSessionStartAPi, useGetHistoryQuery } from "../redux/api/interview_api";
 
 export const OfflineScreen = () => {
     const [isOffline, setIsOffline] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const wasOfflineRef = useRef(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const dispatch = useDispatch();
 
     // Track whether the history API is currently fetching.
-    // When we transition offline → online, we keep the overlay visible
-    // until this fetch completes so the user never sees empty "0" data.
+    // Used to keep the overlay visible until data has actually loaded.
     const { isFetching } = useGetHistoryQuery();
 
     const checkNetwork = useCallback(() => {
@@ -21,11 +22,15 @@ export const OfflineScreen = () => {
             const offline = state.isConnected === false;
             if (wasOfflineRef.current && !offline) {
                 setIsReconnecting(true);
+                // Manually tell RTK Query to refetch all InterviewHistory data.
+                // refetchOnReconnect doesn't work on React Native (it relies on
+                // browser 'online' events), so we trigger this ourselves.
+                dispatch(createSessionStartAPi.util.invalidateTags(["InterviewHistory"]));
             }
             setIsOffline(offline);
             wasOfflineRef.current = offline;
         });
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
@@ -34,6 +39,7 @@ export const OfflineScreen = () => {
             // Detect the offline → online transition
             if (wasOfflineRef.current && !offline) {
                 setIsReconnecting(true);
+                dispatch(createSessionStartAPi.util.invalidateTags(["InterviewHistory"]));
             }
 
             setIsOffline(offline);
@@ -41,48 +47,35 @@ export const OfflineScreen = () => {
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [dispatch]);
 
     // Dismiss the "Reconnecting" overlay once the API has finished refetching.
-    // A minimum 1.5-second display prevents a jarring flash if the API responds
-    // instantly, and a 5-second safety timeout prevents getting stuck forever
-    // if the fetch silently fails.
-    useEffect(() => {
-        if (!isReconnecting) return;
+    // We wait for isFetching to become true (refetch started) and then false
+    // (refetch complete). A safety timeout prevents getting stuck forever.
+    const fetchStartedRef = useRef(false);
 
-        let dismissed = false;
-        const dismiss = () => {
-            if (dismissed) return;
-            dismissed = true;
+    useEffect(() => {
+        if (!isReconnecting) {
+            fetchStartedRef.current = false;
+            return;
+        }
+
+        if (isFetching) {
+            fetchStartedRef.current = true;
+        }
+
+        // Only dismiss after the fetch has started AND completed
+        if (fetchStartedRef.current && !isFetching) {
             setIsReconnecting(false);
-        };
-
-        // Minimum display time so the "Reconnecting" text is readable
-        const minTimer = setTimeout(() => {
-            // After the minimum time, dismiss if we're no longer fetching
-            if (!isFetching) {
-                dismiss();
-            }
-            // Otherwise, the other effect branch (isFetching becoming false) will dismiss
-        }, 1500);
-
-        // Safety fallback — never stay stuck longer than 5 seconds
-        const maxTimer = setTimeout(dismiss, 5000);
-
-        return () => {
-            clearTimeout(minTimer);
-            clearTimeout(maxTimer);
-        };
-    }, [isReconnecting]); // intentionally exclude isFetching to avoid re-running timers
-
-    // If we're in reconnecting state and isFetching just finished,
-    // dismiss after the minimum time has likely passed
-    useEffect(() => {
-        if (isReconnecting && !isFetching) {
-            const timer = setTimeout(() => setIsReconnecting(false), 1500);
-            return () => clearTimeout(timer);
         }
     }, [isReconnecting, isFetching]);
+
+    // Safety timeout — never stay stuck longer than 5 seconds
+    useEffect(() => {
+        if (!isReconnecting) return;
+        const timer = setTimeout(() => setIsReconnecting(false), 5000);
+        return () => clearTimeout(timer);
+    }, [isReconnecting]);
 
     // Show the overlay when offline OR when reconnecting (data still loading)
     const showOverlay = isOffline || isReconnecting;
@@ -137,10 +130,10 @@ export const OfflineScreen = () => {
 const styles = StyleSheet.create({
     container: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "#09090B", // Black theme background
+        backgroundColor: "#09090B",
         alignItems: "center",
         justifyContent: "center",
-        zIndex: 9999, // Ensure it sits on top of everything
+        zIndex: 9999,
     },
     content: {
         alignItems: "center",
@@ -149,24 +142,24 @@ const styles = StyleSheet.create({
     iconContainer: {
         width: 96,
         height: 96,
-        backgroundColor: "#18181B", // Black theme surface
+        backgroundColor: "#18181B",
         borderRadius: 24,
         alignItems: "center",
         justifyContent: "center",
         borderWidth: 1,
-        borderColor: "#27272A", // Black theme border
+        borderColor: "#27272A",
         marginBottom: Layout.spacing.lg,
     },
     title: {
         fontSize: 26,
         fontWeight: "bold",
-        color: "#FFFFFF", // Black theme text
+        color: "#FFFFFF",
         marginBottom: Layout.spacing.sm,
         textAlign: "center",
     },
     subtitle: {
         fontSize: 15,
-        color: "#A1A1AA", // Black theme textSecondary
+        color: "#A1A1AA",
         textAlign: "center",
         lineHeight: 22,
         marginBottom: Layout.spacing.xl,
@@ -174,10 +167,10 @@ const styles = StyleSheet.create({
     retryButton: {
         paddingVertical: Layout.spacing.sm + 4,
         paddingHorizontal: Layout.spacing.xl,
-        backgroundColor: "#18181B", // Black theme surface
+        backgroundColor: "#18181B",
         borderRadius: Layout.borderRadius.lg,
         borderWidth: 1,
-        borderColor: "#27272A", // Black theme border
+        borderColor: "#27272A",
     },
     retryText: {
         color: "#FFFFFF",
