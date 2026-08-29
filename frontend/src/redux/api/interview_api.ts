@@ -7,6 +7,12 @@ export const createSessionStartAPi = createApi({
 
     baseQuery: baseQueryWithReauth,
 
+    // Automatically refetch all queries when the device regains network connectivity
+    // or when the app comes back into focus. This fixes the stale "0 data" bug
+    // that occurs when the app is opened while offline.
+    refetchOnReconnect: true,
+    refetchOnFocus: true,
+
     tagTypes: ["InterviewHistory"],
 
     endpoints: (builder) => ({
