@@ -1,5 +1,6 @@
 import { useChatMutation, useEndSessionMutation, useGetHintMutation } from '@/src/redux/api/interview_api';
 import { setSummary, incrementHintCount, setMessages as persistMessages } from '@/src/redux/slices/session';
+import { getMaxHints } from '../../src/utils/hints';
 import type { RootState } from '@/src/redux/store';
 import { useNavigation, useRouter } from 'expo-router';
 import {
@@ -179,15 +180,24 @@ export default function InterviewSessionScreen() {
         }
     };
 
+    const maxHints = getMaxHints(durationMinutes);
+
     const handleHint = async () => {
         if (!sessionId || isHintLoading) return;
+
+        if (hintCount >= maxHints) {
+            Alert.alert(
+                'No Hints Remaining',
+                `You've used all ${maxHints} hints for this session. Trust your instincts — you've got this! 💡`,
+                [{ text: 'OK' }]
+            );
+            return;
+        }
+
         try {
             const result = await getHint({ sessionId }).unwrap();
             dispatch(incrementHintCount());
-            
-            // Show hint as an alert/toast. Alternatively, it could be injected into chat, 
-            // but the plan requested a dismissible overlay/toast. Using Alert for simplicity as a toast.
-            Alert.alert("Hint", result.hint, [{ text: "Got it!" }]);
+            Alert.alert('Hint', result.hint, [{ text: 'Got it!' }]);
         } catch (err: any) {
             console.error('Hint error:', err);
             Alert.alert('Hint Failed', 'Failed to get a hint. Please try again.');
@@ -287,6 +297,7 @@ const styles = React.useMemo(() => StyleSheet.create({
                     isRecording={isRecording}
                     isHintLoading={isHintLoading}
                     hintCount={hintCount}
+                    maxHints={maxHints}
                     disabled={remainingSeconds !== null && remainingSeconds <= 0}
                 />
             </KeyboardAvoidingView>
