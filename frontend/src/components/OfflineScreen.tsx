@@ -1,59 +1,134 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WifiSlashIcon } from "phosphor-react-native";
 import NetInfo from "@react-native-community/netinfo";
 import { Layout } from "../constants/Layout";
+import { useGetHistoryQuery } from "../redux/api/interview_api";
 
 export const OfflineScreen = () => {
     const [isOffline, setIsOffline] = useState(false);
+    const [isReconnecting, setIsReconnecting] = useState(false);
+    const wasOfflineRef = useRef(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
+
+    // Track whether the history API is currently fetching.
+    // When we transition offline → online, we keep the overlay visible
+    // until this fetch completes so the user never sees empty "0" data.
+    const { isFetching } = useGetHistoryQuery();
 
     const checkNetwork = useCallback(() => {
         NetInfo.fetch().then(state => {
-            setIsOffline(state.isConnected === false);
+            const offline = state.isConnected === false;
+            if (wasOfflineRef.current && !offline) {
+                setIsReconnecting(true);
+            }
+            setIsOffline(offline);
+            wasOfflineRef.current = offline;
         });
     }, []);
 
     useEffect(() => {
-        // NetInfo automatically fires this listener on mount with the initial state,
-        // so we instantly know if we are offline without any delays.
-        // RTK Query's refetchOnReconnect handles data refetching automatically
-        // when the device comes back online.
         const unsubscribe = NetInfo.addEventListener(state => {
-            setIsOffline(state.isConnected === false);
+            const offline = state.isConnected === false;
+
+            // Detect the offline → online transition
+            if (wasOfflineRef.current && !offline) {
+                setIsReconnecting(true);
+            }
+
+            setIsOffline(offline);
+            wasOfflineRef.current = offline;
         });
 
         return () => unsubscribe();
     }, []);
 
+    // Dismiss the "Reconnecting" overlay once the API has finished refetching.
+    // A minimum 1.5-second display prevents a jarring flash if the API responds
+    // instantly, and a 5-second safety timeout prevents getting stuck forever
+    // if the fetch silently fails.
+    useEffect(() => {
+        if (!isReconnecting) return;
+
+        let dismissed = false;
+        const dismiss = () => {
+            if (dismissed) return;
+            dismissed = true;
+            setIsReconnecting(false);
+        };
+
+        // Minimum display time so the "Reconnecting" text is readable
+        const minTimer = setTimeout(() => {
+            // After the minimum time, dismiss if we're no longer fetching
+            if (!isFetching) {
+                dismiss();
+            }
+            // Otherwise, the other effect branch (isFetching becoming false) will dismiss
+        }, 1500);
+
+        // Safety fallback — never stay stuck longer than 5 seconds
+        const maxTimer = setTimeout(dismiss, 5000);
+
+        return () => {
+            clearTimeout(minTimer);
+            clearTimeout(maxTimer);
+        };
+    }, [isReconnecting]); // intentionally exclude isFetching to avoid re-running timers
+
+    // If we're in reconnecting state and isFetching just finished,
+    // dismiss after the minimum time has likely passed
+    useEffect(() => {
+        if (isReconnecting && !isFetching) {
+            const timer = setTimeout(() => setIsReconnecting(false), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [isReconnecting, isFetching]);
+
+    // Show the overlay when offline OR when reconnecting (data still loading)
+    const showOverlay = isOffline || isReconnecting;
+
     useEffect(() => {
         Animated.timing(fadeAnim, {
-            toValue: isOffline ? 1 : 0,
+            toValue: showOverlay ? 1 : 0,
             duration: 400,
             useNativeDriver: true,
         }).start();
-    }, [isOffline, fadeAnim]);
+    }, [showOverlay, fadeAnim]);
 
     return (
         <Animated.View
             style={[styles.container, { opacity: fadeAnim }]}
-            pointerEvents={isOffline ? "auto" : "none"}
+            pointerEvents={showOverlay ? "auto" : "none"}
         >
             <View style={styles.content}>
-                <View style={styles.iconContainer}>
-                    <WifiSlashIcon size={44} color="#FFFFFF" weight="duotone" />
-                </View>
-
-                <Text style={styles.title}>You&apos;re Offline</Text>
-
-                <Text style={styles.subtitle}>
-                    No internet connection detected.{"\n"}
-                    Check your Wi-Fi or mobile data.
-                </Text>
-
-                <TouchableOpacity style={styles.retryButton} onPress={checkNetwork} activeOpacity={0.7}>
-                    <Text style={styles.retryText}>Try Again</Text>
-                </TouchableOpacity>
+                {isReconnecting ? (
+                    // Reconnecting state: show spinner while data loads
+                    <>
+                        <View style={styles.iconContainer}>
+                            <ActivityIndicator size="large" color="#FFFFFF" />
+                        </View>
+                        <Text style={styles.title}>Reconnecting...</Text>
+                        <Text style={styles.subtitle}>
+                            Loading your data.{"\n"}
+                            This won&apos;t take long.
+                        </Text>
+                    </>
+                ) : (
+                    // Offline state: show Wi-Fi icon and retry button
+                    <>
+                        <View style={styles.iconContainer}>
+                            <WifiSlashIcon size={44} color="#FFFFFF" weight="duotone" />
+                        </View>
+                        <Text style={styles.title}>You&apos;re Offline</Text>
+                        <Text style={styles.subtitle}>
+                            No internet connection detected.{"\n"}
+                            Check your Wi-Fi or mobile data.
+                        </Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={checkNetwork} activeOpacity={0.7}>
+                            <Text style={styles.retryText}>Try Again</Text>
+                        </TouchableOpacity>
+                    </>
+                )}
             </View>
         </Animated.View>
     );
