@@ -89,6 +89,14 @@ export const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, Fetch
     let result = await rawBaseQuery(args, api, extraOptions);
 
     if (result.error?.status === 401) {
+        // If the app is still bootstrapping auth, do NOT attempt a token refresh here.
+        // bootstrapAuth is already handling session restoration, and racing with it
+        // would clear auth state and force a spurious logout.
+        const state = api.getState() as { auth: { isHydrating: boolean } };
+        if (state.auth.isHydrating) {
+            return result;
+        }
+
         const nextAccessToken = await performTokenRefresh(api);
 
         if (nextAccessToken) {
