@@ -5,41 +5,45 @@ import NetInfo from "@react-native-community/netinfo";
 import { useDispatch } from "react-redux";
 import { Layout } from "../constants/Layout";
 import { createSessionStartAPi, useGetHistoryQuery } from "../redux/api/interview_api";
+import { bootstrapAuth } from "../redux/slices/auth";
+import type { AppDispatch } from "../redux/store";
 
 export const OfflineScreen = () => {
     const [isOffline, setIsOffline] = useState(false);
     const [isReconnecting, setIsReconnecting] = useState(false);
     const wasOfflineRef = useRef(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
-    const dispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
 
-    // Track whether the history API is currently fetching.
-    // Used to keep the overlay visible until data has actually loaded.
     const { isFetching } = useGetHistoryQuery();
+
+    // When we come back online:
+    // 1. Re-run bootstrapAuth to get a fresh access token (it was null while offline)
+    // 2. Then invalidate tags so queries refetch with the valid token
+    const handleReconnect = useCallback(() => {
+        setIsReconnecting(true);
+        dispatch(bootstrapAuth()).finally(() => {
+            dispatch(createSessionStartAPi.util.invalidateTags(["InterviewHistory"]));
+        });
+    }, [dispatch]);
 
     const checkNetwork = useCallback(() => {
         NetInfo.fetch().then(state => {
             const offline = state.isConnected === false;
             if (wasOfflineRef.current && !offline) {
-                setIsReconnecting(true);
-                // Manually tell RTK Query to refetch all InterviewHistory data.
-                // refetchOnReconnect doesn't work on React Native (it relies on
-                // browser 'online' events), so we trigger this ourselves.
-                dispatch(createSessionStartAPi.util.invalidateTags(["InterviewHistory"]));
+                handleReconnect();
             }
             setIsOffline(offline);
             wasOfflineRef.current = offline;
         });
-    }, [dispatch]);
+    }, [handleReconnect]);
 
     useEffect(() => {
         const unsubscribe = NetInfo.addEventListener(state => {
             const offline = state.isConnected === false;
 
-            // Detect the offline → online transition
             if (wasOfflineRef.current && !offline) {
-                setIsReconnecting(true);
-                dispatch(createSessionStartAPi.util.invalidateTags(["InterviewHistory"]));
+                handleReconnect();
             }
 
             setIsOffline(offline);
@@ -47,11 +51,10 @@ export const OfflineScreen = () => {
         });
 
         return () => unsubscribe();
-    }, [dispatch]);
+    }, [handleReconnect]);
 
-    // Dismiss the "Reconnecting" overlay once the API has finished refetching.
-    // We wait for isFetching to become true (refetch started) and then false
-    // (refetch complete). A safety timeout prevents getting stuck forever.
+    // Dismiss the overlay once the API fetch has completed.
+    // Track: fetch must start (true) then finish (false) before we dismiss.
     const fetchStartedRef = useRef(false);
 
     useEffect(() => {
@@ -64,20 +67,18 @@ export const OfflineScreen = () => {
             fetchStartedRef.current = true;
         }
 
-        // Only dismiss after the fetch has started AND completed
         if (fetchStartedRef.current && !isFetching) {
             setIsReconnecting(false);
         }
     }, [isReconnecting, isFetching]);
 
-    // Safety timeout — never stay stuck longer than 5 seconds
+    // Safety timeout — never stay stuck longer than 6 seconds
     useEffect(() => {
         if (!isReconnecting) return;
-        const timer = setTimeout(() => setIsReconnecting(false), 5000);
+        const timer = setTimeout(() => setIsReconnecting(false), 6000);
         return () => clearTimeout(timer);
     }, [isReconnecting]);
 
-    // Show the overlay when offline OR when reconnecting (data still loading)
     const showOverlay = isOffline || isReconnecting;
 
     useEffect(() => {
@@ -95,7 +96,6 @@ export const OfflineScreen = () => {
         >
             <View style={styles.content}>
                 {isReconnecting ? (
-                    // Reconnecting state: show spinner while data loads
                     <>
                         <View style={styles.iconContainer}>
                             <ActivityIndicator size="large" color="#FFFFFF" />
@@ -107,7 +107,6 @@ export const OfflineScreen = () => {
                         </Text>
                     </>
                 ) : (
-                    // Offline state: show Wi-Fi icon and retry button
                     <>
                         <View style={styles.iconContainer}>
                             <WifiSlashIcon size={44} color="#FFFFFF" weight="duotone" />
