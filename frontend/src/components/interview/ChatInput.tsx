@@ -15,6 +15,7 @@ interface ChatInputProps {
     isRecording: boolean;
     isHintLoading: boolean;
     hintCount: number;
+    maxHints: number;
     disabled?: boolean;
 }
 
@@ -28,6 +29,7 @@ export function ChatInput({
     isRecording,
     isHintLoading,
     hintCount,
+    maxHints,
     disabled = false,
 }: ChatInputProps) {
     const { colors } = useTheme();
@@ -98,6 +100,7 @@ export function ChatInput({
                 onPress={onHint}
                 isLoading={isHintLoading}
                 hintCount={hintCount}
+                maxHints={maxHints}
                 disabled={disabled}
             />
             <TouchableOpacity
