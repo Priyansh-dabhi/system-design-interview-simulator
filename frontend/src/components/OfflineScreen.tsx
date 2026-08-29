@@ -2,11 +2,14 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { WifiSlashIcon } from "phosphor-react-native";
 import NetInfo from "@react-native-community/netinfo";
+import { useDispatch } from "react-redux";
 import { Layout } from "../constants/Layout";
+import { createSessionStartAPi } from "../redux/api/interview_api";
 
 export const OfflineScreen = () => {
     const [isOffline, setIsOffline] = useState(false);
     const fadeAnim = useRef(new Animated.Value(0)).current;
+    const dispatch = useDispatch();
 
     const checkNetwork = useCallback(() => {
         NetInfo.fetch().then(state => {
@@ -18,11 +21,19 @@ export const OfflineScreen = () => {
         // NetInfo automatically fires this listener on mount with the initial state,
         // so we instantly know if we are offline without any delays.
         const unsubscribe = NetInfo.addEventListener(state => {
-            setIsOffline(state.isConnected === false);
+            const currentlyOffline = state.isConnected === false;
+            
+            setIsOffline(prevWasOffline => {
+                // If we were offline and just came back online, tell Redux to refetch data
+                if (prevWasOffline && !currentlyOffline) {
+                    dispatch(createSessionStartAPi.util.invalidateTags(['InterviewHistory']));
+                }
+                return currentlyOffline;
+            });
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [dispatch]);
 
     useEffect(() => {
         Animated.timing(fadeAnim, {
