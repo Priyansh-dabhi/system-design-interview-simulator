@@ -8,11 +8,14 @@ interface HintButtonProps {
     onPress: () => void;
     isLoading: boolean;
     hintCount: number;
+    maxHints: number;
     disabled?: boolean;
 }
 
-export function HintButton({ onPress, isLoading, hintCount, disabled = false }: HintButtonProps) {
+export function HintButton({ onPress, isLoading, hintCount, maxHints, disabled = false }: HintButtonProps) {
     const { colors } = useTheme();
+    const remaining = maxHints - hintCount;
+    const isExhausted = remaining <= 0;
 
     const styles = React.useMemo(() => StyleSheet.create({
         container: {
@@ -44,11 +47,14 @@ export function HintButton({ onPress, isLoading, hintCount, disabled = false }: 
             borderWidth: 2,
             borderColor: colors.background,
         },
+        badgeExhausted: {
+            backgroundColor: '#EF4444',
+        },
         badgeText: {
             color: '#FFFFFF',
             fontSize: 10,
             fontWeight: 'bold',
-        }
+        },
     }), [colors]);
 
     return (
@@ -62,14 +68,18 @@ export function HintButton({ onPress, isLoading, hintCount, disabled = false }: 
                 {isLoading ? (
                     <ActivityIndicator size="small" color="#F59E0B" />
                 ) : (
-                    <LightbulbIcon size={20} color={disabled ? colors.textSecondary : "#F59E0B"} weight="fill" />
+                    <LightbulbIcon
+                        size={20}
+                        color={disabled || isExhausted ? colors.textSecondary : '#F59E0B'}
+                        weight="fill"
+                    />
                 )}
             </TouchableOpacity>
-            {hintCount > 0 && (
-                <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{hintCount}</Text>
-                </View>
-            )}
+
+            {/* Badge shows remaining hints. Turns red when exhausted. */}
+            <View style={[styles.badge, isExhausted && styles.badgeExhausted]}>
+                <Text style={styles.badgeText}>{remaining}</Text>
+            </View>
         </View>
     );
 }
