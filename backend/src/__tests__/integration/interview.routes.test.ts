@@ -138,6 +138,12 @@ describe("Interview Routes", () => {
         .set("Authorization", authHeader(token))
         .send({ problem: "Design Netflix" });
       sessionId = res.body.sessionId;
+
+      // Send at least one user message so the session is not treated as abandoned
+      await request(app)
+        .post("/api/interview/chat")
+        .set("Authorization", authHeader(token))
+        .send({ sessionId, message: "I would start with requirements" });
     });
 
     it("should generate a rich scored summary", async () => {
@@ -170,6 +176,22 @@ describe("Interview Routes", () => {
         .send({ sessionId });
 
       expect(res.status).toBe(401);
+    });
+
+    it("should cancel session with no user messages", async () => {
+      // Start a fresh session but don't send any chat messages
+      const startRes = await request(app)
+        .post("/api/interview/start_session")
+        .set("Authorization", authHeader(token))
+        .send({ problem: "Design Netflix" });
+
+      const res = await request(app)
+        .post("/api/interview/summary")
+        .set("Authorization", authHeader(token))
+        .send({ sessionId: startRes.body.sessionId });
+
+      expect(res.status).toBe(200);
+      expect(res.body.status).toBe("cancelled");
     });
   });
 

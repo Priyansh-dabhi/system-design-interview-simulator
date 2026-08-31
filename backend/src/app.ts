@@ -9,6 +9,10 @@ import { generalLimiter, authLimiter, chatLimiter } from "./middleware/rate-limi
 
 const app = express();
 
+// Trust the first proxy (Render, Railway, etc.) so express-rate-limit
+// can correctly read the client IP from X-Forwarded-For.
+app.set("trust proxy", 1);
+
 // global middlewares
 app.use(express.json());
 app.use(cors());

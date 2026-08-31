@@ -1,4 +1,4 @@
-# Dependencies
+# Dependencies — EAS runs `npm install` in the cloud
 node_modules/
 
 # Expo / bundler caches
@@ -10,11 +10,13 @@ node_modules/
 dist/
 web-build/
 
-# Native generated build artifacts
-android/.gradle/
-android/build/
-android/app/build/
-android/app/.cxx/
+# Native generated directories — EAS runs `expo prebuild` in the cloud
+# These are the biggest offenders (~4 GB locally)
+android/
+ios/
+
+# Git history (not needed for builds)
+.git/
 
 # Logs and coverage
 *.log
@@ -32,7 +34,6 @@ Thumbs.db
 *.temp
 
 # Local machine / generated files
-android/local.properties
 *.tsbuildinfo
 
 # Binary outputs that should never be uploaded to EAS
@@ -41,5 +42,6 @@ android/local.properties
 *.apks
 *.hprof
 
-# Local docs and scratch artifacts not needed for native cloud builds
+# Local docs and scratch artifacts not needed for builds
 docs/
+
