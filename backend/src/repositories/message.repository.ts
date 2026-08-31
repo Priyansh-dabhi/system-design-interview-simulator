@@ -64,3 +64,15 @@ export const getMessageCountForOwnedSession = async (sessionId: string, userId: 
         },
     }));
 };
+
+export const getUserMessageCountForOwnedSession = async (sessionId: string, userId: number): Promise<number> => {
+    return withDbErrorHandling(() => prisma.interviewMessage.count({
+        where: {
+            sessionId,
+            role: "user",
+            session: {
+                userId,
+            },
+        },
+    }));
+};

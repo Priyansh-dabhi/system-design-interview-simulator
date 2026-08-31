@@ -148,6 +148,12 @@ export const interview_summary = async (req: AuthRequest, res: Response) => {
 
     const conversation = await messageRepo.getConversationForOwnedSession(sessionId, req.user.userId);
     const messageCount = await messageRepo.getMessageCountForOwnedSession(sessionId, req.user.userId);
+    const userMessageCount = await messageRepo.getUserMessageCountForOwnedSession(sessionId, req.user.userId);
+
+    if (userMessageCount === 0) {
+        await sessionRepo.deleteSession(sessionId);
+        return res.json({ status: "cancelled", message: "Session cancelled due to inactivity" });
+    }
 
     const result = await generateSummary(problem ?? ownedSession.problemName, conversation, {
         difficulty: ownedSession.difficultyLevel,
@@ -158,11 +164,14 @@ export const interview_summary = async (req: AuthRequest, res: Response) => {
 
     await summaryRepo.saveSummary(sessionId, req.user.userId, result);
 
-    // createdAt is the start anchor; saveSummary stamps endedAt = now().
-    const durationSeconds = Math.max(
+    let durationSeconds = Math.max(
         0,
         Math.floor((Date.now() - new Date(ownedSession.createdAt).getTime()) / 1000)
     );
+
+    if (ownedSession.durationMinutes) {
+        durationSeconds = Math.min(durationSeconds, ownedSession.durationMinutes * 60);
+    }
 
     res.json({ ...result, durationSeconds });
 };
@@ -175,7 +184,9 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
     }
 
     const sessions = await sessionRepo.getHistoryForUser(userId);
-    const history = sessions.map((session) => {
+    const completedSessions = sessions.filter(session => session.status === "completed");
+
+    const history = completedSessions.map((session) => {
         const strengths = parseSummaryList(session.summary?.strengths);
         const missedTopics = parseSummaryList(session.summary?.missedTopics);
         const suggestions = parseSummaryList(session.summary?.suggestions);

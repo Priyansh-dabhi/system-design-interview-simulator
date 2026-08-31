@@ -1,5 +1,5 @@
 import { useChatMutation, useEndSessionMutation, useGetHintMutation } from '@/src/redux/api/interview_api';
-import { setSummary, incrementHintCount, setMessages as persistMessages } from '@/src/redux/slices/session';
+import { setSummary, incrementHintCount, setMessages as persistMessages, clearSession } from '@/src/redux/slices/session';
 import { getMaxHints } from '../../src/utils/hints';
 import type { RootState } from '@/src/redux/store';
 import { useNavigation, useRouter } from 'expo-router';
@@ -75,6 +75,14 @@ export default function InterviewSessionScreen() {
         hasEndedRef.current = true;
         try {
             const result = await endSession({ sessionId, problem }).unwrap();
+            
+            if (result.status === "cancelled") {
+                dispatch(clearSession());
+                setIsNavigatingAway(true);
+                router.replace('/(main)/home');
+                return;
+            }
+
             dispatch(setSummary(result));
             
             // Persist current messages for transcript export
@@ -264,7 +272,7 @@ const styles = React.useMemo(() => StyleSheet.create({
   return (
 
 
-          <SafeAreaView style={styles.container} edges={['top']}>
+          <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <ChatHeader
                 topicTitle={topicTitle}
                 onBack={() => router.back()}

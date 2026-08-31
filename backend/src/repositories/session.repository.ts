@@ -78,3 +78,11 @@ export const getHistoryForUser = async (userId: number) => {
         },
     }));
 };
+
+export const deleteSession = async (sessionId: string) => {
+    return withDbErrorHandling(() => prisma.interviewSession.delete({
+        where: {
+            id: sessionId,
+        },
+    }));
+};

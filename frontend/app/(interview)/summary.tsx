@@ -127,7 +127,7 @@ export default function SummaryScreen() {
 
     if (!summary) {
         return (
-            <SafeAreaView style={styles.container} edges={['top']}>
+            <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
                 <View style={styles.emptyContainer}>
                     <Text style={styles.emptyText}>No summary available</Text>
                     <TouchableOpacity onPress={() => router.back()} style={styles.doneButton}>
@@ -139,7 +139,7 @@ export default function SummaryScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleDone} style={styles.backButton}>
