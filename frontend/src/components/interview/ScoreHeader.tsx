@@ -1,9 +1,11 @@
-import { ClockIcon } from 'phosphor-react-native';
+import { Clock } from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 import { overallBand } from './summaryColors';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
 
 interface ScoreHeaderProps {
     overallScore: number;
@@ -22,85 +24,66 @@ export function ScoreHeader({ overallScore, durationSeconds }: ScoreHeaderProps)
     const band = overallBand(overallScore);
 
     const styles = React.useMemo(() => StyleSheet.create({
-        card: {
+        container: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: Layout.spacing.lg,
-            backgroundColor: colors.surface,
-            borderRadius: Layout.borderRadius.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-            padding: Layout.spacing.lg,
+            gap: Layout.spacing.xl,
         },
         scoreCircle: {
-            width: 76,
-            height: 76,
-            borderRadius: 38,
-            borderWidth: 5,
+            width: 88,
+            height: 88,
+            borderRadius: 44,
+            borderWidth: 6,
             borderColor: band.color,
             alignItems: 'center',
             justifyContent: 'center',
-        },
-        scoreValue: {
-            fontSize: 26,
-            fontWeight: '800',
-            color: colors.text,
-            fontVariant: ['tabular-nums'],
-        },
-        scoreOutOf: {
-            fontSize: 10,
-            color: colors.textSecondary,
-            marginTop: -2,
+            backgroundColor: band.color + '10',
         },
         info: {
             flex: 1,
-            gap: 3,
-        },
-        label: {
-            fontSize: 12,
-            color: colors.textSecondary,
-            fontWeight: '600',
-            letterSpacing: 0.5,
-        },
-        bandLabel: {
-            fontSize: 18,
-            fontWeight: '700',
-            color: band.color,
+            justifyContent: 'center',
         },
         durationChip: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: 5,
-            marginTop: 6,
+            gap: 6,
+            marginTop: Layout.spacing.sm,
             alignSelf: 'flex-start',
-            paddingHorizontal: 10,
-            paddingVertical: 4,
+            paddingHorizontal: 12,
+            paddingVertical: 6,
             borderRadius: Layout.borderRadius.full,
             backgroundColor: colors.surfaceHighlight,
-        },
-        durationText: {
-            fontSize: 12,
-            color: colors.textSecondary,
-            fontWeight: '600',
+            borderWidth: 1,
+            borderColor: colors.border,
         },
     }), [colors, band.color]);
 
     return (
-        <View style={styles.card}>
-            <View style={styles.scoreCircle}>
-                <Text style={styles.scoreValue}>{Math.round(overallScore)}</Text>
-                <Text style={styles.scoreOutOf}>/ 100</Text>
+        <Card padding="xl" variant="elevated">
+            <View style={styles.container}>
+                <View style={styles.scoreCircle}>
+                    <Typography variant="h2" weight="bold" style={{ color: colors.text, fontVariant: ['tabular-nums'], marginBottom: -4 }}>
+                        {Math.round(overallScore)}
+                    </Typography>
+                    <Typography variant="caption" color="textSecondary" weight="semibold">/ 100</Typography>
+                </View>
+                <View style={styles.info}>
+                    <Typography variant="caption" color="textSecondary" weight="bold" style={{ letterSpacing: 1, marginBottom: 4 }}>
+                        OVERALL SCORE
+                    </Typography>
+                    <Typography variant="h3" weight="bold" style={{ color: band.color }}>
+                        {band.label}
+                    </Typography>
+                    {typeof durationSeconds === 'number' && (
+                        <View style={styles.durationChip}>
+                            <Clock size={14} color={colors.textSecondary} weight="fill" />
+                            <Typography variant="caption" weight="semibold">
+                                {formatDuration(durationSeconds)}
+                            </Typography>
+                        </View>
+                    )}
+                </View>
             </View>
-            <View style={styles.info}>
-                <Text style={styles.label}>OVERALL SCORE</Text>
-                <Text style={styles.bandLabel}>{band.label}</Text>
-                {typeof durationSeconds === 'number' && (
-                    <View style={styles.durationChip}>
-                        <ClockIcon size={13} color={colors.textSecondary} weight="fill" />
-                        <Text style={styles.durationText}>{formatDuration(durationSeconds)}</Text>
-                    </View>
-                )}
-            </View>
-        </View>
+        </Card>
     );
 }
