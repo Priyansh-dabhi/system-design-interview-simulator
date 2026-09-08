@@ -1,8 +1,7 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { CaretRightIcon, ClockCounterClockwiseIcon, PlayIcon } from "phosphor-react-native";
+import { CaretRight, Play, Lightning, ChartLineUp, ClockCounterClockwise } from "phosphor-react-native";
 import React, { useEffect } from "react";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useTheme } from "../../src/theme/useTheme";
@@ -11,6 +10,10 @@ import { setSelectedTopic } from '@/src/redux/slices/problem';
 import { useAppSelector } from '@/src/redux/hooks';
 import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
 import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
+import { Typography } from "../../src/components/ui/Typography";
+import { Button } from "../../src/components/ui/Button";
+import { Card } from "../../src/components/ui/Card";
+import { Badge } from "../../src/components/ui/Badge";
 
 export default function HomeScreen() {
   const user = useAppSelector((state) => state.auth.user);
@@ -20,7 +23,6 @@ export default function HomeScreen() {
   const { colors } = useTheme();
 
   useEffect(() => {
-    // Request permissions upfront when user first lands on the home screen
     const requestPermissions = async () => {
       await ExpoSpeechRecognitionModule.requestPermissionsAsync();
     };
@@ -28,24 +30,22 @@ export default function HomeScreen() {
   }, []);
 
   const interviewsPracticed = data?.stats.completed ?? 0;
+  // Mock average score and streak if not present in data
+  const averageScore = data?.stats.averageScore ?? 0; 
+  const currentStreak = data?.stats.currentStreak ?? 0;
+
   const recommendedInterviews = [
     {
       id: 'whatsapp',
       title: 'Design WhatsApp',
       description: 'Real-time messaging, websockets, message persistence.',
-      color: '#25D366', // WhatsApp Green
+      difficulty: 'Advanced',
     },
     {
       id: 'netflix',
       title: 'Design Netflix',
       description: 'Video streaming optimization, CDN architecture.',
-      color: '#E50914', // Netflix Red
-    },
-    {
-      id: 'uber',
-      title: 'Design Uber',
-      description: 'Geospatial indexing, driver matching algorithms.',
-      color: '#276EF1', // Uber Blue
+      difficulty: 'Advanced',
     },
   ];
 
@@ -61,56 +61,40 @@ export default function HomeScreen() {
     router.push('/(interview)/problem-selection');
   };
 
-const styles = React.useMemo(() => StyleSheet.create({
+  const getDifficultyVariant = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Advanced': return 'error';
+      case 'Intermediate': return 'warning';
+      case 'Beginner': return 'success';
+      default: return 'default';
+    }
+  };
+
+  const styles = React.useMemo(() => StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: colors.background,
     },
     scrollContent: {
       padding: Layout.spacing.lg,
-      paddingBottom: 100, // Extra padding for bottom tab bar
+      paddingBottom: 100,
     },
     header: {
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
       marginBottom: Layout.spacing.xl,
-      // paddingHorizontal: 20,
       paddingTop: 16,
-      paddingBottom: 8,
-    },
-    greeting: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    subGreeting: {
-      fontSize: 16,
-      color: colors.textSecondary,
-      marginTop: 4,
-    },
-    profileButton: {
-      padding: 4,
     },
     avatarPlaceholder: {
       width: 48,
       height: 48,
       borderRadius: 24,
-      backgroundColor: colors.primaryBrand,
+      backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
-      shadowColor: '#000',
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.1,
-      shadowRadius: 4,
-      elevation: 3,
       borderWidth: 2,
       borderColor: colors.surface,
-    },
-    avatarText: {
-      color: '#FFF',
-      fontSize: 18,
-      fontWeight: '600',
     },
     sectionContainer: {
       marginBottom: Layout.spacing.xl,
@@ -121,217 +105,99 @@ const styles = React.useMemo(() => StyleSheet.create({
       alignItems: 'center',
       marginBottom: Layout.spacing.md,
     },
-    sectionTitle: {
-      fontSize: 18,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-    },
-    seeAllText: {
-      fontSize: 14,
-      color: colors.primaryBrand,
-      fontWeight: '500',
-    },
-    progressCard: {
-      borderRadius: Layout.borderRadius.lg,
-      overflow: 'hidden',
-    },
-    progressCardGradient: {
-      padding: Layout.spacing.lg,
-    },
-    progressContent: {
+    statsRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-    },
-    progressLabel: {
-      fontSize: 14,
-      color: colors.textSecondary,
-      marginBottom: 4,
-    },
-    progressValue: {
-      fontSize: 36,
-      fontWeight: 'bold',
-      color: colors.text,
-    },
-    circularProgressPlaceholder: {
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      backgroundColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 4,
-      borderColor: colors.surfaceHighlight,
-    },
-    topicsList: {
       gap: Layout.spacing.md,
+      marginBottom: Layout.spacing.xl,
+    },
+    statCard: {
+      flex: 1,
+      alignItems: 'center',
     },
     topicCard: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      backgroundColor: colors.surface,
-      padding: Layout.spacing.md,
-      borderRadius: Layout.borderRadius.md,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    topicIcon: {
-      width: 40,
-      height: 40,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginRight: Layout.spacing.md,
-    },
-    topicIconInner: {
-      width: 12,
-      height: 12,
-      borderRadius: 6,
+      marginBottom: Layout.spacing.md,
     },
     topicInfo: {
-      flex: 1,
-    },
-    topicTitle: {
-      fontSize: 16,
-      fontWeight: '600',
-      color: colors.text,
-      marginBottom: 2,
-    },
-    topicDescription: {
-      fontSize: 12,
-      color: colors.textSecondary,
-    },
-    actionArea: {
-      gap: 12,
-      marginVertical: Layout.spacing.xl,
-    },
-    primaryButton: {
-      width: '100%',
-      height: 56,
-      backgroundColor: colors.primaryBrand,
-      borderRadius: Layout.borderRadius.md,
       flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-      shadowColor: colors.primaryBrand,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 8,
-      elevation: 4,
-    },
-    primaryButtonText: {
-      color: '#FFFFFF',
-      fontSize: 16,
-      fontWeight: '600',
-    },
-    secondaryButton: {
-      width: '100%',
-      height: 56,
-      backgroundColor: 'transparent',
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: Layout.borderRadius.md,
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 8,
-    },
-    secondaryButtonText: {
-      color: colors.textSecondary,
-      fontSize: 16,
-      fontWeight: '500',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
     },
   }), [colors]);
 
   return (
-
-
-      <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header Section */}
         <View style={styles.header}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.greeting}>{getGreeting()}, {user?.fullName?.split(' ')[0] || 'Alex'}</Text>
-            <Text style={styles.subGreeting}>Ready to practice today?</Text>
+            <Typography variant="h3" weight="bold">{getGreeting()}, {user?.fullName?.split(' ')[0] || 'Alex'}</Typography>
+            <Typography variant="body2" color="textSecondary" style={{ marginTop: 4 }}>Ready to advance your system design skills?</Typography>
           </View>
-          <TouchableOpacity style={styles.profileButton} activeOpacity={0.8}>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => router.push('/profile')}>
             <View style={styles.avatarPlaceholder}>
-              <Text style={styles.avatarText}>{user?.fullName?.[0] || 'A'}</Text>
+              <Typography variant="h4" color="textDim" style={{ color: '#FFF' }}>{user?.fullName?.[0] || 'A'}</Typography>
             </View>
           </TouchableOpacity>
         </View>
 
-        {/* Weekly Progress Card */}
+        {/* Primary CTA */}
         <View style={styles.sectionContainer}>
-          <Text style={styles.sectionTitle}>Weekly Progress</Text>
-          <View style={styles.progressCard}>
-            <LinearGradient
-              colors={[colors.surfaceHighlight, colors.surface]}
-              style={styles.progressCardGradient}
-            >
-              <View style={styles.progressContent}>
-                <View>
-                  <Text style={styles.progressLabel}>Interviews Practiced</Text>
-                  <Text style={styles.progressValue}>{interviewsPracticed}</Text>
-                </View>
-                <View style={styles.circularProgressPlaceholder}>
-                  <ClockCounterClockwiseIcon size={32} color={colors.primaryBrand} />
-                </View>
-              </View>
-            </LinearGradient>
-          </View>
+          <Button
+            title="Start Interview"
+            onPress={() => router.push('/(interview)/problem-selection')}
+            leftIcon={<Play size={20} color="#FFF" weight="fill" />}
+            style={{ paddingVertical: Layout.spacing.lg }}
+          />
         </View>
 
-        {/* Action Area - Moved to Center */}
-        <View style={styles.actionArea}>
-          <TouchableOpacity style={styles.primaryButton} activeOpacity={0.9} onPress={() => router.push('/(interview)/problem-selection')}>
-            <PlayIcon size={24} color="#FFFFFF" weight="fill" />
-            <Text style={styles.primaryButtonText}>Start New Interview</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.secondaryButton} activeOpacity={0.9} onPress={() => router.push('/history')}>
-            <ClockCounterClockwiseIcon size={24} color={colors.textSecondary} />
-            <Text style={styles.secondaryButtonText}>Interview History</Text>
-          </TouchableOpacity>
+        {/* Quick Stats */}
+        <View style={styles.statsRow}>
+          <Card padding="md" style={styles.statCard}>
+            <Lightning size={24} color={'#F59E0B'} weight="fill" style={{ marginBottom: 8 }} />
+            <Typography variant="h3" weight="bold">{currentStreak}</Typography>
+            <Typography variant="caption" color="textSecondary">Day Streak</Typography>
+          </Card>
+          <Card padding="md" style={styles.statCard}>
+            <ClockCounterClockwise size={24} color={colors.primary} weight="fill" style={{ marginBottom: 8 }} />
+            <Typography variant="h3" weight="bold">{interviewsPracticed}</Typography>
+            <Typography variant="caption" color="textSecondary">Interviews</Typography>
+          </Card>
+          <Card padding="md" style={styles.statCard}>
+            <ChartLineUp size={24} color={colors.success} weight="fill" style={{ marginBottom: 8 }} />
+            <Typography variant="h3" weight="bold">{averageScore || '--'}</Typography>
+            <Typography variant="caption" color="textSecondary">Avg. Score</Typography>
+          </Card>
         </View>
 
-        {/* Recommended Topics Section - Moved to Last */}
+        {/* Recommended Topics */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Recommended Interviews</Text>
-            <TouchableOpacity onPress={()=> router.push('/problem-selection')}>
-              <Text style={styles.seeAllText}>View all</Text>
+            <Typography variant="h4" weight="semibold">Recommended for you</Typography>
+            <TouchableOpacity onPress={() => router.push('/(interview)/problem-selection')}>
+              <Typography variant="body2" color="primary" weight="medium">See all</Typography>
             </TouchableOpacity>
           </View>
 
-          <View style={styles.topicsList}>
-            {recommendedInterviews.map((topic) => (
-              <TouchableOpacity
-                key={topic.id}
-                style={styles.topicCard}
-                activeOpacity={0.7}
-                onPress={() => handleTopicSelect(topic)}
-              >
-                <View style={[styles.topicIcon, { backgroundColor: topic.color + '20' }]}>
-                  <View style={[styles.topicIconInner, { backgroundColor: topic.color }]} />
-                </View>
+          {recommendedInterviews.map((topic) => (
+            <TouchableOpacity key={topic.id} activeOpacity={0.7} onPress={() => handleTopicSelect(topic)}>
+              <Card padding="lg" style={styles.topicCard} variant="elevated">
                 <View style={styles.topicInfo}>
-                  <Text style={styles.topicTitle}>{topic.title}</Text>
-                  <Text style={styles.topicDescription}>{topic.description}</Text>
+                  <View style={{ flex: 1, paddingRight: Layout.spacing.md }}>
+                    <Typography variant="body1" weight="semibold" style={{ marginBottom: 4 }}>{topic.title}</Typography>
+                    <Typography variant="body2" color="textSecondary" style={{ marginBottom: Layout.spacing.md }}>
+                      {topic.description}
+                    </Typography>
+                    <Badge label={topic.difficulty} variant={getDifficultyVariant(topic.difficulty) as any} />
+                  </View>
+                  <View style={{ justifyContent: 'center', height: '100%' }}>
+                    <CaretRight size={20} color={colors.textDim} />
+                  </View>
                 </View>
-                <CaretRightIcon size={20} color={colors.textSecondary} />
-              </TouchableOpacity>
-            ))}
-          </View>
+              </Card>
+            </TouchableOpacity>
+          ))}
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
-
-  
-
