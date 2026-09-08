@@ -1,10 +1,13 @@
-import { ArrowDownIcon, ArrowUpIcon, ClockCounterClockwiseIcon } from 'phosphor-react-native';
+import { ArrowDown, ArrowUp, ClockCounterClockwise } from 'phosphor-react-native';
 import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 import { SummarySection } from '../shared/SummarySection';
 import { InterviewHistoryItem } from '../../types/types';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
+import { Badge } from '../ui/Badge';
 
 const formatInterviewDate = (value: string) =>
     new Intl.DateTimeFormat(undefined, {
@@ -15,9 +18,9 @@ const formatInterviewDate = (value: string) =>
     }).format(new Date(value));
 
 const scoreConfig = {
-    good: { label: 'Strong', color: '#10B981', bg: '#10B98118' },
-    average: { label: 'Average', color: '#F59E0B', bg: '#F59E0B18' },
-    needs_improvement: { label: 'Needs Work', color: '#EF4444', bg: '#EF444418' },
+    good: { label: 'Strong', color: '#10B981', bg: '#10B98115', border: '#10B98130' },
+    average: { label: 'Average', color: '#F59E0B', bg: '#F59E0B15', border: '#F59E0B30' },
+    needs_improvement: { label: 'Needs Work', color: '#EF4444', bg: '#EF444415', border: '#EF444430' },
 };
 
 export function InterviewCard({ item }: { item: InterviewHistoryItem }) {
@@ -26,110 +29,81 @@ export function InterviewCard({ item }: { item: InterviewHistoryItem }) {
     const config = scoreConfig[item.score];
 
     const styles = React.useMemo(() => StyleSheet.create({
-        card: {
-            backgroundColor: colors.surface,
-            borderRadius: Layout.borderRadius.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-            overflow: 'hidden',
+        container: {
+            marginBottom: Layout.spacing.sm,
         },
         cardHeader: {
             flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: Layout.spacing.md,
         },
         cardHeaderLeft: {
             flexDirection: 'row',
             alignItems: 'center',
             flex: 1,
+            gap: Layout.spacing.md,
         },
         topicIcon: {
-            width: 38,
-            height: 38,
+            width: 40,
+            height: 40,
             borderRadius: 10,
             alignItems: 'center',
             justifyContent: 'center',
-            marginRight: Layout.spacing.sm + 4,
+            borderWidth: 1,
         },
         cardInfo: {
             flex: 1,
         },
-        cardTopic: {
-            fontSize: 16,
-            fontWeight: '600',
-            color: colors.text,
-        },
-        cardDate: {
-            fontSize: 12,
-            color: colors.textSecondary,
-            marginTop: 2,
-        },
         cardHeaderRight: {
             flexDirection: 'row',
             alignItems: 'center',
-            gap: Layout.spacing.sm,
-        },
-        scoreBadge: {
-            paddingHorizontal: 10,
-            paddingVertical: 4,
-            borderRadius: Layout.borderRadius.full,
-        },
-        scoreBadgeText: {
-            fontSize: 11,
-            fontWeight: '600',
-            letterSpacing: 0.3,
+            gap: Layout.spacing.md,
         },
         reviewContent: {
+            marginTop: Layout.spacing.lg,
+            paddingTop: Layout.spacing.lg,
             borderTopWidth: 1,
             borderTopColor: colors.border,
-            paddingHorizontal: Layout.spacing.md,
-            paddingVertical: Layout.spacing.md,
         },
     }), [colors]);
 
     return (
-        <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => setExpanded(!expanded)}
-            style={styles.card}
-        >
-            {/* Card Header */}
-            <View style={styles.cardHeader}>
-                <View style={styles.cardHeaderLeft}>
-                    <View style={[styles.topicIcon, { backgroundColor: config.bg }]}>
-                        <ClockCounterClockwiseIcon size={18} color={config.color} />
+        <Card variant="elevated" padding="md" style={styles.container}>
+            <TouchableOpacity activeOpacity={0.7} onPress={() => setExpanded(!expanded)}>
+                <View style={styles.cardHeader}>
+                    <View style={styles.cardHeaderLeft}>
+                        <View style={[styles.topicIcon, { backgroundColor: config.bg, borderColor: config.border }]}>
+                            <ClockCounterClockwise size={20} color={config.color} weight="fill" />
+                        </View>
+                        <View style={styles.cardInfo}>
+                            <Typography variant="body1" weight="semibold">{item.topic}</Typography>
+                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2 }}>
+                                {formatInterviewDate(item.date)}
+                            </Typography>
+                        </View>
                     </View>
-                    <View style={styles.cardInfo}>
-                        <Text style={styles.cardTopic}>{item.topic}</Text>
-                        <Text style={styles.cardDate}>{formatInterviewDate(item.date)}</Text>
+                    <View style={styles.cardHeaderRight}>
+                        <View style={{ backgroundColor: config.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Layout.borderRadius.full, borderWidth: 1, borderColor: config.border }}>
+                            <Typography variant="caption" weight="bold" style={{ color: config.color }}>{config.label}</Typography>
+                        </View>
+                        {expanded ? (
+                            <ArrowUp size={16} color={colors.textSecondary} weight="bold" />
+                        ) : (
+                            <ArrowDown size={16} color={colors.textSecondary} weight="bold" />
+                        )}
                     </View>
                 </View>
-                <View style={styles.cardHeaderRight}>
-                    <View style={[styles.scoreBadge, { backgroundColor: config.bg }]}>
-                        <Text style={[styles.scoreBadgeText, { color: config.color }]}>
-                            {config.label}
-                        </Text>
-                    </View>
-                    {expanded ? (
-                        <ArrowUpIcon size={16} color={colors.textSecondary} />
-                    ) : (
-                        <ArrowDownIcon size={16} color={colors.textSecondary} />
-                    )}
-                </View>
-            </View>
 
-            {/* Expandable Review Content */}
-            {expanded && (
-                <View style={styles.reviewContent}>
-                    <SummarySection
-                        strengths={item.summary.strengths}
-                        missedTopics={item.summary.missed_topics}
-                        suggestions={item.summary.suggestions}
-                    />
-                </View>
-            )}
-        </TouchableOpacity>
+                {expanded && (
+                    <View style={styles.reviewContent}>
+                        <SummarySection
+                            strengths={item.summary.strengths}
+                            missedTopics={item.summary.missed_topics}
+                            suggestions={item.summary.suggestions}
+                        />
+                    </View>
+                )}
+            </TouchableOpacity>
+        </Card>
     );
 }
-
