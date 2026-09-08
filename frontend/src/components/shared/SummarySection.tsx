@@ -1,12 +1,10 @@
-import {
-    CheckCircleIcon,
-    LightbulbIcon,
-    WarningCircleIcon,
-} from 'phosphor-react-native';
+import { CheckCircle, Lightbulb, WarningCircle } from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
 
 interface SummarySectionProps {
     strengths: string[];
@@ -14,73 +12,70 @@ interface SummarySectionProps {
     suggestions: string[];
 }
 
-function BulletCard({ text, dotColor, borderColor }: { text: string; dotColor: string; borderColor: string }) {
+function BulletCard({ text, icon }: { text: string; icon: React.ReactNode }) {
     const { colors } = useTheme();
     return (
-        <View style={[styles.bulletCard, { borderColor, backgroundColor: colors.background }]}>
-            <View style={[styles.bulletDot, { backgroundColor: dotColor }]} />
-            <Text style={[styles.bulletText, { color: colors.textSecondary }]}>{text}</Text>
-        </View>
-    );
-}
-
-function SectionHeader({ icon, title }: { icon: React.ReactNode; title: string }) {
-    const { colors } = useTheme();
-    return (
-        <View style={styles.reviewSectionHeader}>
-            {icon}
-            <Text style={[styles.reviewSectionTitle, { color: colors.text }]}>{title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: Layout.spacing.sm, marginBottom: Layout.spacing.md }}>
+            <View style={{ marginTop: 2 }}>{icon}</View>
+            <Typography variant="body2" color="textSecondary" style={{ flex: 1, lineHeight: 22 }}>{text}</Typography>
         </View>
     );
 }
 
 export function SummarySection({ strengths, missedTopics, suggestions }: SummarySectionProps) {
+    const { colors } = useTheme();
     return (
         <View style={styles.container}>
             {/* Strengths */}
-            <View style={styles.reviewSection}>
-                <SectionHeader
-                    icon={
-                        <View style={[styles.reviewIconContainer, { backgroundColor: '#10B98120' }]}>
-                            <CheckCircleIcon size={16} color="#10B981" weight="fill" />
+            {strengths?.length > 0 && (
+                <Card padding="lg" variant="outlined" style={styles.sectionCard}>
+                    <View style={styles.headerRow}>
+                        <View style={[styles.iconWrapper, { backgroundColor: colors.success + '15' }]}>
+                            <CheckCircle size={18} color={colors.success} weight="fill" />
                         </View>
-                    }
-                    title="Strengths"
-                />
-                {strengths.map((text, i) => (
-                    <BulletCard key={`s-${i}`} text={text} dotColor="#10B981" borderColor="#10B98125" />
-                ))}
-            </View>
+                        <Typography variant="h4" weight="semibold">Strengths</Typography>
+                    </View>
+                    <View style={styles.list}>
+                        {strengths.map((text, i) => (
+                            <BulletCard key={`s-${i}`} text={text} icon={<View style={[styles.dot, { backgroundColor: colors.success }]} />} />
+                        ))}
+                    </View>
+                </Card>
+            )}
 
             {/* Missed Topics */}
-            <View style={styles.reviewSection}>
-                <SectionHeader
-                    icon={
-                        <View style={[styles.reviewIconContainer, { backgroundColor: '#F59E0B20' }]}>
-                            <WarningCircleIcon size={16} color="#F59E0B" weight="fill" />
+            {missedTopics?.length > 0 && (
+                <Card padding="lg" variant="outlined" style={styles.sectionCard}>
+                    <View style={styles.headerRow}>
+                        <View style={[styles.iconWrapper, { backgroundColor: '#F59E0B15' }]}>
+                            <WarningCircle size={18} color="#F59E0B" weight="fill" />
                         </View>
-                    }
-                    title="Missed Topics"
-                />
-                {missedTopics.map((text, i) => (
-                    <BulletCard key={`m-${i}`} text={text} dotColor="#F59E0B" borderColor="#F59E0B25" />
-                ))}
-            </View>
+                        <Typography variant="h4" weight="semibold">Missed Topics</Typography>
+                    </View>
+                    <View style={styles.list}>
+                        {missedTopics.map((text, i) => (
+                            <BulletCard key={`m-${i}`} text={text} icon={<View style={[styles.dot, { backgroundColor: '#F59E0B' }]} />} />
+                        ))}
+                    </View>
+                </Card>
+            )}
 
             {/* Suggestions */}
-            <View style={styles.reviewSection}>
-                <SectionHeader
-                    icon={
-                        <View style={[styles.reviewIconContainer, { backgroundColor: '#3B82F620' }]}>
-                            <LightbulbIcon size={16} color="#3B82F6" weight="fill" />
+            {suggestions?.length > 0 && (
+                <Card padding="lg" variant="outlined" style={styles.sectionCard}>
+                    <View style={styles.headerRow}>
+                        <View style={[styles.iconWrapper, { backgroundColor: colors.primary + '15' }]}>
+                            <Lightbulb size={18} color={colors.primary} weight="fill" />
                         </View>
-                    }
-                    title="Suggestions"
-                />
-                {suggestions.map((text, i) => (
-                    <BulletCard key={`sg-${i}`} text={text} dotColor="#3B82F6" borderColor="#3B82F625" />
-                ))}
-            </View>
+                        <Typography variant="h4" weight="semibold">Suggestions</Typography>
+                    </View>
+                    <View style={styles.list}>
+                        {suggestions.map((text, i) => (
+                            <BulletCard key={`sg-${i}`} text={text} icon={<View style={[styles.dot, { backgroundColor: colors.primary }]} />} />
+                        ))}
+                    </View>
+                </Card>
+            )}
         </View>
     );
 }
@@ -89,44 +84,29 @@ const styles = StyleSheet.create({
     container: {
         gap: Layout.spacing.lg,
     },
-    reviewSection: {
-        gap: Layout.spacing.sm,
+    sectionCard: {
+        marginBottom: Layout.spacing.sm,
     },
-    reviewSectionHeader: {
+    headerRow: {
         flexDirection: 'row',
         alignItems: 'center',
         gap: Layout.spacing.sm,
-        marginBottom: 2,
+        marginBottom: Layout.spacing.md,
     },
-    reviewIconContainer: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+    iconWrapper: {
+        width: 32,
+        height: 32,
+        borderRadius: 8,
         alignItems: 'center',
         justifyContent: 'center',
     },
-    reviewSectionTitle: {
-        fontSize: 14,
-        fontWeight: '600',
+    list: {
+        marginTop: Layout.spacing.xs,
     },
-    bulletCard: {
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        paddingHorizontal: Layout.spacing.sm + 4,
-        paddingVertical: Layout.spacing.sm + 2,
-        borderRadius: Layout.borderRadius.sm + 2,
-        borderWidth: 1,
-        gap: Layout.spacing.sm,
-    },
-    bulletDot: {
+    dot: {
         width: 6,
         height: 6,
         borderRadius: 3,
-        marginTop: 6,
-    },
-    bulletText: {
-        flex: 1,
-        fontSize: 13,
-        lineHeight: 19,
+        marginTop: 8,
     },
 });
