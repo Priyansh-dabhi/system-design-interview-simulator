@@ -1,48 +1,54 @@
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
+import { Robot } from 'phosphor-react-native';
+import { Typography } from '../ui/Typography';
 
 export function TypingIndicator() {
     const { colors } = useTheme();
 
     const styles = React.useMemo(() => StyleSheet.create({
-        messageContainer: {
-            marginBottom: Layout.spacing.md,
-            maxWidth: '80%',
+        container: {
+            marginBottom: Layout.spacing.xl,
+            flexDirection: 'row',
+            alignItems: 'flex-end',
+            gap: Layout.spacing.sm,
+            maxWidth: '100%',
         },
-        interviewerContainer: {
-            alignSelf: 'flex-start',
+        avatar: {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: colors.surfaceHighlight,
         },
         messageBubble: {
-            paddingHorizontal: Layout.spacing.md,
-            paddingVertical: Layout.spacing.sm + 2,
-            borderRadius: Layout.borderRadius.lg,
-        },
-        interviewerBubble: {
-            backgroundColor: colors.surface,
-            borderWidth: 1,
-            borderColor: colors.border,
-        },
-        typingBubble: {
+            maxWidth: '80%',
+            paddingHorizontal: Layout.spacing.lg,
+            paddingVertical: Layout.spacing.md,
+            borderRadius: Layout.borderRadius.xl,
+            borderBottomLeftRadius: 4,
+            backgroundColor: colors.surfaceHighlight,
             flexDirection: 'row',
             alignItems: 'center',
             gap: 8,
         },
-        typingText: {
-            fontSize: 13,
-            color: colors.textSecondary,
-            fontStyle: 'italic',
-        },
     }), [colors]);
 
     return (
-        <View style={[styles.messageContainer, styles.interviewerContainer]}>
-            <View style={[styles.messageBubble, styles.interviewerBubble, styles.typingBubble]}>
+        <View style={styles.container}>
+            <View style={styles.avatar}>
+                <Robot size={20} color={colors.textSecondary} weight="fill" />
+            </View>
+
+            <View style={styles.messageBubble}>
                 <ActivityIndicator size="small" color={colors.textSecondary} />
-                <Text style={styles.typingText}>AI is thinking...</Text>
+                <Typography variant="body2" color="textSecondary" style={{ fontStyle: 'italic' }}>
+                    AI is thinking...
+                </Typography>
             </View>
         </View>
     );
 }
-
