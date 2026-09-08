@@ -14,6 +14,7 @@ import {
     KeyboardAvoidingView,
     Platform,
     StyleSheet,
+    View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -24,13 +25,56 @@ import { TypingIndicator } from '../../src/components/interview/TypingIndicator'
 import { LoadingOverlay } from '../../src/components/shared/LoadingOverlay';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
+import { Typography } from '../../src/components/ui/Typography';
+
+// A simple progress indicator for the interview stages.
+function StageIndicator({ currentMessageCount }: { currentMessageCount: number }) {
+    const { colors } = useTheme();
+    
+    // Simple mocked progression based on message turns
+    const stages = ['Requirements', 'Architecture', 'Deep Dive', 'Trade-offs'];
+    let activeIndex = 0;
+    if (currentMessageCount > 15) activeIndex = 3;
+    else if (currentMessageCount > 8) activeIndex = 2;
+    else if (currentMessageCount > 3) activeIndex = 1;
+
+    return (
+        <View style={{
+            flexDirection: 'row', 
+            paddingHorizontal: Layout.spacing.lg, 
+            paddingVertical: Layout.spacing.sm,
+            backgroundColor: colors.surface,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+        }}>
+            {stages.map((stage, idx) => {
+                const isActive = idx === activeIndex;
+                const isPast = idx < activeIndex;
+                return (
+                    <View key={stage} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
+                        <Typography 
+                            variant="caption" 
+                            weight={isActive ? "bold" : "medium"}
+                            style={{ color: isActive ? colors.primary : (isPast ? colors.text : colors.textDim) }}
+                            numberOfLines={1}
+                        >
+                            {stage}
+                        </Typography>
+                        {idx < stages.length - 1 && (
+                            <View style={{ flex: 1, height: 1, backgroundColor: colors.border, marginHorizontal: 8 }} />
+                        )}
+                    </View>
+                );
+            })}
+        </View>
+    );
+}
 
 export default function InterviewSessionScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
-    // Read session data from Redux
     const sessionId = useSelector((state: RootState) => state.session.sessionId);
     const openingMessage = useSelector((state: RootState) => state.session.openingMessage);
     const problem = useSelector((state: RootState) => state.session.problem);
@@ -49,20 +93,17 @@ export default function InterviewSessionScreen() {
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
     const flatListRef = useRef<FlatList>(null);
     const baseTextRef = useRef('');
-    // Guards against ending the session more than once (timer + back gesture + End button).
     const hasEndedRef = useRef(false);
     const endsAtRef = useRef<number | null>(null);
     const performEndSessionRef = useRef<() => void>(() => {});
     const { colors } = useTheme();
 
-    // Keep track of text before recording to allow appending on resume
     useEffect(() => {
         if (!isRecording) {
             baseTextRef.current = inputText;
         }
     }, [inputText, isRecording]);
 
-    // Set initial message from the API response
     useEffect(() => {
         if (openingMessage) {
             setMessages([{ id: '1', role: 'interviewer', text: openingMessage }]);
@@ -71,7 +112,7 @@ export default function InterviewSessionScreen() {
 
     const performEndSession = useCallback(async () => {
         if (!sessionId || !problem) return;
-        if (hasEndedRef.current) return; // already ending/ended — don't double-fire
+        if (hasEndedRef.current) return;
         hasEndedRef.current = true;
         try {
             const result = await endSession({ sessionId, problem }).unwrap();
@@ -84,14 +125,11 @@ export default function InterviewSessionScreen() {
             }
 
             dispatch(setSummary(result));
-            
-            // Persist current messages for transcript export
             dispatch(persistMessages(messages.map(m => ({ role: m.role, text: m.text }))));
-            
             setIsNavigatingAway(true);
-            router.replace('/summary');
+            router.replace('/(interview)/summary');
         } catch (err: any) {
-            hasEndedRef.current = false; // allow retry on failure
+            hasEndedRef.current = false;
             console.error('End session error:', err);
             Alert.alert(
                 'Summary Failed',
@@ -99,18 +137,14 @@ export default function InterviewSessionScreen() {
                 [{ text: 'OK' }]
             );
         }
-    }, [dispatch, endSession, problem, router, sessionId]);
+    }, [dispatch, endSession, problem, router, sessionId, messages]);
 
-    // Keep a live ref to performEndSession so the countdown interval always
-    // calls the latest closure without needing to re-create the interval.
     useEffect(() => {
         performEndSessionRef.current = performEndSession;
     });
 
-    // Countdown: derive a fixed deadline once, tick every second, and auto-end
-    // (exactly once, via hasEndedRef) when it reaches zero.
     useEffect(() => {
-        if (!durationMinutes) return; // untimed session — no countdown
+        if (!durationMinutes) return;
         if (endsAtRef.current === null) {
             endsAtRef.current = Date.now() + durationMinutes * 60 * 1000;
         }
@@ -137,7 +171,6 @@ export default function InterviewSessionScreen() {
         );
     }, [performEndSession]);
 
-    // Intercept back button and gestures
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
             if (isNavigatingAway || isEnding) return;
@@ -196,7 +229,7 @@ export default function InterviewSessionScreen() {
         if (hintCount >= maxHints) {
             Alert.alert(
                 'No Hints Remaining',
-                `You've used all ${maxHints} hints for this session. Trust your instincts — you've got this! 💡`,
+                `You've used all ${maxHints} hints for this session. Trust your instincts! 💡`,
                 [{ text: 'OK' }]
             );
             return;
@@ -212,7 +245,6 @@ export default function InterviewSessionScreen() {
         }
     };
 
-    // --- Speech Recognition Hooks ---
     useSpeechRecognitionEvent('start', () => setIsRecording(true));
     useSpeechRecognitionEvent('end', () => setIsRecording(false));
     useSpeechRecognitionEvent('result', (event) => {
@@ -223,6 +255,7 @@ export default function InterviewSessionScreen() {
             setInputText(baseText + separator + transcript);
         }
     });
+    
     useSpeechRecognitionEvent('error', (event) => {
         console.error('Speech recognition error:', event.error, event.message);
         setIsRecording(false);
@@ -258,7 +291,7 @@ export default function InterviewSessionScreen() {
         ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous: false });
     };
 
-const styles = React.useMemo(() => StyleSheet.create({
+    const styles = React.useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: colors.background,
@@ -269,10 +302,8 @@ const styles = React.useMemo(() => StyleSheet.create({
         },
     }), [colors]);
 
-  return (
-
-
-          <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    return (
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <ChatHeader
                 topicTitle={topicTitle}
                 onBack={() => router.back()}
@@ -280,10 +311,11 @@ const styles = React.useMemo(() => StyleSheet.create({
                 remainingSeconds={remainingSeconds ?? undefined}
             />
 
+            <StageIndicator currentMessageCount={messages.length} />
+
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             >
                 <FlatList
                     ref={flatListRef}
