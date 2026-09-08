@@ -1,10 +1,11 @@
 import { Link, useRouter } from "expo-router";
 import { Eye, EyeSlash } from "phosphor-react-native";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View, Linking, Platform } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, View, Linking, Platform } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
+import { Typography } from "../../src/components/ui/Typography";
 import { GoogleIcon } from "../../src/components/ui/GoogleIcon";
 import { useTheme } from "../../src/theme/useTheme";
 import { Layout } from "../../src/constants/Layout";
@@ -28,26 +29,18 @@ export default function LoginScreen() {
   const isBusy = isLoading || activeMethod !== null;
 
   useEffect(() => {
-    if (!authNotice) {
-      return;
-    }
-
+    if (!authNotice) return;
     Alert.alert("Session ended", authNotice, [
-      {
-        text: "OK",
-        onPress: () => dispatch(clearAuthNotice()),
-      },
+      { text: "OK", onPress: () => dispatch(clearAuthNotice()) },
     ]);
   }, [authNotice, dispatch]);
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();
-
     if (!trimmedEmail || !password.trim()) {
       Alert.alert("Missing information", "Please enter both your email and password.");
       return;
     }
-
     try {
       setActiveMethod("password");
       await dispatch(login({ email: trimmedEmail, password })).unwrap();
@@ -67,9 +60,7 @@ export default function LoginScreen() {
       await dispatch(loginWithGoogle(firebaseIdToken)).unwrap();
     } catch (error) {
       dispatch(clearGoogleAuthPhase());
-      if (error instanceof GoogleAuthError && error.code === "cancelled") {
-        return;
-      }
+      if (error instanceof GoogleAuthError && error.code === "cancelled") return;
       console.error("Google sign-in failed:", error);
       Alert.alert("Google sign-in failed", getErrorMessage(error, "Please try again."));
     } finally {
@@ -77,31 +68,17 @@ export default function LoginScreen() {
     }
   };
 
-  const openPrivacyPolicy = () => {
-    Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
-  };
+  const openPrivacyPolicy = () => Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
+  const openTermsAndConditions = () => Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#terms');
 
-  const openTermsAndConditions = () => {
-    Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#terms');
-  };
-
-const styles = React.useMemo(() => StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     content: {
       flex: 1,
       justifyContent: "center",
+      paddingHorizontal: Layout.spacing.lg,
     },
     header: {
       marginBottom: Layout.spacing.xxl,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
     },
     form: {
       marginBottom: Layout.spacing.xl,
@@ -111,19 +88,15 @@ const styles = React.useMemo(() => StyleSheet.create({
     },
     googleButton: {
       marginTop: Layout.spacing.sm,
-      borderRadius: 100,
+      borderRadius: Layout.borderRadius.full,
       borderColor: colors.border,
       paddingVertical: 12,
       backgroundColor: colors.surface,
     },
-    googleButtonText: {
-      color: colors.text,
-      fontWeight: "600",
-    },
     dividerRow: {
       flexDirection: "row",
       alignItems: "center",
-      marginTop: Layout.spacing.lg,
+      marginVertical: Layout.spacing.lg,
     },
     dividerLine: {
       flex: 1,
@@ -131,17 +104,12 @@ const styles = React.useMemo(() => StyleSheet.create({
       backgroundColor: colors.border,
     },
     dividerText: {
-      color: colors.textSecondary,
       marginHorizontal: Layout.spacing.md,
-      fontSize: 14,
     },
     footer: {
       flexDirection: "row",
       alignItems: "center",
       justifyContent: "center",
-    },
-    footerText: {
-      color: colors.textSecondary,
     },
     linkButton: {
       width: "auto",
@@ -149,48 +117,31 @@ const styles = React.useMemo(() => StyleSheet.create({
       paddingVertical: 0,
       paddingHorizontal: 4,
     },
-    linkText: {
-      color: colors.primary,
-    },
     legalFooter: {
       marginTop: Layout.spacing.xl,
       marginBottom: Layout.spacing.lg,
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: Layout.spacing.lg,
-    },
-    legalText: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      textAlign: "center",
-    },
-    legalLink: {
-      color: colors.primary,
-      fontWeight: "600",
     },
     googleLoadingOverlay: {
       ...StyleSheet.absoluteFillObject,
       backgroundColor: colors.background,
-      alignItems: "center" as const,
-      justifyContent: "center" as const,
+      alignItems: "center",
+      justifyContent: "center",
       zIndex: 10,
-    },
-    googleLoadingText: {
-      marginTop: Layout.spacing.md,
-      fontSize: 16,
-      color: colors.textSecondary,
-      fontWeight: "500" as const,
     },
   }), [colors]);
 
   return (
-      <ScreenWrapper>
+    <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Welcome Back</Text>
-          <Text style={styles.subtitle}>
+          <Typography variant="h2" weight="bold" style={{ marginBottom: Layout.spacing.sm }}>
+            Welcome Back
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
             Sign in to continue your interview prep
-          </Text>
+          </Typography>
         </View>
 
         <View style={styles.form}>
@@ -234,14 +185,14 @@ const styles = React.useMemo(() => StyleSheet.create({
 
           <View style={styles.dividerRow}>
             <View style={styles.dividerLine} />
-            <Text style={styles.dividerText}>or</Text>
+            <Typography variant="body2" color="textSecondary" style={styles.dividerText}>or</Typography>
             <View style={styles.dividerLine} />
           </View>
 
           {Platform.OS === "web" ? (
-            <Text style={{ textAlign: "center", color: colors.textSecondary, marginTop: Layout.spacing.sm }}>
+            <Typography variant="body2" color="textSecondary" align="center">
               Native Google Sign-In is not available on the web.
-            </Text>
+            </Typography>
           ) : (
             <Button
               title="Sign in with Google"
@@ -249,7 +200,7 @@ const styles = React.useMemo(() => StyleSheet.create({
               variant="outline"
               isLoading={activeMethod === "google"}
               style={styles.googleButton}
-              textStyle={styles.googleButtonText}
+              textStyle={{ color: colors.text, fontWeight: "600" }}
               leftIcon={<GoogleIcon size={20} />}
               disabled={isBusy}
             />
@@ -257,34 +208,40 @@ const styles = React.useMemo(() => StyleSheet.create({
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+          <Typography variant="body2" color="textSecondary">
+            Don&apos;t have an account? 
+          </Typography>
           <Link href="/(auth)/register" asChild>
             <Button
               title="Sign Up"
               variant="ghost"
               style={styles.linkButton}
-              textStyle={styles.linkText}
+              textStyle={{ color: colors.primary }}
               onPress={() => router.push("/(auth)/register")}
             />
           </Link>
         </View>
 
         <View style={styles.legalFooter}>
-          <Text style={styles.legalText}>
+          <Typography variant="caption" color="textSecondary" align="center">
             By continuing, you agree to our{" "}
-            <Text style={styles.legalLink} onPress={openTermsAndConditions}>Terms & Conditions</Text>
+            <Typography variant="caption" color="primary" weight="semibold" onPress={openTermsAndConditions}>
+              Terms & Conditions
+            </Typography>
             {" "}and{" "}
-            <Text style={styles.legalLink} onPress={openPrivacyPolicy}>Privacy Policy</Text>
-          </Text>
+            <Typography variant="caption" color="primary" weight="semibold" onPress={openPrivacyPolicy}>
+              Privacy Policy
+            </Typography>
+          </Typography>
         </View>
       </View>
 
-      {/* Full-screen loading overlay shown after Google picker closes,
-          while AuthGuard waits to redirect to home. */}
       {googleAuthPhase === "redirecting" && (
         <View style={styles.googleLoadingOverlay}>
           <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.googleLoadingText}>Signing you in…</Text>
+          <Typography variant="body1" color="textSecondary" weight="medium" style={{ marginTop: Layout.spacing.md }}>
+            Signing you in…
+          </Typography>
         </View>
       )}
     </ScreenWrapper>
