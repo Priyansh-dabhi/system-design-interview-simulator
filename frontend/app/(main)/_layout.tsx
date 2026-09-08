@@ -23,13 +23,16 @@ export default function MainLayout() {
           height: tabHeight,
           paddingBottom: bottomPadding,
           paddingTop: 8,
+          borderTopWidth: 1,
+          elevation: 0, // Remove shadow for cleaner look
         },
-        tabBarActiveTintColor: colors.primaryBrand,
+        tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textSecondary,
         tabBarShowLabel: true,
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
+          fontFamily: 'Inter_500Medium',
+          fontSize: 11,
+          marginTop: 4,
         },
       }}
     >
