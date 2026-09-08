@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
 
 interface TopicMasteryCardProps {
     data: { topic: string; avgScore: number; count: number }[];
@@ -15,27 +17,27 @@ export function TopicMasteryCard({ data }: TopicMasteryCardProps) {
     }
 
     const getScoreColor = (score: number) => {
-        if (score >= 75) return '#10B981'; // Green
-        if (score >= 50) return '#F59E0B'; // Amber
-        return '#EF4444'; // Red
+        if (score >= 75) return '#10B981';
+        if (score >= 50) return '#F59E0B';
+        return '#EF4444';
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.title, { color: colors.text }]}>Topic Mastery</Text>
+        <Card variant="outlined" padding="lg" style={styles.container}>
+            <Typography variant="h4" weight="semibold" style={{ marginBottom: Layout.spacing.lg }}>Topic Mastery</Typography>
             
             <View style={styles.barsContainer}>
                 {data.map((item, index) => (
                     <View key={index} style={styles.barRow}>
                         <View style={styles.labelContainer}>
-                            <Text style={[styles.topicLabel, { color: colors.text }]} numberOfLines={1}>
+                            <Typography variant="body2" weight="semibold" numberOfLines={1}>
                                 {item.topic}
-                            </Text>
-                            <Text style={[styles.countLabel, { color: colors.textSecondary }]}>
+                            </Typography>
+                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2 }}>
                                 {item.count} {item.count === 1 ? 'session' : 'sessions'}
-                            </Text>
+                            </Typography>
                         </View>
-                        <View style={styles.barTrack}>
+                        <View style={[styles.barTrack, { backgroundColor: colors.surfaceHighlight }]}>
                             <View 
                                 style={[
                                     styles.barFill, 
@@ -46,62 +48,39 @@ export function TopicMasteryCard({ data }: TopicMasteryCardProps) {
                                 ]} 
                             />
                         </View>
-                        <Text style={[styles.scoreLabel, { color: getScoreColor(item.avgScore) }]}>
-                            {item.avgScore}
-                        </Text>
+                        <Typography variant="body2" weight="bold" style={{ width: 30, textAlign: 'right', color: getScoreColor(item.avgScore) }}>
+                            {Math.round(item.avgScore)}
+                        </Typography>
                     </View>
                 ))}
             </View>
-        </View>
+        </Card>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: Layout.borderRadius.lg,
-        padding: Layout.spacing.lg,
-        borderWidth: 1,
-        marginBottom: Layout.spacing.md,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: Layout.spacing.lg,
+        marginBottom: Layout.spacing.sm,
     },
     barsContainer: {
-        gap: Layout.spacing.md,
+        gap: Layout.spacing.lg,
     },
     barRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: Layout.spacing.sm,
+        gap: Layout.spacing.md,
     },
     labelContainer: {
-        width: 100,
-    },
-    topicLabel: {
-        fontSize: 13,
-        fontWeight: '500',
-    },
-    countLabel: {
-        fontSize: 11,
-        marginTop: 2,
+        width: 110,
     },
     barTrack: {
         flex: 1,
         height: 8,
-        backgroundColor: 'rgba(150, 150, 150, 0.2)',
         borderRadius: 4,
         overflow: 'hidden',
     },
     barFill: {
         height: '100%',
         borderRadius: 4,
-    },
-    scoreLabel: {
-        width: 25,
-        fontSize: 13,
-        fontWeight: 'bold',
-        textAlign: 'right',
     },
 });
