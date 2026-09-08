@@ -1,42 +1,96 @@
-import { ArrowLeftIcon, DesktopIcon, MoonIcon, SunIcon } from 'phosphor-react-native';
+import { ArrowLeft, Desktop, Moon, Sun } from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 import { ThemeMode } from '../../src/theme/types';
+import { Typography } from '../../src/components/ui/Typography';
+import { Card } from '../../src/components/ui/Card';
 
 export default function PreferencesScreen() {
     const router = useRouter();
     const { colors, themeMode, setThemeMode } = useTheme();
 
     const options = [
-        { id: 'light', label: 'Light', icon: SunIcon },
-        { id: 'dark', label: 'Dark', icon: MoonIcon },
-        { id: 'system', label: 'System', icon: DesktopIcon },
+        { id: 'light', label: 'Light', icon: Sun },
+        { id: 'dark', label: 'Dark', icon: Moon },
+        { id: 'system', label: 'System', icon: Desktop },
     ] as const;
 
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            flex: 1,
+            backgroundColor: colors.background,
+        },
+        header: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: Layout.spacing.lg,
+            paddingVertical: Layout.spacing.md,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.surface,
+        },
+        backButton: {
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.background,
+        },
+        headerCenter: {
+            flex: 1,
+            alignItems: 'center',
+        },
+        content: {
+            padding: Layout.spacing.lg,
+        },
+        section: {
+            marginBottom: Layout.spacing.xl,
+        },
+        segmentedControl: {
+            flexDirection: 'row',
+            borderRadius: Layout.borderRadius.md,
+            borderWidth: 1,
+            borderColor: colors.border,
+            backgroundColor: colors.surface,
+            overflow: 'hidden',
+        },
+        segment: {
+            flex: 1,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingVertical: Layout.spacing.md,
+            gap: 8,
+        },
+    }), [colors]);
+
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
-            <View style={[styles.header, { borderBottomColor: colors.border }]}>
-                <TouchableOpacity onPress={() => router.back()} style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                    <ArrowLeftIcon size={24} color={colors.text} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <View style={styles.header}>
+                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                    <ArrowLeft size={20} color={colors.text} />
                 </TouchableOpacity>
                 <View style={styles.headerCenter}>
-                    <Text style={[styles.headerTitle, { color: colors.text }]}>Preferences</Text>
+                    <Typography variant="body1" weight="semibold">Preferences</Typography>
                 </View>
                 <View style={{ width: 40 }} />
             </View>
 
             <View style={styles.content}>
                 <View style={styles.section}>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>Appearance</Text>
-                    <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
+                    <Typography variant="h3" weight="semibold" style={{ marginBottom: 4 }}>Appearance</Typography>
+                    <Typography variant="body2" color="textSecondary" style={{ marginBottom: Layout.spacing.lg }}>
                         Customize how the app looks on your device.
-                    </Text>
+                    </Typography>
 
-                    <View style={[styles.segmentedControl, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+                    <Card padding="none" variant="outlined" style={styles.segmentedControl}>
                         {options.map((option, index) => {
                             const isSelected = themeMode === option.id;
                             const Icon = option.icon;
@@ -45,7 +99,7 @@ export default function PreferencesScreen() {
                                     key={option.id}
                                     style={[
                                         styles.segment,
-                                        isSelected && { backgroundColor: colors.primaryBrand + '15' },
+                                        isSelected && { backgroundColor: colors.primary + '15' },
                                         index < options.length - 1 && { borderRightWidth: 1, borderRightColor: colors.border }
                                     ]}
                                     activeOpacity={0.7}
@@ -53,87 +107,22 @@ export default function PreferencesScreen() {
                                 >
                                     <Icon 
                                         size={20} 
-                                        color={isSelected ? colors.primaryBrand : colors.textSecondary} 
+                                        color={isSelected ? colors.primary : colors.textSecondary} 
                                         weight={isSelected ? 'fill' : 'regular'} 
                                     />
-                                    <Text style={[
-                                        styles.segmentText,
-                                        { color: isSelected ? colors.primaryBrand : colors.textSecondary },
-                                        isSelected && styles.segmentTextSelected
-                                    ]}>
+                                    <Typography 
+                                        variant="body2" 
+                                        weight={isSelected ? 'bold' : 'medium'}
+                                        style={{ color: isSelected ? colors.primary : colors.textSecondary }}
+                                    >
                                         {option.label}
-                                    </Text>
+                                    </Typography>
                                 </TouchableOpacity>
                             );
                         })}
-                    </View>
+                    </Card>
                 </View>
             </View>
         </SafeAreaView>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: Layout.spacing.md,
-        paddingVertical: Layout.spacing.md,
-        borderBottomWidth: 1,
-    },
-    backButton: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderWidth: 1,
-    },
-    headerCenter: {
-        flex: 1,
-        alignItems: 'center',
-    },
-    headerTitle: {
-        fontSize: 16,
-        fontWeight: '600',
-    },
-    content: {
-        padding: Layout.spacing.lg,
-    },
-    section: {
-        marginBottom: Layout.spacing.xl,
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 4,
-    },
-    sectionSubtitle: {
-        fontSize: 14,
-        marginBottom: Layout.spacing.lg,
-    },
-    segmentedControl: {
-        flexDirection: 'row',
-        borderRadius: Layout.borderRadius.md,
-        borderWidth: 1,
-        overflow: 'hidden',
-    },
-    segment: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: Layout.spacing.md,
-        gap: 8,
-    },
-    segmentText: {
-        fontSize: 15,
-        fontWeight: '500',
-    },
-    segmentTextSelected: {
-        fontWeight: '600',
-    },
-});
