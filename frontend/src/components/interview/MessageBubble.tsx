@@ -1,7 +1,9 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
+import { Typography } from '../ui/Typography';
+import { Robot, User } from 'phosphor-react-native';
 
 export interface Message {
     id: string;
@@ -18,63 +20,55 @@ export function MessageBubble({ item }: MessageBubbleProps) {
     const isInterviewer = item.role === 'interviewer';
 
     const styles = React.useMemo(() => StyleSheet.create({
-        messageContainer: {
-            marginBottom: Layout.spacing.md,
-            maxWidth: '80%',
+        container: {
+            marginBottom: Layout.spacing.xl,
+            flexDirection: isInterviewer ? 'row' : 'row-reverse',
+            alignItems: 'flex-end',
+            gap: Layout.spacing.sm,
+            maxWidth: '100%',
         },
-        interviewerContainer: {
-            alignSelf: 'flex-start',
-        },
-        candidateContainer: {
-            alignSelf: 'flex-end',
+        avatar: {
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isInterviewer ? colors.surfaceHighlight : colors.primary + '20',
         },
         messageBubble: {
-            paddingHorizontal: Layout.spacing.md,
-            paddingVertical: Layout.spacing.sm + 2,
-            borderRadius: Layout.borderRadius.lg,
+            maxWidth: '80%',
+            paddingHorizontal: Layout.spacing.lg,
+            paddingVertical: Layout.spacing.md,
+            borderRadius: Layout.borderRadius.xl,
+            borderBottomLeftRadius: isInterviewer ? 4 : Layout.borderRadius.xl,
+            borderBottomRightRadius: !isInterviewer ? 4 : Layout.borderRadius.xl,
         },
         interviewerBubble: {
-            backgroundColor: colors.aiMessageBg,
-            borderWidth: 1,
-            borderColor: colors.aiMessageBorder,
+            backgroundColor: colors.surfaceHighlight,
         },
         candidateBubble: {
-            backgroundColor: colors.userMessageBg,
+            backgroundColor: colors.primary,
         },
-        messageText: {
-            fontSize: 15,
-            lineHeight: 22,
-        },
-        interviewerText: {
-            color: colors.aiMessageText,
-        },
-        candidateText: {
-            color: colors.userMessageText,
-        },
-    }), [colors]);
+    }), [colors, isInterviewer]);
+
     return (
-        <View
-            style={[
-                styles.messageContainer,
-                isInterviewer ? styles.interviewerContainer : styles.candidateContainer,
-            ]}
-        >
-            <View
-                style={[
-                    styles.messageBubble,
-                    isInterviewer ? styles.interviewerBubble : styles.candidateBubble,
-                ]}
-            >
-                <Text
-                    style={[
-                        styles.messageText,
-                        isInterviewer ? styles.interviewerText : styles.candidateText,
-                    ]}
+        <View style={styles.container}>
+            <View style={styles.avatar}>
+                {isInterviewer ? (
+                    <Robot size={20} color={colors.textSecondary} weight="fill" />
+                ) : (
+                    <User size={20} color={colors.primary} weight="fill" />
+                )}
+            </View>
+
+            <View style={[styles.messageBubble, isInterviewer ? styles.interviewerBubble : styles.candidateBubble]}>
+                <Typography 
+                    variant="body1" 
+                    style={{ color: isInterviewer ? colors.text : '#FFFFFF', lineHeight: 24 }}
                 >
                     {item.text}
-                </Text>
+                </Typography>
             </View>
         </View>
     );
 }
-
