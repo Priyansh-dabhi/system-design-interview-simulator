@@ -3,7 +3,7 @@ import {
     RefreshControl,
     ScrollView,
     StyleSheet,
-    Text,
+    TouchableOpacity,
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,7 +14,9 @@ import { Layout } from '../../src/constants/Layout';
 import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
 import { ScoreChart } from '../../src/components/history/ScoreChart';
 import { TopicMasteryCard } from '../../src/components/history/TopicMasteryCard';
-import { CaretDownIcon, CaretUpIcon } from 'phosphor-react-native';
+import { CaretDown, CaretUp } from 'phosphor-react-native';
+import { Typography } from '../../src/components/ui/Typography';
+import { Card } from '../../src/components/ui/Card';
 
 export default function HistoryScreen() {
     const [refreshing, setRefreshing] = useState(false);
@@ -29,27 +31,15 @@ export default function HistoryScreen() {
         refetch().finally(() => setRefreshing(false));
     }, [refetch]);
 
-const styles = React.useMemo(() => StyleSheet.create({
+    const styles = React.useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: colors.background,
         },
         header: {
             paddingHorizontal: Layout.spacing.lg,
-            paddingTop: Layout.spacing.md,
-            paddingBottom: Layout.spacing.lg,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-        },
-        headerTitle: {
-            fontSize: 26,
-            fontWeight: '700',
-            color: colors.text,
-        },
-        headerSubtitle: {
-            fontSize: 14,
-            color: colors.textSecondary,
-            marginTop: 4,
+            paddingTop: Layout.spacing.xl,
+            paddingBottom: Layout.spacing.md,
         },
         scrollView: {
             flex: 1,
@@ -61,30 +51,12 @@ const styles = React.useMemo(() => StyleSheet.create({
         statsRow: {
             flexDirection: 'row',
             gap: Layout.spacing.sm,
-            marginBottom: Layout.spacing.lg,
+            marginBottom: Layout.spacing.xl,
         },
         statCard: {
             flex: 1,
-            backgroundColor: colors.surface,
-            borderRadius: Layout.borderRadius.md,
-            borderWidth: 1,
-            borderColor: colors.border,
-            paddingVertical: Layout.spacing.md,
             alignItems: 'center',
-        },
-        statValue: {
-            fontSize: 22,
-            fontWeight: '700',
-            color: colors.text,
-        },
-        statLabel: {
-            fontSize: 11,
-            fontWeight: '500',
-            color: colors.textSecondary,
-            marginTop: 2,
-            textTransform: 'uppercase',
-            letterSpacing: 0.5,
-            textAlign: 'center',
+            paddingVertical: Layout.spacing.md,
         },
         sectionHeader: {
             flexDirection: 'row',
@@ -96,26 +68,19 @@ const styles = React.useMemo(() => StyleSheet.create({
             borderColor: colors.border,
             marginBottom: Layout.spacing.md,
         },
-        sectionTitle: {
-            fontSize: 18,
-            fontWeight: '600',
-            color: colors.text,
-        },
         cardsContainer: {
             gap: Layout.spacing.md,
         },
     }), [colors]);
 
-  return (
-
-
-          <SafeAreaView style={styles.container} edges={['top']}>
+    return (
+        <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
-                <Text style={styles.headerTitle}>Interview History</Text>
-                <Text style={styles.headerSubtitle}>
+                <Typography variant="h1" weight="bold">History</Typography>
+                <Typography variant="body2" color="textSecondary" style={{ marginTop: 4 }}>
                     Review your past performance and technical growth
-                </Text>
+                </Typography>
             </View>
             
             {/* Content */}
@@ -130,54 +95,49 @@ const styles = React.useMemo(() => StyleSheet.create({
                         <RefreshControl
                             refreshing={refreshing || isFetching}
                             onRefresh={onRefresh}
-                            tintColor={colors.primaryBrand}
-                            colors={[colors.primaryBrand]}
+                            tintColor={colors.primary}
+                            colors={[colors.primary]}
                             progressBackgroundColor={colors.surface}
                         />
                     }
                 >
                     {/* Stats Row */}
                     <View style={styles.statsRow}>
-                        <View style={styles.statCard}>
-                            <Text style={styles.statValue}>{stats?.total ?? history.length}</Text>
-                            <Text style={styles.statLabel}>Total</Text>
-                        </View>
-                        <View style={styles.statCard}>
-                            <Text style={[styles.statValue, { color: '#10B981' }]}>
-                                {stats?.strong ?? history.filter((h) => h.score === 'good').length}
-                            </Text>
-                            <Text style={styles.statLabel}>Strong</Text>
-                        </View>
-                        <View style={styles.statCard}>
-                            <Text style={[styles.statValue, { color: '#F59E0B' }]}>
-                                {stats?.average ?? history.filter((h) => h.score === 'average').length}
-                            </Text>
-                            <Text style={styles.statLabel}>Average</Text>
-                        </View>
-                        <View style={styles.statCard}>
-                            <Text style={[styles.statValue, { color: '#EF4444' }]}>
-                                {stats?.needsImprovement ?? history.filter((h) => h.score === 'needs_improvement').length}
-                            </Text>
-                            <Text style={styles.statLabel}>Needs Work</Text>
-                        </View>
+                        <Card variant="elevated" style={styles.statCard}>
+                            <Typography variant="h3" weight="bold" color="text">{stats?.total ?? history.length}</Typography>
+                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Total</Typography>
+                        </Card>
+                        <Card variant="elevated" style={styles.statCard}>
+                            <Typography variant="h3" weight="bold" style={{ color: '#10B981' }}>{stats?.strong ?? history.filter((h) => h.score === 'good').length}</Typography>
+                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Strong</Typography>
+                        </Card>
+                        <Card variant="elevated" style={styles.statCard}>
+                            <Typography variant="h3" weight="bold" style={{ color: '#F59E0B' }}>{stats?.average ?? history.filter((h) => h.score === 'average').length}</Typography>
+                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Average</Typography>
+                        </Card>
+                        <Card variant="elevated" style={styles.statCard}>
+                            <Typography variant="h3" weight="bold" style={{ color: '#EF4444' }}>{stats?.needsImprovement ?? history.filter((h) => h.score === 'needs_improvement').length}</Typography>
+                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.5 }}>Needs Work</Typography>
+                        </Card>
                     </View>
 
                     {/* Analytics Section */}
                     {stats?.scoreOverTime && stats.scoreOverTime.length > 0 && (
-                        <View style={{ marginBottom: Layout.spacing.lg }}>
-                            <View 
+                        <View style={{ marginBottom: Layout.spacing.xl }}>
+                            <TouchableOpacity 
                                 style={styles.sectionHeader} 
-                                onTouchEnd={() => setAnalyticsExpanded(!analyticsExpanded)}
+                                activeOpacity={0.7}
+                                onPress={() => setAnalyticsExpanded(!analyticsExpanded)}
                             >
-                                <Text style={styles.sectionTitle}>Deep Analytics</Text>
+                                <Typography variant="h3" weight="semibold">Deep Analytics</Typography>
                                 {analyticsExpanded ? (
-                                    <CaretUpIcon size={20} color={colors.textSecondary} />
+                                    <CaretUp size={20} color={colors.textSecondary} />
                                 ) : (
-                                    <CaretDownIcon size={20} color={colors.textSecondary} />
+                                    <CaretDown size={20} color={colors.textSecondary} />
                                 )}
-                            </View>
+                            </TouchableOpacity>
                             {analyticsExpanded && (
-                                <View style={{ gap: Layout.spacing.md }}>
+                                <View style={{ gap: Layout.spacing.md, marginTop: Layout.spacing.sm }}>
                                     <ScoreChart data={stats.scoreOverTime} />
                                     <TopicMasteryCard data={stats.topicMastery || []} />
                                 </View>
@@ -186,7 +146,7 @@ const styles = React.useMemo(() => StyleSheet.create({
                     )}
 
                     {/* Interview Cards */}
-                    <Text style={[styles.sectionTitle, { marginBottom: Layout.spacing.md }]}>Recent Interviews</Text>
+                    <Typography variant="h3" weight="semibold" style={{ marginBottom: Layout.spacing.md }}>Recent Interviews</Typography>
                     <View style={styles.cardsContainer}>
                         {history.map((item) => (
                             <InterviewCard key={item.id} item={item} />
