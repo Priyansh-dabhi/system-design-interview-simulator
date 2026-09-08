@@ -1,8 +1,10 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Path, Circle, Polyline, Defs, LinearGradient, Stop, Text as SvgText } from 'react-native-svg';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
 
 interface ScoreChartProps {
     data: { date: string; score: number }[];
@@ -13,12 +15,12 @@ export function ScoreChart({ data }: ScoreChartProps) {
 
     if (!data || data.length === 0) {
         return (
-            <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-                <Text style={[styles.title, { color: colors.text }]}>Score Trend</Text>
+            <Card variant="outlined" padding="lg" style={styles.container}>
+                <Typography variant="h4" weight="semibold" style={{ marginBottom: Layout.spacing.md }}>Score Trend</Typography>
                 <View style={styles.emptyState}>
-                    <Text style={{ color: colors.textSecondary }}>Complete an interview to see your trend.</Text>
+                    <Typography variant="body2" color="textSecondary">Complete an interview to see your trend.</Typography>
                 </View>
-            </View>
+            </Card>
         );
     }
 
@@ -32,12 +34,10 @@ export function ScoreChart({ data }: ScoreChartProps) {
     const chartWidth = width - paddingLeft - paddingRight;
     const chartHeight = height - paddingTop - paddingBottom;
     
-    // Auto-scale Y axis based on data for better visibility
     const scores = data.map(d => d.score);
     const minData = Math.min(...scores);
     const maxData = Math.max(...scores);
     
-    // Add padding to min/max, but constrain to 0-100
     const yMin = Math.max(0, Math.floor(minData / 10) * 10 - 10);
     const yMax = Math.min(100, Math.ceil(maxData / 10) * 10 + 10);
     const range = Math.max(10, yMax - yMin);
@@ -53,7 +53,6 @@ export function ScoreChart({ data }: ScoreChartProps) {
     }));
 
     const pathData = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-    // Area under the curve
     const areaPath = `${pathData} L ${points[points.length - 1].x} ${height - paddingBottom} L ${points[0].x} ${height - paddingBottom} Z`;
 
     const getScoreColor = (score: number) => {
@@ -64,7 +63,6 @@ export function ScoreChart({ data }: ScoreChartProps) {
 
     const latestColor = getScoreColor(points[points.length - 1].score);
 
-    // Grid lines - 4 equal segments
     const gridValues = [
         yMin,
         Math.round(yMin + range * 0.25),
@@ -79,8 +77,8 @@ export function ScoreChart({ data }: ScoreChartProps) {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <Text style={[styles.title, { color: colors.text }]}>Score Trend (Last {data.length})</Text>
+        <Card variant="outlined" padding="lg" style={styles.container}>
+            <Typography variant="h4" weight="semibold" style={{ marginBottom: Layout.spacing.md }}>Score Trend (Last {data.length})</Typography>
             <View style={styles.chartContainer}>
                 <Svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`}>
                     <Defs>
@@ -90,7 +88,6 @@ export function ScoreChart({ data }: ScoreChartProps) {
                         </LinearGradient>
                     </Defs>
                     
-                    {/* Y-Axis Grid Lines & Labels */}
                     {gridValues.map((val, i) => (
                         <React.Fragment key={`grid-${i}`}>
                             <Polyline 
@@ -111,25 +108,20 @@ export function ScoreChart({ data }: ScoreChartProps) {
                         </React.Fragment>
                     ))}
 
-                    {/* X-Axis Base Line */}
                     <Polyline 
                         points={`${paddingLeft},${height - paddingBottom} ${width - paddingRight},${height - paddingBottom}`} 
                         stroke={colors.border} 
                         strokeWidth="1" 
                     />
 
-                    {/* Gradient Area */}
                     <Path d={areaPath} fill="url(#gradient)" />
                     
-                    {/* Main Line curve */}
                     <Path d={pathData} stroke={latestColor} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round" />
                     
-                    {/* Data Points, Score Labels, and Date Labels */}
                     {points.map((p, i) => (
                         <React.Fragment key={`point-${i}`}>
                             <Circle cx={p.x} cy={p.y} r="4" fill={colors.surface} stroke={latestColor} strokeWidth="2.5" />
                             
-                            {/* Score Text above point */}
                             <SvgText 
                                 x={p.x} 
                                 y={p.y - 10} 
@@ -141,7 +133,6 @@ export function ScoreChart({ data }: ScoreChartProps) {
                                 {Math.round(p.score)}
                             </SvgText>
 
-                            {/* Date Text below x-axis */}
                             <SvgText 
                                 x={p.x} 
                                 y={height - paddingBottom + 16} 
@@ -155,21 +146,13 @@ export function ScoreChart({ data }: ScoreChartProps) {
                     ))}
                 </Svg>
             </View>
-        </View>
+        </Card>
     );
 }
 
 const styles = StyleSheet.create({
     container: {
-        borderRadius: Layout.borderRadius.lg,
-        padding: Layout.spacing.lg,
-        borderWidth: 1,
-        marginBottom: Layout.spacing.md,
-    },
-    title: {
-        fontSize: 16,
-        fontWeight: '600',
-        marginBottom: Layout.spacing.md,
+        marginBottom: Layout.spacing.sm,
     },
     chartContainer: {
         width: '100%',
