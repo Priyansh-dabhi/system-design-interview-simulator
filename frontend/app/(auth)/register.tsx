@@ -1,10 +1,11 @@
 import { Link, useRouter } from "expo-router";
-import { Eye, EyeIcon, EyeSlash, EyeSlashIcon } from "phosphor-react-native";
+import { Eye, EyeSlash } from "phosphor-react-native";
 import React, { useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View, Linking } from "react-native";
+import { Alert, Pressable, StyleSheet, View, Linking } from "react-native";
 import { ScreenWrapper } from "../../src/components/ScreenWrapper";
 import { Button } from "../../src/components/ui/Button";
 import { Input } from "../../src/components/ui/Input";
+import { Typography } from "../../src/components/ui/Typography";
 import { useTheme } from "../../src/theme/useTheme";
 import { Layout } from "../../src/constants/Layout";
 import { useAppDispatch, useAppSelector } from "../../src/redux/hooks";
@@ -47,31 +48,17 @@ export default function RegisterScreen() {
     }
   };
 
-  const openPrivacyPolicy = () => {
-    Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
-  };
+  const openPrivacyPolicy = () => Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#privacy');
+  const openTermsAndConditions = () => Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#terms');
 
-  const openTermsAndConditions = () => {
-    Linking.openURL('https://priyansh-dabhi.github.io/privacy-policy/#terms');
-  };
-
-const styles = React.useMemo(() => StyleSheet.create({
+  const styles = React.useMemo(() => StyleSheet.create({
     content: {
       flex: 1,
       justifyContent: "center",
+      paddingHorizontal: Layout.spacing.lg,
     },
     header: {
       marginBottom: Layout.spacing.xxl,
-    },
-    title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      color: colors.text,
-      marginBottom: Layout.spacing.sm,
-    },
-    subtitle: {
-      fontSize: 16,
-      color: colors.textSecondary,
     },
     form: {
       marginBottom: Layout.spacing.xl,
@@ -84,33 +71,17 @@ const styles = React.useMemo(() => StyleSheet.create({
       alignItems: "center",
       justifyContent: "center",
     },
-    footerText: {
-      color: colors.textSecondary,
-    },
     linkButton: {
       width: "auto",
       minHeight: 0,
       paddingVertical: 0,
       paddingHorizontal: 4,
     },
-    linkText: {
-      color: colors.primary,
-    },
     legalFooter: {
       marginTop: Layout.spacing.xl,
       marginBottom: Layout.spacing.lg,
       alignItems: "center",
       justifyContent: "center",
-      paddingHorizontal: Layout.spacing.lg,
-    },
-    legalText: {
-      fontSize: 12,
-      color: colors.textSecondary,
-      textAlign: "center",
-    },
-    legalLink: {
-      color: colors.primary,
-      fontWeight: "600",
     },
   }), [colors]);
 
@@ -118,10 +89,12 @@ const styles = React.useMemo(() => StyleSheet.create({
     <ScreenWrapper>
       <View style={styles.content}>
         <View style={styles.header}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>
+          <Typography variant="h2" weight="bold" style={{ marginBottom: Layout.spacing.sm }}>
+            Create Account
+          </Typography>
+          <Typography variant="body1" color="textSecondary">
             Start mastering system design today
-          </Text>
+          </Typography>
         </View>
 
         <View style={styles.form}>
@@ -154,9 +127,9 @@ const styles = React.useMemo(() => StyleSheet.create({
                 accessibilityLabel={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? (
-                  <EyeSlashIcon size={20} color={colors.textDim} />
+                  <EyeSlash size={20} color={colors.textDim} />
                 ) : (
-                  <EyeIcon size={20} color={colors.textDim} />
+                  <Eye size={20} color={colors.textDim} />
                 )}
               </Pressable>
             }
@@ -171,25 +144,31 @@ const styles = React.useMemo(() => StyleSheet.create({
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.footerText}>Already have an account? </Text>
+          <Typography variant="body2" color="textSecondary">
+            Already have an account? 
+          </Typography>
           <Link href="/(auth)/login" asChild>
             <Button
               title="Sign In"
               variant="ghost"
               style={styles.linkButton}
-              textStyle={styles.linkText}
+              textStyle={{ color: colors.primary }}
               onPress={() => router.push("/(auth)/login")}
             />
           </Link>
         </View>
 
         <View style={styles.legalFooter}>
-          <Text style={styles.legalText}>
+          <Typography variant="caption" color="textSecondary" align="center">
             By continuing, you agree to our{" "}
-            <Text style={styles.legalLink} onPress={openTermsAndConditions}>Terms & Conditions</Text>
+            <Typography variant="caption" color="primary" weight="semibold" onPress={openTermsAndConditions}>
+              Terms & Conditions
+            </Typography>
             {" "}and{" "}
-            <Text style={styles.legalLink} onPress={openPrivacyPolicy}>Privacy Policy</Text>
-          </Text>
+            <Typography variant="caption" color="primary" weight="semibold" onPress={openPrivacyPolicy}>
+              Privacy Policy
+            </Typography>
+          </Typography>
         </View>
       </View>
     </ScreenWrapper>
