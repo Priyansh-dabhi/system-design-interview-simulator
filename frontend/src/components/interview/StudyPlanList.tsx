@@ -1,9 +1,11 @@
-import { GraduationCapIcon } from 'phosphor-react-native';
+import { GraduationCap } from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 import { StudyPlanItem } from '../../types/types';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
 
 interface StudyPlanListProps {
     items: StudyPlanItem[];
@@ -18,46 +20,47 @@ export function StudyPlanList({ items }: StudyPlanListProps) {
             flexDirection: 'row',
             alignItems: 'center',
             gap: Layout.spacing.sm,
-            marginBottom: 2,
+            marginBottom: Layout.spacing.sm,
         },
         iconContainer: {
-            width: 28,
-            height: 28,
-            borderRadius: 14,
+            width: 32,
+            height: 32,
+            borderRadius: 8,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#0EA5E920',
+            backgroundColor: '#0EA5E915',
         },
-        title: { fontSize: 14, fontWeight: '600', color: colors.text },
-        card: {
-            gap: 3,
-            paddingHorizontal: Layout.spacing.sm + 4,
-            paddingVertical: Layout.spacing.sm + 2,
-            borderRadius: Layout.borderRadius.sm + 2,
-            borderWidth: 1,
-            borderColor: colors.border,
-            backgroundColor: colors.background,
+        cardItem: {
+            gap: 4,
+            padding: Layout.spacing.md,
+            borderRadius: Layout.borderRadius.md,
+            backgroundColor: colors.surfaceHighlight,
+            marginBottom: Layout.spacing.xs,
         },
-        topic: { fontSize: 13, fontWeight: '600', color: colors.text },
-        why: { fontSize: 12, color: colors.textSecondary, lineHeight: 17 },
     }), [colors]);
 
-    if (items.length === 0) return null;
+    if (!items || items.length === 0) return null;
 
     return (
-        <View style={styles.container}>
+        <Card padding="lg" variant="outlined">
             <View style={styles.header}>
                 <View style={styles.iconContainer}>
-                    <GraduationCapIcon size={16} color="#0EA5E9" weight="fill" />
+                    <GraduationCap size={18} color="#0EA5E9" weight="fill" />
                 </View>
-                <Text style={styles.title}>Study Plan</Text>
+                <Typography variant="h4" weight="semibold">Study Plan</Typography>
             </View>
-            {items.map((item, i) => (
-                <View key={`${item.topic}-${i}`} style={styles.card}>
-                    <Text style={styles.topic}>{item.topic}</Text>
-                    {!!item.why && <Text style={styles.why}>{item.why}</Text>}
-                </View>
-            ))}
-        </View>
+            <View style={styles.container}>
+                {items.map((item, i) => (
+                    <View key={`${item.topic}-${i}`} style={styles.cardItem}>
+                        <Typography variant="body2" weight="bold">{item.topic}</Typography>
+                        {!!item.why && (
+                            <Typography variant="caption" color="textSecondary" style={{ lineHeight: 18 }}>
+                                {item.why}
+                            </Typography>
+                        )}
+                    </View>
+                ))}
+            </View>
+        </Card>
     );
 }
