@@ -1,4 +1,7 @@
 import { Stack, useRouter, useSegments } from "expo-router";
+import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
+import { DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
+import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
 import { useEffect } from "react";
 import { StyleSheet } from "react-native";
 import { View } from "react-native";
@@ -19,7 +22,7 @@ import { OfflineScreen } from "../src/components/OfflineScreen";
 import { ThemeProvider } from "../src/theme/ThemeContext";
 import { useTheme } from "../src/theme/useTheme";
 
-function AuthGuard() {
+function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
   const isLoading = useAppSelector((state) => state.auth.isHydrating);
@@ -34,14 +37,14 @@ function AuthGuard() {
     dispatch(bootstrapAuth());
   }, [dispatch]);
 
-  // Hide the native splash screen once Redux finishes hydrating
+  // Hide the native splash screen once Redux finishes hydrating and fonts are loaded
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && fontsLoaded) {
       SplashScreen.hideAsync();
     }
-  }, [isLoading]);
+  }, [isLoading, fontsLoaded]);
 
-  const showSplash = isLoading;
+  const showSplash = isLoading || !fontsLoaded;
   const inAuthGroup = segments[0] === '(auth)';
 
   // Only clear googleAuthPhase after user is authenticated and has left the
@@ -84,23 +87,34 @@ function AuthGuard() {
   );
 }
 
-function RootApp() {
+function RootApp({ fontsLoaded }: { fontsLoaded: boolean }) {
   const { colors, isDark } = useTheme();
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <StatusBar style={isDark ? "light" : "dark"} />
-      <AuthGuard />
+      <AuthGuard fontsLoaded={fontsLoaded} />
       <OfflineScreen />
     </View>
   );
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
+    Inter_700Bold,
+    DMSans_500Medium,
+    DMSans_700Bold,
+    JetBrainsMono_400Regular,
+    JetBrainsMono_500Medium,
+  });
+
   return (
     <Provider store={store}>
       <ThemeProvider>
         <SafeAreaProvider>
-          <RootApp />
+          <RootApp fontsLoaded={fontsLoaded} />
         </SafeAreaProvider>
       </ThemeProvider>
     </Provider>
