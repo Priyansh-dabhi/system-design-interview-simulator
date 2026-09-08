@@ -13,6 +13,9 @@
     "clean": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"@('android/app/build','android/app/.cxx','android/.gradle','android/build','.expo','dist') | ForEach-Object { if (Test-Path $_) { Remove-Item -Recurse -Force $_ } }\""
   },
   "dependencies": {
+    "@expo-google-fonts/dm-sans": "^0.4.2",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo-google-fonts/jetbrains-mono": "^0.4.1",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/netinfo": "11.4.1",
