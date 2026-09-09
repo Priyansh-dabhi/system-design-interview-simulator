@@ -10,6 +10,10 @@ export default function AuthLayout() {
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
       }}
-    />
+    >
+      <Stack.Screen name="login" />
+      <Stack.Screen name="register" />
+      <Stack.Screen name="accept-terms" />
+    </Stack>
   );
 }

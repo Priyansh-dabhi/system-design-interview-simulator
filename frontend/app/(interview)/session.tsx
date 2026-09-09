@@ -27,45 +27,38 @@ import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 import { Typography } from '../../src/components/ui/Typography';
 
-// A simple progress indicator for the interview stages.
+// Clean stage progress indicator matching Figma
 function StageIndicator({ currentMessageCount }: { currentMessageCount: number }) {
     const { colors } = useTheme();
-    
-    // Simple mocked progression based on message turns
-    const stages = ['Requirements', 'Architecture', 'Deep Dive', 'Trade-offs'];
+    const stages = ['Requirements', 'High-Level Design', 'Deep Dive', 'Scalability', 'Trade-offs'];
     let activeIndex = 0;
-    if (currentMessageCount > 15) activeIndex = 3;
-    else if (currentMessageCount > 8) activeIndex = 2;
-    else if (currentMessageCount > 3) activeIndex = 1;
+    if (currentMessageCount > 12) activeIndex = 4;
+    else if (currentMessageCount > 8) activeIndex = 3;
+    else if (currentMessageCount > 5) activeIndex = 2;
+    else if (currentMessageCount > 2) activeIndex = 1;
+
+    const progressPct = ((activeIndex + 1) / stages.length) * 100;
 
     return (
         <View style={{
-            flexDirection: 'row', 
-            paddingHorizontal: Layout.spacing.lg, 
-            paddingVertical: Layout.spacing.sm,
+            paddingHorizontal: 20,
+            paddingVertical: 10,
             backgroundColor: colors.surface,
             borderBottomWidth: 1,
             borderBottomColor: colors.border,
+            gap: 6,
         }}>
-            {stages.map((stage, idx) => {
-                const isActive = idx === activeIndex;
-                const isPast = idx < activeIndex;
-                return (
-                    <View key={stage} style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}>
-                        <Typography 
-                            variant="caption" 
-                            weight={isActive ? "bold" : "medium"}
-                            style={{ color: isActive ? colors.primary : (isPast ? colors.text : colors.textDim) }}
-                            numberOfLines={1}
-                        >
-                            {stage}
-                        </Typography>
-                        {idx < stages.length - 1 && (
-                            <View style={{ flex: 1, height: 1, backgroundColor: colors.border, marginHorizontal: 8 }} />
-                        )}
-                    </View>
-                );
-            })}
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="caption" weight="bold" style={{ color: colors.primary }}>
+                    {stages[activeIndex]}
+                </Typography>
+                <Typography variant="caption" color="textDim" weight="medium">
+                    {activeIndex + 1} / {stages.length}
+                </Typography>
+            </View>
+            <View style={{ height: 4, backgroundColor: 'rgba(51, 65, 85, 0.4)', borderRadius: 2, overflow: 'hidden' }}>
+                <View style={{ height: '100%', width: `${progressPct}%`, backgroundColor: colors.primary, borderRadius: 2 }} />
+            </View>
         </View>
     );
 }
@@ -80,7 +73,7 @@ export default function InterviewSessionScreen() {
     const problem = useSelector((state: RootState) => state.session.problem);
     const durationMinutes = useSelector((state: RootState) => state.session.durationMinutes);
     const hintCount = useSelector((state: RootState) => state.session.hintCount);
-    const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
+    const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || problem || 'Interview';
 
     const [sendChat, { isLoading: isSending }] = useChatMutation();
     const [endSession, { isLoading: isEnding }] = useEndSessionMutation();
@@ -89,18 +82,38 @@ export default function InterviewSessionScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [isRecording, setIsRecording] = useState(false);
-    const [isNavigatingAway, setIsNavigatingAway] = useState(false);
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-    const flatListRef = useRef<FlatList>(null);
-    const baseTextRef = useRef('');
+    const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+
     const hasEndedRef = useRef(false);
     const endsAtRef = useRef<number | null>(null);
     const performEndSessionRef = useRef<() => void>(() => {});
+    const flatListRef = useRef<FlatList>(null);
     const { colors } = useTheme();
 
-    useEffect(() => {
-        if (!isRecording) {
-            baseTextRef.current = inputText;
+    // Voice recognition logic
+    useSpeechRecognitionEvent('start', () => setIsRecording(true));
+    useSpeechRecognitionEvent('end', () => setIsRecording(false));
+    useSpeechRecognitionEvent('result', (event) => {
+        const transcript = event.results[0]?.transcript;
+        if (transcript) {
+            setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+    });
+    useSpeechRecognitionEvent('error', (event) => {
+        console.error('Speech recognition error:', event.error, event.message);
+        setIsRecording(false);
+    });
+
+    const handleVoiceToggle = useCallback(async () => {
+        if (isRecording) {
+            ExpoSpeechRecognitionModule.stop();
+        } else {
+            setInputText('');
+            ExpoSpeechRecognitionModule.start({
+                lang: 'en-US',
+                interimResults: true,
+            });
         }
     }, [inputText, isRecording]);
 
@@ -120,14 +133,15 @@ export default function InterviewSessionScreen() {
             if (result.status === "cancelled") {
                 dispatch(clearSession());
                 setIsNavigatingAway(true);
-                router.replace('/(main)/home');
+                Alert.alert("Session Concluded", "Session discarded.");
+                router.replace('/(main)/home' as any);
                 return;
             }
 
             dispatch(setSummary(result));
             dispatch(persistMessages(messages.map(m => ({ role: m.role, text: m.text }))));
             setIsNavigatingAway(true);
-            router.replace('/(interview)/summary');
+            router.replace('/(interview)/complete' as any);
         } catch (err: any) {
             hasEndedRef.current = false;
             console.error('End session error:', err);
@@ -161,15 +175,27 @@ export default function InterviewSessionScreen() {
     }, [durationMinutes]);
 
     const handleEndInterview = useCallback(() => {
-        Alert.alert(
-            'End Interview?',
-            'This will generate your performance summary. You cannot continue this session after ending.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'End Interview', style: 'destructive', onPress: performEndSession },
-            ]
-        );
-    }, [performEndSession]);
+        const userMsgCount = messages.filter(m => m.role === 'candidate').length;
+        if (userMsgCount === 0) {
+            Alert.alert(
+                'End Interview?',
+                'You have not submitted any answers yet. Ending now will conclude this session with a baseline evaluation.',
+                [
+                    { text: 'Keep Interviewing', style: 'cancel' },
+                    { text: 'End & Evaluate', style: 'destructive', onPress: performEndSession },
+                ]
+            );
+        } else {
+            Alert.alert(
+                'End Interview?',
+                'This will conclude your interview and generate your performance summary.',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'End Interview', style: 'destructive', onPress: performEndSession },
+                ]
+            );
+        }
+    }, [messages, performEndSession]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
@@ -244,35 +270,6 @@ export default function InterviewSessionScreen() {
             Alert.alert('Hint Failed', 'Failed to get a hint. Please try again.');
         }
     };
-
-    useSpeechRecognitionEvent('start', () => setIsRecording(true));
-    useSpeechRecognitionEvent('end', () => setIsRecording(false));
-    useSpeechRecognitionEvent('result', (event) => {
-        const transcript = event.results[0]?.transcript;
-        if (transcript) {
-            const baseText = baseTextRef.current;
-            const separator = baseText.length > 0 && !baseText.endsWith(' ') ? ' ' : '';
-            setInputText(baseText + separator + transcript);
-        }
-    });
-    
-    useSpeechRecognitionEvent('error', (event) => {
-        console.error('Speech recognition error:', event.error, event.message);
-        setIsRecording(false);
-        if (event.error === 'not-allowed') {
-            Alert.alert(
-                'Microphone Permission Required',
-                'Please enable microphone and speech recognition permissions in your device settings to use voice input.',
-                [{ text: 'OK' }]
-            );
-        } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
-            Alert.alert(
-                'Voice Input Failed',
-                'Speech recognition encountered an error. Please try again or use text input.',
-                [{ text: 'OK' }]
-            );
-        }
-    });
 
     const handleVoiceInput = async () => {
         if (isRecording) {

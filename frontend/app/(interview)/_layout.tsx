@@ -6,6 +6,7 @@ export default function InterviewLayout() {
             <Stack.Screen name="problem-selection" />
             <Stack.Screen name="setup" />
             <Stack.Screen name="session" />
+            <Stack.Screen name="complete" />
             <Stack.Screen name="summary" />
         </Stack>
     );

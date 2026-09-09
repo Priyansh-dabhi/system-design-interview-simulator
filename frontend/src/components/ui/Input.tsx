@@ -11,6 +11,7 @@ export const Input: React.FC<InputProps> = ({
   error,
   style,
   rightAccessory,
+  labelStyle,
   ...props
 }) => {
   const { colors } = useTheme();
@@ -57,7 +58,7 @@ export const Input: React.FC<InputProps> = ({
 
   return (
     <View style={styles.container}>
-      {label && <Typography variant="body2" weight="medium" color="textSecondary" style={styles.label}>{label}</Typography>}
+      {label && <Typography variant="body2" weight="medium" color="textSecondary" style={[styles.label, labelStyle]}>{label}</Typography>}
       <View style={styles.inputWrapper}>
         <TextInput
           style={[

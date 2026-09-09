@@ -1,5 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react';
-import { Appearance, ColorSchemeName } from 'react-native';
+import { Appearance, ColorSchemeName, Platform } from 'react-native';
+import * as SystemUI from 'expo-system-ui';
 import { getStoredThemeMode, setStoredThemeMode } from '../storage/themeStorage';
 import { darkColors, lightColors } from './colors';
 import { ThemeColors, ThemeMode } from './types';
@@ -14,7 +15,7 @@ interface ThemeContextValue {
 export const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [themeMode, setThemeModeState] = useState<ThemeMode>('dark');
+    const [themeMode, setThemeModeState] = useState<ThemeMode>('light');
     const [systemColorScheme, setSystemColorScheme] = useState<ColorSchemeName>(Appearance.getColorScheme());
 
     useEffect(() => {
@@ -40,6 +41,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             : themeMode === 'dark';
 
     const colors = isDark ? darkColors : lightColors;
+
+    useEffect(() => {
+        if (Platform.OS === 'android') {
+            SystemUI.setBackgroundColorAsync(colors.background).catch(() => {});
+        }
+    }, [colors.background]);
 
     return (
         <ThemeContext.Provider value={{ colors, isDark, themeMode, setThemeMode }}>

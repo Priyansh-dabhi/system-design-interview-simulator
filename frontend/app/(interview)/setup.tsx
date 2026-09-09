@@ -1,213 +1,427 @@
 import { useStartSessionMutation } from '@/src/redux/api/interview_api';
-import { setDuration, setDifficulty } from '@/src/redux/slices/problem';
-import { setSession } from '@/src/redux/slices/session';
+import { setDifficulty, setDuration } from '@/src/redux/slices/problem';
+import { clearSession, setSession } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Clock, Target, Info, MicrophoneStage, Keyboard } from 'phosphor-react-native';
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ArrowLeft, Check } from 'phosphor-react-native';
+import React, { useMemo } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
-import { SegmentedControl, SegmentedControlOption } from '../../src/components/ui/SegmentedControl';
-import { Typography } from '../../src/components/ui/Typography';
-import { Button } from '../../src/components/ui/Button';
-import { Card } from '../../src/components/ui/Card';
 import { useTheme } from '../../src/theme/useTheme';
-import { Layout } from '../../src/constants/Layout';
+import { getSafeBottomInset } from '../../src/utils/safeArea';
 
-const DURATION_OPTIONS: SegmentedControlOption<number>[] = [
-    { label: '15m', value: 15 },
-    { label: '30m', value: 30 },
-    { label: '45m', value: 45 },
-    { label: '60m', value: 60 },
-];
+const DURATIONS = [15, 30, 45, 60];
+const DIFFICULTIES: ('junior' | 'mid' | 'senior')[] = ['junior', 'mid', 'senior'];
 
-const DIFFICULTY_OPTIONS: SegmentedControlOption<'junior' | 'mid' | 'senior'>[] = [
-    { label: 'Junior', value: 'junior' },
-    { label: 'Mid', value: 'mid' },
-    { label: 'Senior', value: 'senior' },
+const EVALUATION_CRITERIA = [
+  'Requirements Gathering & Scope',
+  'High-Level Architecture Design',
+  'Data Storage & Scalability Bottlenecks',
+  'Trade-off & Failure Mode Analysis',
+  'Clear Technical Communication',
 ];
 
 export default function SetupScreen() {
-    const dispatch = useDispatch();
-    const router = useRouter();
-    const { colors } = useTheme();
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { colors } = useTheme();
+  const insets = useSafeAreaInsets();
+  const safeBottom = getSafeBottomInset(insets.bottom);
 
-    const selectedTopic = useSelector((state: RootState) => state.problem.selectedTopic);
-    const durationMinutes = useSelector((state: RootState) => state.problem.durationMinutes);
-    const difficultyLevel = useSelector((state: RootState) => state.problem.difficultyLevel);
-    
-    // We can add voice mode toggle later, keep as state for now
-    const [isVoiceMode, setIsVoiceMode] = useState(false);
-    
-    const [startSession, { isLoading }] = useStartSessionMutation();
+  const selectedTopic = useSelector((state: RootState) => state.problem.selectedTopic);
+  const durationMinutes = useSelector((state: RootState) => state.problem.durationMinutes);
+  const difficultyLevel = useSelector((state: RootState) => state.problem.difficultyLevel);
 
-    const handleStartInterview = async () => {
-        if (!selectedTopic?.title) {
-            Alert.alert("Missing Topic", "Please go back and select a topic first.");
-            return;
-        }
+  const [startSession, { isLoading }] = useStartSessionMutation();
 
-        try {
-            const result = await startSession({ 
-                problem: selectedTopic.title, 
-                durationMinutes, 
-                difficultyLevel 
-            }).unwrap();
+  const handleStartInterview = async () => {
+    if (!selectedTopic) return;
 
-            dispatch(setSession({
-                sessionId: result.sessionId,
-                openingMessage: result.message,
-                problem: selectedTopic.title,
-                durationMinutes,
-                difficultyLevel,
-            }));
-            
-            router.push('/(interview)/session');
-        } catch (err: any) {
-            Alert.alert(
-                'Failed to Start Interview',
-                err?.data?.message || 'Something went wrong. Please try again.',
-                [{ text: 'OK' }]
-            );
-        }
-    };
+    try {
+      dispatch(clearSession());
+      const result = await startSession({
+        problem: selectedTopic.title,
+        durationMinutes,
+        difficultyLevel,
+      }).unwrap();
 
-    if (!selectedTopic) {
-        return (
-            <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
-                <Typography>Loading...</Typography>
-            </SafeAreaView>
-        );
+      dispatch(
+        setSession({
+          sessionId: result.sessionId,
+          openingMessage: result.message,
+          problem: selectedTopic.title,
+          durationMinutes,
+          difficultyLevel,
+        })
+      );
+
+      router.push('/(interview)/session' as any);
+    } catch (err: any) {
+      Alert.alert(
+        'Failed to Start Interview',
+        err?.data?.message || 'Something went wrong. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
+  };
 
-    const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-            flex: 1,
-            backgroundColor: colors.background,
-        },
-        header: {
-            paddingHorizontal: Layout.spacing.lg,
-            paddingTop: Layout.spacing.md,
-            paddingBottom: Layout.spacing.lg,
-        },
-        backButton: {
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.surface,
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: Layout.spacing.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
-        },
-        scrollView: {
-            flex: 1,
-        },
-        scrollContent: {
-            paddingHorizontal: Layout.spacing.lg,
-            paddingBottom: Layout.spacing.xl,
-            gap: Layout.spacing.lg,
-        },
-        controlHeader: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: Layout.spacing.sm,
-            marginBottom: Layout.spacing.md,
-        },
-        iconBox: {
-            width: 32,
-            height: 32,
-            borderRadius: 8,
-            backgroundColor: colors.primary + '15',
-            alignItems: 'center',
-            justifyContent: 'center',
-        },
-        footer: {
-            padding: Layout.spacing.lg,
-            backgroundColor: colors.background,
-            borderTopWidth: 1,
-            borderTopColor: colors.border,
-        },
-        instructionsBox: {
-            backgroundColor: colors.surfaceHighlight,
-            padding: Layout.spacing.md,
-            borderRadius: Layout.borderRadius.md,
-            flexDirection: 'row',
-            gap: Layout.spacing.md,
-        },
-    }), [colors]);
+  const getDifficultyColor = (diff: string) => {
+    switch (diff) {
+      case 'junior':
+        return { text: '#10B981', bg: 'rgba(16, 185, 129, 0.12)' };
+      case 'mid':
+        return { text: '#F59E0B', bg: 'rgba(245, 158, 11, 0.12)' };
+      case 'senior':
+        return { text: '#EF4444', bg: 'rgba(239, 68, 68, 0.12)' };
+      default:
+        return { text: '#3B82F6', bg: 'rgba(59, 130, 246, 0.12)' };
+    }
+  };
 
+  const diffBadge = getDifficultyColor(difficultyLevel);
+
+  if (!selectedTopic) {
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <ArrowLeft size={24} color={colors.text} />
-                </TouchableOpacity>
-                <Typography variant="h2" weight="bold">{selectedTopic.title}</Typography>
-                <Typography variant="body1" color="textSecondary" style={{ marginTop: Layout.spacing.xs }}>
-                    Customize your interview parameters
-                </Typography>
-            </View>
-
-            <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-                
-                <Card padding="lg" variant="outlined">
-                    <View style={styles.controlHeader}>
-                        <View style={styles.iconBox}>
-                            <Clock size={18} color={colors.primary} weight="fill" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Typography variant="body1" weight="semibold">Duration</Typography>
-                            <Typography variant="caption" color="textSecondary">Target time to solve the problem</Typography>
-                        </View>
-                    </View>
-                    <SegmentedControl
-                        options={DURATION_OPTIONS}
-                        value={durationMinutes}
-                        onChange={(value) => dispatch(setDuration(value))}
-                    />
-                </Card>
-
-                <Card padding="lg" variant="outlined">
-                    <View style={styles.controlHeader}>
-                        <View style={styles.iconBox}>
-                            <Target size={18} color={colors.primary} weight="fill" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Typography variant="body1" weight="semibold">Difficulty</Typography>
-                            <Typography variant="caption" color="textSecondary">Adjusts AI evaluation strictness</Typography>
-                        </View>
-                    </View>
-                    <SegmentedControl
-                        options={DIFFICULTY_OPTIONS}
-                        value={difficultyLevel}
-                        onChange={(value) => dispatch(setDifficulty(value))}
-                    />
-                </Card>
-
-                <View style={styles.instructionsBox}>
-                    <Info size={24} color={colors.primary} weight="fill" />
-                    <View style={{ flex: 1 }}>
-                        <Typography variant="body2" weight="semibold" style={{ marginBottom: 4 }}>What to expect</Typography>
-                        <Typography variant="body2" color="textSecondary" style={{ lineHeight: 20 }}>
-                            You will be evaluated on Requirements Gathering, Architecture, Scalability, and Trade-offs. 
-                            The AI interviewer will adapt its questions based on your responses.
-                        </Typography>
-                    </View>
-                </View>
-
-            </ScrollView>
-
-            <View style={styles.footer}>
-                <Button
-                    title={isLoading ? "Preparing Interview..." : "Start Interview"}
-                    onPress={handleStartInterview}
-                    isLoading={isLoading}
-                    disabled={isLoading}
-                />
-            </View>
-        </SafeAreaView>
+      <SafeAreaView style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </SafeAreaView>
     );
+  }
+
+  return (
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+      {/* Header */}
+      <View style={[styles.header, { borderBottomColor: colors.border }]}>
+        <Pressable
+          onPress={() => router.back()}
+          style={[styles.backButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+        >
+          <ArrowLeft size={20} color={colors.text} />
+        </Pressable>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Interview Setup</Text>
+      </View>
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Problem Card (Figma Gradient Card) */}
+        <LinearGradient
+          colors={['#111827', '#0D1117']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={[styles.problemCard, { borderColor: colors.border }]}
+        >
+          <View style={[styles.diffBadge, { backgroundColor: diffBadge.bg }]}>
+            <Text style={[styles.diffBadgeText, { color: diffBadge.text }]}>
+              {difficultyLevel.toUpperCase()}
+            </Text>
+          </View>
+          <Text style={styles.problemTitle}>{selectedTopic.title}</Text>
+          <Text style={styles.problemSubtitle}>
+            System design interview with adaptive AI questioning and real-time evaluation.
+          </Text>
+
+          <View style={styles.metricsRow}>
+            <View style={styles.metricCol}>
+              <Text style={styles.metricLabel}>Duration</Text>
+              <Text style={styles.metricValue}>{durationMinutes} min</Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricCol}>
+              <Text style={styles.metricLabel}>Level</Text>
+              <Text style={[styles.metricValue, { color: diffBadge.text }]}>
+                {difficultyLevel.charAt(0).toUpperCase() + difficultyLevel.slice(1)}
+              </Text>
+            </View>
+            <View style={styles.metricDivider} />
+            <View style={styles.metricCol}>
+              <Text style={styles.metricLabel}>Stages</Text>
+              <Text style={styles.metricValue}>5 Phases</Text>
+            </View>
+          </View>
+        </LinearGradient>
+
+        {/* Evaluation Criteria Checklist */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>What will be evaluated</Text>
+          <View style={styles.criteriaList}>
+            {EVALUATION_CRITERIA.map((criterion) => (
+              <View
+                key={criterion}
+                style={[styles.criterionItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              >
+                <View style={styles.checkCircle}>
+                  <Check size={12} color="#3B82F6" weight="bold" />
+                </View>
+                <Text style={[styles.criterionText, { color: colors.textSecondary }]}>{criterion}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Duration Selection */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Duration</Text>
+          <View style={styles.optionsRow}>
+            {DURATIONS.map((dur) => {
+              const isSelected = durationMinutes === dur;
+              return (
+                <Pressable
+                  key={dur}
+                  onPress={() => dispatch(setDuration(dur))}
+                  style={[
+                    styles.optionButton,
+                    isSelected
+                      ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                      : { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.optionButtonText,
+                      isSelected ? { color: '#FFFFFF', fontWeight: '700' } : { color: colors.textSecondary },
+                    ]}
+                  >
+                    {dur}m
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* Difficulty Selection */}
+        <View style={styles.section}>
+          <Text style={[styles.sectionTitle, { color: colors.text }]}>Difficulty</Text>
+          <View style={styles.optionsRow}>
+            {DIFFICULTIES.map((diff) => {
+              const isSelected = difficultyLevel === diff;
+              return (
+                <Pressable
+                  key={diff}
+                  onPress={() => dispatch(setDifficulty(diff))}
+                  style={[
+                    styles.optionButton,
+                    isSelected
+                      ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                      : { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.optionButtonText,
+                      isSelected ? { color: '#FFFFFF', fontWeight: '700' } : { color: colors.textSecondary },
+                    ]}
+                  >
+                    {diff.charAt(0).toUpperCase() + diff.slice(1)}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </ScrollView>
+
+      {/* Footer CTA */}
+      <View
+        style={[
+          styles.footer,
+          {
+            backgroundColor: colors.background,
+            borderTopColor: colors.border,
+            paddingBottom: safeBottom + 12,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={handleStartInterview}
+          disabled={isLoading}
+          style={({ pressed }) => [
+            styles.startBtn,
+            {
+              backgroundColor: colors.primary,
+              opacity: isLoading ? 0.7 : pressed ? 0.92 : 1,
+              transform: [{ scale: pressed ? 0.99 : 1 }],
+            },
+          ]}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.startBtnText}>Start Live Interview</Text>
+          )}
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+  },
+  backButton: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    gap: 20,
+  },
+  problemCard: {
+    borderRadius: 20,
+    padding: 18,
+    borderWidth: 1,
+  },
+  diffBadge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  diffBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  problemTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: -0.2,
+  },
+  problemSubtitle: {
+    fontSize: 13,
+    color: '#94A3B8',
+    marginTop: 4,
+    lineHeight: 18,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(51, 65, 85, 0.4)',
+  },
+  metricCol: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  metricLabel: {
+    fontSize: 11,
+    color: '#64748B',
+  },
+  metricValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 2,
+  },
+  metricDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: 'rgba(51, 65, 85, 0.4)',
+  },
+  section: {
+    gap: 10,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    letterSpacing: -0.1,
+  },
+  criteriaList: {
+    gap: 8,
+  },
+  criterionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  checkCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: 'rgba(59, 130, 246, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  criterionText: {
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  optionsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  optionButton: {
+    flex: 1,
+    paddingVertical: 11,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  optionButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  footer: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 24,
+    borderTopWidth: 1,
+  },
+  startBtn: {
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startBtnText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+});

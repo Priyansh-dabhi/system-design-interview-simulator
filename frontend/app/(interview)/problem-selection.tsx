@@ -61,7 +61,7 @@ export default function TopicSelectionScreen() {
 
     const handleTopicSelect = (topic: Topic) => {
         dispatch(setSelectedTopic({ id: topic.id, title: topic.title }));
-        router.push('/(interview)/setup');
+        router.push('/(interview)/setup' as any);
     };
 
     const styles = React.useMemo(() => StyleSheet.create({

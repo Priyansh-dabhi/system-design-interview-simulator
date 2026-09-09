@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { ArrowLeft } from 'phosphor-react-native';
 import React from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { SummarySection } from '../../src/components/shared/SummarySection';
 import { ScoreHeader } from '../../src/components/interview/ScoreHeader';
@@ -18,10 +18,13 @@ import { Layout } from '../../src/constants/Layout';
 import { useExportTranscript } from '../../src/utils/useExportTranscript';
 import { Typography } from '../../src/components/ui/Typography';
 import { Button } from '../../src/components/ui/Button';
+import { getSafeBottomInset } from '../../src/utils/safeArea';
 
 export default function SummaryScreen() {
     const router = useRouter();
     const dispatch = useDispatch();
+    const insets = useSafeAreaInsets();
+    const safeBottom = getSafeBottomInset(insets.bottom, Layout.spacing.lg);
 
     const summary = useSelector((state: RootState) => state.session.summary);
     const messages = useSelector((state: RootState) => state.session.messages);
@@ -74,16 +77,18 @@ export default function SummaryScreen() {
             gap: Layout.spacing.xl,
         },
         footer: {
-            padding: Layout.spacing.lg,
+            paddingHorizontal: Layout.spacing.lg,
+            paddingTop: Layout.spacing.md,
+            paddingBottom: safeBottom,
             backgroundColor: colors.background,
             borderTopWidth: 1,
             borderTopColor: colors.border,
         },
-    }), [colors]);
+    }), [colors, safeBottom]);
 
     const handleDone = () => {
         dispatch(clearSession());
-        router.dismissAll();
+        router.replace('/(main)/home' as any);
     };
 
     const handleExport = () => {
@@ -103,7 +108,7 @@ export default function SummaryScreen() {
     }
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <View style={styles.header}>
                 <TouchableOpacity onPress={handleDone} style={styles.backButton}>
                     <ArrowLeft size={20} color={colors.text} />

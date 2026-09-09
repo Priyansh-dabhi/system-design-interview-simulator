@@ -10,27 +10,37 @@ export const ScreenWrapper: React.FC<ScreenWrapperProps> = ({
   children,
   style,
   withPadding = true,
+  transparent = false,
 }) => {
   const { colors, isDark } = useTheme();
 
   const styles = React.useMemo(() => StyleSheet.create({
     safeArea: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: transparent ? 'transparent' : colors.background,
     },
     container: {
       flex: 1,
-      backgroundColor: colors.background,
+      backgroundColor: transparent ? 'transparent' : colors.background,
     },
     padding: {
       paddingHorizontal: Layout.spacing.lg,
       paddingTop: Layout.spacing.md,
     },
-  }), [colors]);
+  }), [colors, transparent]);
+
+  const statusBarBg = transparent
+    ? '#050810'
+    : colors.background;
+
+  const barStyle = transparent ? "light-content" : (isDark ? "light-content" : "dark-content");
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.background} />
+      <StatusBar
+        barStyle={barStyle}
+        backgroundColor={statusBarBg}
+      />
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}

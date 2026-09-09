@@ -2,10 +2,10 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { StyleSheet } from "react-native";
 import { View } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
 import { useState } from "react";
@@ -13,7 +13,6 @@ import * as SplashScreen from 'expo-splash-screen';
 
 // Keep the native splash screen visible while we fetch resources from Redux
 SplashScreen.preventAutoHideAsync();
-import { LoadingSplash } from "../src/components/LoadingSplash";
 import { store } from "@/src/redux/store";
 import { Provider } from "react-redux";
 import { useAppDispatch, useAppSelector } from "@/src/redux/hooks";
@@ -33,6 +32,9 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   // (e.g. in CI), which makes segments[1] a compile error otherwise.
   const segments = useSegments() as string[];
   const router = useRouter();
+  const { colors } = useTheme();
+  const lastNavigatedPathRef = useRef<string | null>(null);
+
   useEffect(() => {
     dispatch(bootstrapAuth());
   }, [dispatch]);
@@ -64,20 +66,36 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
 
     const isOnAcceptTerms = segments[0] === '(auth)' && segments[1] === 'accept-terms';
 
+    let targetPath: string | null = null;
     if (!user && !inAuthGroup && !isAuthInFlight) {
-      router.replace('/(auth)/login');
+      targetPath = '/(auth)/login';
     } else if (user && !user.acceptedTermsAt && !isOnAcceptTerms) {
-      router.replace('/(auth)/accept-terms');
+      targetPath = '/(auth)/accept-terms';
     } else if (user && user.acceptedTermsAt && segments[0] !== '(main)' && segments[0] !== '(interview)') {
-      router.replace('/(main)/home');
+      targetPath = '/(main)/home';
+    }
+
+    if (targetPath) {
+      if (lastNavigatedPathRef.current !== targetPath) {
+        lastNavigatedPathRef.current = targetPath;
+        router.replace(targetPath as any);
+      }
+    } else {
+      // Clear ref once we are within the target route group
+      lastNavigatedPathRef.current = null;
     }
   }, [user, showSplash, segments, isAuthInFlight, inAuthGroup]);
 
   // Remove the early return null so that Expo Router's <Stack> always mounts.
   // The native splash screen will remain visible until SplashScreen.hideAsync() is called.
   return (
-    <View style={{ flex: 1 }}>
-      <Stack screenOptions={{ headerShown: false }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(main)" />
         <Stack.Screen name="(interview)" />
@@ -113,7 +131,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <ThemeProvider>
-        <SafeAreaProvider>
+        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
           <RootApp fontsLoaded={fontsLoaded} />
         </SafeAreaProvider>
       </ThemeProvider>

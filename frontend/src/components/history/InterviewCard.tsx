@@ -1,109 +1,149 @@
-import { ArrowDown, ArrowUp, ClockCounterClockwise } from 'phosphor-react-native';
+import { CaretDown, CaretUp } from 'phosphor-react-native';
 import React, { useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
-import { Layout } from '../../constants/Layout';
 import { SummarySection } from '../shared/SummarySection';
 import { InterviewHistoryItem } from '../../types/types';
-import { Typography } from '../ui/Typography';
-import { Card } from '../ui/Card';
-import { Badge } from '../ui/Badge';
 
 const formatInterviewDate = (value: string) =>
-    new Intl.DateTimeFormat(undefined, {
-        month: 'short',
-        day: 'numeric',
-        hour: 'numeric',
-        minute: '2-digit',
-    }).format(new Date(value));
-
-const scoreConfig = {
-    good: { label: 'Strong', color: '#10B981', bg: '#10B98115', border: '#10B98130' },
-    average: { label: 'Average', color: '#F59E0B', bg: '#F59E0B15', border: '#F59E0B30' },
-    needs_improvement: { label: 'Needs Work', color: '#EF4444', bg: '#EF444415', border: '#EF444430' },
-};
+  new Intl.DateTimeFormat(undefined, {
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(value));
 
 export function InterviewCard({ item }: { item: InterviewHistoryItem }) {
-    const { colors } = useTheme();
-    const [expanded, setExpanded] = useState(false);
-    const config = scoreConfig[item.score];
+  const { colors } = useTheme();
+  const [expanded, setExpanded] = useState(false);
 
-    const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-            marginBottom: Layout.spacing.sm,
-        },
-        cardHeader: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-        },
-        cardHeaderLeft: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            flex: 1,
-            gap: Layout.spacing.md,
-        },
-        topicIcon: {
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 1,
-        },
-        cardInfo: {
-            flex: 1,
-        },
-        cardHeaderRight: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: Layout.spacing.md,
-        },
-        reviewContent: {
-            marginTop: Layout.spacing.lg,
-            paddingTop: Layout.spacing.lg,
-            borderTopWidth: 1,
-            borderTopColor: colors.border,
-        },
-    }), [colors]);
+  const displayScore =
+    typeof item.overallScore === 'number'
+      ? Math.round(item.overallScore)
+      : item.score === 'good'
+      ? 85
+      : item.score === 'average'
+      ? 70
+      : 55;
 
-    return (
-        <Card variant="elevated" padding="md" style={styles.container}>
-            <TouchableOpacity activeOpacity={0.7} onPress={() => setExpanded(!expanded)}>
-                <View style={styles.cardHeader}>
-                    <View style={styles.cardHeaderLeft}>
-                        <View style={[styles.topicIcon, { backgroundColor: config.bg, borderColor: config.border }]}>
-                            <ClockCounterClockwise size={20} color={config.color} weight="fill" />
-                        </View>
-                        <View style={styles.cardInfo}>
-                            <Typography variant="body1" weight="semibold">{item.topic}</Typography>
-                            <Typography variant="caption" color="textSecondary" style={{ marginTop: 2 }}>
-                                {formatInterviewDate(item.date)}
-                            </Typography>
-                        </View>
-                    </View>
-                    <View style={styles.cardHeaderRight}>
-                        <View style={{ backgroundColor: config.bg, paddingHorizontal: 10, paddingVertical: 4, borderRadius: Layout.borderRadius.full, borderWidth: 1, borderColor: config.border }}>
-                            <Typography variant="caption" weight="bold" style={{ color: config.color }}>{config.label}</Typography>
-                        </View>
-                        {expanded ? (
-                            <ArrowUp size={16} color={colors.textSecondary} weight="bold" />
-                        ) : (
-                            <ArrowDown size={16} color={colors.textSecondary} weight="bold" />
-                        )}
-                    </View>
-                </View>
+  const scoreStyle =
+    displayScore >= 80
+      ? { text: '#10B981', bg: 'rgba(16, 185, 129, 0.12)' }
+      : displayScore >= 65
+      ? { text: '#F59E0B', bg: 'rgba(245, 158, 11, 0.12)' }
+      : { text: '#EF4444', bg: 'rgba(239, 68, 68, 0.12)' };
 
-                {expanded && (
-                    <View style={styles.reviewContent}>
-                        <SummarySection
-                            strengths={item.summary.strengths}
-                            missedTopics={item.summary.missed_topics}
-                            suggestions={item.summary.suggestions}
-                        />
-                    </View>
-                )}
-            </TouchableOpacity>
-        </Card>
-    );
+  const getDifficultyBadge = (stage: string) => {
+    return { text: '#94A3B8', bg: 'rgba(148, 163, 184, 0.12)' };
+  };
+
+  const diffBadge = getDifficultyBadge(item.stage || 'Completed');
+
+  return (
+    <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => setExpanded(!expanded)}
+        style={styles.cardHeader}
+      >
+        {/* Left: Square Score Badge */}
+        <View style={[styles.scoreBadge, { backgroundColor: scoreStyle.bg }]}>
+          <Text style={[styles.scoreText, { color: scoreStyle.text }]}>{displayScore}</Text>
+        </View>
+
+        {/* Center: Info */}
+        <View style={styles.cardInfo}>
+          <Text style={[styles.topicTitle, { color: colors.text }]} numberOfLines={1}>
+            {item.topic}
+          </Text>
+          <Text style={[styles.dateText, { color: colors.textDim }]}>
+            {formatInterviewDate(item.date)}
+          </Text>
+          <View style={styles.badgeRow}>
+            <View style={[styles.diffBadgeBox, { backgroundColor: scoreStyle.bg }]}>
+              <Text style={[styles.diffBadgeText, { color: scoreStyle.text }]}>
+                {item.score === 'good' ? 'Strong' : item.score === 'average' ? 'Average' : 'Needs Work'}
+              </Text>
+            </View>
+          </View>
+        </View>
+
+        {/* Right: Expand Icon */}
+        <View style={styles.chevronBox}>
+          {expanded ? (
+            <CaretUp size={18} color={colors.textDim} />
+          ) : (
+            <CaretDown size={18} color={colors.textDim} />
+          )}
+        </View>
+      </TouchableOpacity>
+
+      {expanded && (
+        <View style={[styles.expandedContent, { borderTopColor: colors.border }]}>
+          <SummarySection
+            strengths={item.summary.strengths}
+            missedTopics={item.summary.missed_topics}
+            suggestions={item.summary.suggestions}
+          />
+        </View>
+      )}
+    </View>
+  );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    borderRadius: 20,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 14,
+  },
+  scoreBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreText: {
+    fontSize: 18,
+    fontWeight: '800',
+  },
+  cardInfo: {
+    flex: 1,
+  },
+  topicTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  dateText: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    marginTop: 6,
+  },
+  diffBadgeBox: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  diffBadgeText: {
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  chevronBox: {
+    padding: 4,
+  },
+  expandedContent: {
+    padding: 16,
+    borderTopWidth: 1,
+  },
+});

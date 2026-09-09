@@ -12,7 +12,7 @@ export const getStoredThemeMode = async (): Promise<ThemeMode> => {
     } catch {
         // Fallback
     }
-    return 'dark'; // Default to dark for existing users
+    return 'light'; // Default to light theme
 };
 
 export const setStoredThemeMode = async (mode: ThemeMode): Promise<void> => {

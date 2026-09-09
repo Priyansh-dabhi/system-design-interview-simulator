@@ -59,7 +59,7 @@ export function ScoreHeader({ overallScore, durationSeconds }: ScoreHeaderProps)
     }), [colors, band.color]);
 
     return (
-        <Card padding="xl" variant="elevated">
+        <Card padding="lg" variant="elevated">
             <View style={styles.container}>
                 <View style={styles.scoreCircle}>
                     <Typography variant="h2" weight="bold" style={{ color: colors.text, fontVariant: ['tabular-nums'], marginBottom: -4 }}>

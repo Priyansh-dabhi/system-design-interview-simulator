@@ -1,48 +1,48 @@
 import { ThemeColors } from './types';
 
 export const darkColors: ThemeColors = {
-    background: '#0F1115', // Deep charcoal
-    surface: '#1A1D24', // Elevated surface
-    surfaceHighlight: '#2A2E39',
+    background: '#080B12', // Authentic Figma obsidian navy
+    surface: '#111827', // Figma card slate navy
+    surfaceHighlight: '#1E293B', // Elevated active slate
     text: '#FFFFFF',
-    textSecondary: '#A1A1AA',
-    textDim: '#71717A',
-    primary: '#2563EB', // Professional deep blue
-    primaryDark: '#1E40AF',
-    border: '#2A2E39',
-    error: '#EF4444',
-    success: '#10B981',
+    textSecondary: '#94A3B8', // Figma slate-400
+    textDim: '#64748B', // Figma slate-500
+    primary: '#3B82F6', // Figma Electric Blue
+    primaryDark: '#2563EB',
+    border: 'rgba(51, 65, 85, 0.45)', // Figma border-slate-800/60
+    error: '#EF4444', // Figma red-500
+    success: '#10B981', // Figma emerald-500
 
     buttonPrimaryText: '#FFFFFF',
-    buttonSecondaryBackground: '#2A2E39',
+    buttonSecondaryBackground: '#1E293B',
     buttonSecondaryText: '#FFFFFF',
-    inputBackground: '#14161C',
+    inputBackground: '#0D1117',
 
-    primaryBrand: '#2563EB',
-    backgroundDark: '#0A0C0F',
-    surfaceDark: '#1A1D24',
-    surfaceDarker: '#14161C',
+    primaryBrand: '#3B82F6',
+    backgroundDark: '#050810',
+    surfaceDark: '#111827',
+    surfaceDarker: '#080B12',
 
     userMessageBg: '#2563EB',
     userMessageText: '#FFFFFF',
-    aiMessageBg: '#1A1D24',
-    aiMessageText: '#FFFFFF',
-    aiMessageBorder: '#2A2E39',
+    aiMessageBg: '#111827',
+    aiMessageText: '#F1F5F9',
+    aiMessageBorder: 'rgba(51, 65, 85, 0.5)',
 
-    dangerSurfaceBg: '#3F1A1A',
-    dangerSurfaceBorder: '#7F1D1D',
-    overlayBackground: 'rgba(0, 0, 0, 0.7)',
+    dangerSurfaceBg: 'rgba(239, 68, 68, 0.1)',
+    dangerSurfaceBorder: 'rgba(239, 68, 68, 0.25)',
+    overlayBackground: 'rgba(0, 0, 0, 0.75)',
 };
 
 export const lightColors: ThemeColors = {
-    background: '#F8FAFC', // Clean slate/white
+    background: '#F8FAFC', // Clean slate-50
     surface: '#FFFFFF',
     surfaceHighlight: '#F1F5F9',
     text: '#0F172A',
     textSecondary: '#64748B',
     textDim: '#94A3B8',
-    primary: '#2563EB', // Professional deep blue
-    primaryDark: '#1E40AF',
+    primary: '#2563EB',
+    primaryDark: '#1D4ED8',
     border: '#E2E8F0',
     error: '#DC2626',
     success: '#059669',
