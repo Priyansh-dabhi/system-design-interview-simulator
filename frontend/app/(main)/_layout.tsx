@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Books, Clock, House, User } from "phosphor-react-native";
+import { Books, BooksIcon, ClockCounterClockwiseIcon, HouseIcon, UserIcon } from "phosphor-react-native";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,12 +26,12 @@ export default function MainLayout() {
           paddingTop: 8,
           elevation: 0,
         },
-        tabBarActiveTintColor: colors.primary, // Figma #3B82F6
-        tabBarInactiveTintColor: colors.textDim, // Figma #64748B
+        tabBarActiveTintColor: colors.primary, // Figma Accent Blue #2563EB
+        tabBarInactiveTintColor: colors.textDim, // Figma #94A3B8
         tabBarShowLabel: true,
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '600',
+          fontWeight: "600",
           marginTop: 2,
         },
       }}
@@ -41,7 +41,7 @@ export default function MainLayout() {
         options={{
           title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
-            <House size={22} color={color} weight={focused ? "fill" : "regular"} />
+            <HouseIcon size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
@@ -50,7 +50,7 @@ export default function MainLayout() {
         options={{
           title: "Practice",
           tabBarIcon: ({ color, size, focused }) => (
-            <Books size={22} color={color} weight={focused ? "fill" : "regular"} />
+            <BooksIcon size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
@@ -59,7 +59,7 @@ export default function MainLayout() {
         options={{
           title: "History",
           tabBarIcon: ({ color, size, focused }) => (
-            <Clock size={22} color={color} weight={focused ? "fill" : "regular"} />
+            <ClockCounterClockwiseIcon size={22} color={color} weight={focused ? "bold" : "regular"} />
           ),
         }}
       />
@@ -68,7 +68,7 @@ export default function MainLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size, focused }) => (
-            <User size={22} color={color} weight={focused ? "fill" : "regular"} />
+            <UserIcon size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
