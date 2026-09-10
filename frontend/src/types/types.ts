@@ -59,6 +59,7 @@ export interface InterviewHistoryItem {
     messageCount: number;
     overallScore?: number | null;
     score: InterviewScore;
+    durationSeconds?: number;
     summary: InterviewSummary;
 }
 

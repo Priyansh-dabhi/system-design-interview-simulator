@@ -4,21 +4,16 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '../../src/components/history/EmptyState';
 import { InterviewCard } from '../../src/components/history/InterviewCard';
-import { ScoreChart } from '../../src/components/history/ScoreChart';
-import { TopicMasteryCard } from '../../src/components/history/TopicMasteryCard';
-import { CaretDown, CaretUp } from 'phosphor-react-native';
 import { useTheme } from '../../src/theme/useTheme';
 import { useGetHistoryQuery } from '../../src/redux/api/interview_api';
 
 export default function HistoryScreen() {
   const [refreshing, setRefreshing] = useState(false);
-  const [analyticsExpanded, setAnalyticsExpanded] = useState(false);
   const { data, isFetching, refetch } = useGetHistoryQuery();
   const history = data?.history ?? [];
   const stats = data?.stats;
@@ -81,32 +76,6 @@ export default function HistoryScreen() {
               <Text style={[styles.metricLabel, { color: colors.textDim }]}>Needs Work</Text>
             </View>
           </View>
-
-          {/* Deep Analytics Toggle */}
-          {stats?.scoreOverTime && stats.scoreOverTime.length > 0 && (
-            <View style={styles.analyticsSection}>
-              <TouchableOpacity
-                style={[styles.analyticsToggle, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                activeOpacity={0.7}
-                onPress={() => setAnalyticsExpanded(!analyticsExpanded)}
-              >
-                <Text style={[styles.analyticsTitle, { color: colors.text }]}>Deep Analytics</Text>
-                {analyticsExpanded ? (
-                  <CaretUp size={18} color={colors.textSecondary} />
-                ) : (
-                  <CaretDown size={18} color={colors.textSecondary} />
-                )}
-              </TouchableOpacity>
-              {analyticsExpanded && (
-                <View style={styles.analyticsContent}>
-                  <ScoreChart data={stats.scoreOverTime} />
-                  {stats.topicMastery && stats.topicMastery.length > 0 && (
-                    <TopicMasteryCard data={stats.topicMastery} />
-                  )}
-                </View>
-              )}
-            </View>
-          )}
 
           {/* Recent Interviews List */}
           <View style={styles.listSection}>
@@ -172,25 +141,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 2,
     letterSpacing: 0.2,
-  },
-  analyticsSection: {
-    gap: 10,
-  },
-  analyticsToggle: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 14,
-    borderWidth: 1,
-  },
-  analyticsTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  analyticsContent: {
-    gap: 12,
   },
   listSection: {
     gap: 10,

@@ -11,12 +11,14 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
     FlatList,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     StyleSheet,
+    Text,
     View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChatHeader } from '../../src/components/interview/ChatHeader';
 import { ChatInput } from '../../src/components/interview/ChatInput';
@@ -27,9 +29,9 @@ import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
 import { Typography } from '../../src/components/ui/Typography';
 
-// Clean stage progress indicator matching Figma
+// Segmented stage stepper matching top interview platforms
 function StageIndicator({ currentMessageCount }: { currentMessageCount: number }) {
-    const { colors } = useTheme();
+    const { colors, isDark } = useTheme();
     const stages = ['Requirements', 'High-Level Design', 'Deep Dive', 'Scalability', 'Trade-offs'];
     let activeIndex = 0;
     if (currentMessageCount > 12) activeIndex = 4;
@@ -37,27 +39,89 @@ function StageIndicator({ currentMessageCount }: { currentMessageCount: number }
     else if (currentMessageCount > 5) activeIndex = 2;
     else if (currentMessageCount > 2) activeIndex = 1;
 
-    const progressPct = ((activeIndex + 1) / stages.length) * 100;
-
-    return (
-        <View style={{
-            paddingHorizontal: 20,
-            paddingVertical: 10,
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            paddingHorizontal: 18,
+            paddingTop: 10,
+            paddingBottom: 12,
             backgroundColor: colors.surface,
             borderBottomWidth: 1,
             borderBottomColor: colors.border,
+            gap: 8,
+        },
+        headerRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+        activeStageChip: {
+            flexDirection: 'row',
+            alignItems: 'center',
             gap: 6,
-        }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="caption" weight="bold" style={{ color: colors.primary }}>
-                    {stages[activeIndex]}
-                </Typography>
-                <Typography variant="caption" color="textDim" weight="medium">
-                    {activeIndex + 1} / {stages.length}
-                </Typography>
+            paddingHorizontal: 10,
+            paddingVertical: 3,
+            borderRadius: 12,
+            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.08)',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(37, 99, 235, 0.2)',
+        },
+        pulseDot: {
+            width: 7,
+            height: 7,
+            borderRadius: 3.5,
+            backgroundColor: colors.primary,
+        },
+        stepCount: {
+            fontSize: 12,
+            fontWeight: '600',
+            color: colors.textSecondary,
+        },
+        stepperTrack: {
+            flexDirection: 'row',
+            gap: 5,
+            height: 4.5,
+        },
+        stepSegment: {
+            flex: 1,
+            borderRadius: 3,
+        },
+    }), [colors, isDark]);
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.headerRow}>
+                <View style={styles.activeStageChip}>
+                    <View style={styles.pulseDot} />
+                    <Typography variant="caption" weight="bold" style={{ color: colors.primary }}>
+                        {stages[activeIndex]}
+                    </Typography>
+                </View>
+                <Text style={styles.stepCount}>
+                    Step {activeIndex + 1} of {stages.length}
+                </Text>
             </View>
-            <View style={{ height: 4, backgroundColor: 'rgba(51, 65, 85, 0.4)', borderRadius: 2, overflow: 'hidden' }}>
-                <View style={{ height: '100%', width: `${progressPct}%`, backgroundColor: colors.primary, borderRadius: 2 }} />
+
+            {/* 5 Distinct Rounded Pill Segments */}
+            <View style={styles.stepperTrack}>
+                {stages.map((stage, idx) => {
+                    const isCompleted = idx < activeIndex;
+                    const isActive = idx === activeIndex;
+                    return (
+                        <View
+                            key={stage}
+                            style={[
+                                styles.stepSegment,
+                                {
+                                    backgroundColor: isCompleted
+                                        ? (colors.success || '#10B981')
+                                        : isActive
+                                        ? colors.primary
+                                        : (isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(203, 213, 225, 0.7)'),
+                                },
+                            ]}
+                        />
+                    );
+                })}
             </View>
         </View>
     );
@@ -85,11 +149,36 @@ export default function InterviewSessionScreen() {
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
     const [isNavigatingAway, setIsNavigatingAway] = useState(false);
 
+    const insets = useSafeAreaInsets();
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
     const hasEndedRef = useRef(false);
     const endsAtRef = useRef<number | null>(null);
     const performEndSessionRef = useRef<() => void>(() => {});
     const flatListRef = useRef<FlatList>(null);
     const { colors } = useTheme();
+
+    // Auto-scroll when keyboard opens
+    useEffect(() => {
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const showSub = Keyboard.addListener(showEvent, () => {
+            setKeyboardVisible(true);
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+            }, 60);
+        });
+
+        const hideSub = Keyboard.addListener(hideEvent, () => {
+            setKeyboardVisible(false);
+        });
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
 
     // Voice recognition logic
     useSpeechRecognitionEvent('start', () => setIsRecording(true));
@@ -300,7 +389,7 @@ export default function InterviewSessionScreen() {
     }), [colors]);
 
     return (
-        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ChatHeader
                 topicTitle={topicTitle}
                 onBack={() => router.back()}
@@ -312,7 +401,7 @@ export default function InterviewSessionScreen() {
 
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <FlatList
                     ref={flatListRef}
@@ -321,6 +410,7 @@ export default function InterviewSessionScreen() {
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.messagesList}
                     showsVerticalScrollIndicator={false}
+                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                     ListFooterComponent={isSending ? <TypingIndicator /> : null}
                 />
 
@@ -336,6 +426,7 @@ export default function InterviewSessionScreen() {
                     hintCount={hintCount}
                     maxHints={maxHints}
                     disabled={remainingSeconds !== null && remainingSeconds <= 0}
+                    bottomInset={isKeyboardVisible ? 6 : Math.max(insets.bottom, 10)}
                 />
             </KeyboardAvoidingView>
 

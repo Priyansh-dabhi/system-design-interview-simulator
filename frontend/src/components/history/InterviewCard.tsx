@@ -1,8 +1,8 @@
-import { CaretDown, CaretUp } from 'phosphor-react-native';
-import React, { useState } from 'react';
+import { CaretRight } from 'phosphor-react-native';
+import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useTheme } from '../../theme/useTheme';
-import { SummarySection } from '../shared/SummarySection';
 import { InterviewHistoryItem } from '../../types/types';
 
 const formatInterviewDate = (value: string) =>
@@ -14,8 +14,8 @@ const formatInterviewDate = (value: string) =>
   }).format(new Date(value));
 
 export function InterviewCard({ item }: { item: InterviewHistoryItem }) {
+  const router = useRouter();
   const { colors } = useTheme();
-  const [expanded, setExpanded] = useState(false);
 
   const displayScore =
     typeof item.overallScore === 'number'
@@ -33,17 +33,18 @@ export function InterviewCard({ item }: { item: InterviewHistoryItem }) {
       ? { text: '#F59E0B', bg: 'rgba(245, 158, 11, 0.12)' }
       : { text: '#EF4444', bg: 'rgba(239, 68, 68, 0.12)' };
 
-  const getDifficultyBadge = (stage: string) => {
-    return { text: '#94A3B8', bg: 'rgba(148, 163, 184, 0.12)' };
+  const handleCardPress = () => {
+    router.push({
+      pathname: '/(interview)/summary',
+      params: { sessionId: item.id },
+    });
   };
-
-  const diffBadge = getDifficultyBadge(item.stage || 'Completed');
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
       <TouchableOpacity
         activeOpacity={0.7}
-        onPress={() => setExpanded(!expanded)}
+        onPress={handleCardPress}
         style={styles.cardHeader}
       >
         {/* Left: Square Score Badge */}
@@ -68,25 +69,11 @@ export function InterviewCard({ item }: { item: InterviewHistoryItem }) {
           </View>
         </View>
 
-        {/* Right: Expand Icon */}
+        {/* Right: Navigate Chevron */}
         <View style={styles.chevronBox}>
-          {expanded ? (
-            <CaretUp size={18} color={colors.textDim} />
-          ) : (
-            <CaretDown size={18} color={colors.textDim} />
-          )}
+          <CaretRight size={18} color={colors.textDim} weight="bold" />
         </View>
       </TouchableOpacity>
-
-      {expanded && (
-        <View style={[styles.expandedContent, { borderTopColor: colors.border }]}>
-          <SummarySection
-            strengths={item.summary.strengths}
-            missedTopics={item.summary.missed_topics}
-            suggestions={item.summary.suggestions}
-          />
-        </View>
-      )}
     </View>
   );
 }

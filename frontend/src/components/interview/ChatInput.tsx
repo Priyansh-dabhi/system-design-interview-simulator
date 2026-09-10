@@ -1,10 +1,9 @@
 import { HintButton } from './HintButton';
 import { Microphone, PaperPlaneRight } from 'phosphor-react-native';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
 import { useTheme } from '../../theme/useTheme';
-import { Layout } from '../../constants/Layout';
 
 interface ChatInputProps {
     value: string;
@@ -18,6 +17,7 @@ interface ChatInputProps {
     hintCount: number;
     maxHints: number;
     disabled?: boolean;
+    bottomInset?: number;
 }
 
 export function ChatInput({
@@ -32,8 +32,10 @@ export function ChatInput({
     hintCount,
     maxHints,
     disabled = false,
+    bottomInset = 0,
 }: ChatInputProps) {
-    const { colors } = useTheme();
+    const { colors, isDark } = useTheme();
+    const [isFocused, setIsFocused] = useState(false);
     const canSend = value.trim().length > 0 && !isSending && !disabled;
 
     // Pulse animation for recording
@@ -62,70 +64,72 @@ export function ChatInput({
         inputContainer: {
             flexDirection: 'row',
             alignItems: 'flex-end',
-            paddingHorizontal: Layout.spacing.lg,
-            paddingVertical: Layout.spacing.md,
+            paddingHorizontal: 14,
+            paddingTop: 10,
+            paddingBottom: Math.max(bottomInset, 10),
             borderTopWidth: 1,
             borderTopColor: colors.border,
             backgroundColor: colors.surface,
-            gap: Layout.spacing.sm,
+            gap: 8,
             shadowColor: '#000',
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.05,
-            shadowRadius: 10,
-            elevation: 10, // Gives a slight "floating" top shadow on Android
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: isDark ? 0.25 : 0.05,
+            shadowRadius: 8,
+            elevation: 8,
         },
         inputWrapper: {
             flex: 1,
-            backgroundColor: colors.background,
-            borderRadius: Layout.borderRadius.lg,
-            borderWidth: 1,
-            borderColor: colors.border,
+            backgroundColor: isDark ? 'rgba(15, 23, 42, 0.75)' : '#F1F5F9',
+            borderRadius: 22,
+            borderWidth: 1.5,
+            borderColor: isFocused ? colors.primary : colors.border,
             flexDirection: 'row',
-            alignItems: 'flex-end',
-            paddingRight: Layout.spacing.xs,
+            alignItems: 'center',
+            paddingLeft: 14,
+            paddingRight: 6,
+            minHeight: 44,
         },
         input: {
             flex: 1,
-            paddingHorizontal: Layout.spacing.md,
-            paddingVertical: Layout.spacing.sm + 4,
+            paddingVertical: 8,
             fontSize: 15,
             color: colors.text,
             maxHeight: 120,
-            minHeight: 48,
+            minHeight: 40,
             fontFamily: 'Inter_400Regular',
         },
         voiceButtonWrapper: {
-            padding: 8,
+            padding: 4,
             alignItems: 'center',
             justifyContent: 'center',
-            height: 48,
         },
         voiceButton: {
-            width: 36,
-            height: 36,
-            borderRadius: 18,
-            backgroundColor: colors.surface,
+            width: 34,
+            height: 34,
+            borderRadius: 17,
+            backgroundColor: isRecording ? '#EF4444' : 'transparent',
             alignItems: 'center',
             justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
-        },
-        voiceButtonActive: {
-            backgroundColor: '#EF4444',
-            borderColor: '#DC2626',
         },
         sendButton: {
-            width: 48,
-            height: 48,
-            borderRadius: 24,
+            width: 44,
+            height: 44,
+            borderRadius: 22,
             backgroundColor: colors.primary,
             alignItems: 'center',
             justifyContent: 'center',
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.35,
+            shadowRadius: 6,
+            elevation: 4,
         },
         sendButtonDisabled: {
-            backgroundColor: colors.surfaceHighlight,
+            backgroundColor: isDark ? 'rgba(51, 65, 85, 0.35)' : 'rgba(226, 232, 240, 0.9)',
+            shadowOpacity: 0,
+            elevation: 0,
         },
-    }), [colors]);
+    }), [colors, isDark, isFocused, bottomInset]);
 
     return (
         <View style={styles.inputContainer}>
@@ -142,18 +146,25 @@ export function ChatInput({
                     style={styles.input}
                     value={value}
                     onChangeText={onChangeText}
+                    onFocus={() => setIsFocused(true)}
+                    onBlur={() => setIsFocused(false)}
                     placeholder={disabled ? "Time's up" : "Message your interviewer..."}
-                    placeholderTextColor={colors.textSecondary}
+                    placeholderTextColor={colors.textDim}
                     multiline
                     maxLength={2000}
                     editable={!isSending && !disabled}
                 />
                 
-                <TouchableOpacity onPress={onVoiceInput} style={styles.voiceButtonWrapper}>
-                    <Animated.View style={[styles.voiceButton, isRecording && styles.voiceButtonActive, animatedStyle]}>
+                <TouchableOpacity
+                    onPress={onVoiceInput}
+                    style={styles.voiceButtonWrapper}
+                    accessibilityRole="button"
+                    accessibilityLabel={isRecording ? "Stop voice recording" : "Start voice input"}
+                >
+                    <Animated.View style={[styles.voiceButton, animatedStyle]}>
                         <Microphone
-                            size={18}
-                            color={isRecording ? '#FFFFFF' : colors.textSecondary}
+                            size={19}
+                            color={isRecording ? '#FFFFFF' : (isFocused ? colors.primary : colors.textSecondary)}
                             weight={isRecording ? 'fill' : 'bold'}
                         />
                     </Animated.View>
@@ -164,6 +175,8 @@ export function ChatInput({
                 onPress={onSend}
                 style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
                 disabled={!canSend}
+                accessibilityRole="button"
+                accessibilityLabel="Send message"
             >
                 <PaperPlaneRight
                     size={20}
