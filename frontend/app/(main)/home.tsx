@@ -9,7 +9,6 @@ import {
   BookOpen,
   CaretRight,
   CheckCircle,
-  Gear,
   Lightning,
   Microphone,
   Play,
@@ -234,25 +233,17 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={[styles.greetingText, { color: colors.textSecondary }]}>{getGreeting()}</Text>
-            <Text style={[styles.userNameText, { color: colors.text }]}>
-              {user?.fullName || 'Engineer'} 👋
+        <View>
+          <Text style={[styles.greetingText, { color: colors.textSecondary }]}>{getGreeting()}</Text>
+          <Text style={[styles.userNameText, { color: colors.text }]}>
+            {user?.fullName || 'Engineer'} 👋
+          </Text>
+          <View style={styles.rolePill}>
+            <View style={styles.statusDot} />
+            <Text style={[styles.rolePillText, { color: colors.textSecondary }]}>
+              Target: Senior SWE Prep
             </Text>
-            <View style={styles.rolePill}>
-              <View style={styles.statusDot} />
-              <Text style={[styles.rolePillText, { color: colors.textSecondary }]}>
-                Target: Senior SWE Prep
-              </Text>
-            </View>
           </View>
-          <Pressable
-            onPress={() => router.push('/(main)/preferences' as any)}
-            style={[styles.settingsButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
-          >
-            <Gear size={20} color={colors.textSecondary} />
-          </Pressable>
         </View>
       </View>
 
@@ -562,11 +553,6 @@ const styles = StyleSheet.create({
     paddingBottom: 16,
     borderBottomWidth: 1,
   },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-  },
   greetingText: {
     fontSize: 13,
     fontWeight: '500',
@@ -592,14 +578,6 @@ const styles = StyleSheet.create({
   rolePillText: {
     fontSize: 12,
     fontWeight: '600',
-  },
-  settingsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
   },
   scrollView: {
     flex: 1,

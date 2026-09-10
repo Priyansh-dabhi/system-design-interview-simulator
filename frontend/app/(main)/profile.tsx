@@ -85,11 +85,6 @@ export default function ProfileScreen() {
       borderBottomColor: colors.border,
       backgroundColor: colors.background,
     },
-    headerRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-    },
     headerTitle: {
       fontSize: 22,
       fontWeight: '800',
@@ -100,16 +95,6 @@ export default function ProfileScreen() {
       fontSize: 13,
       marginTop: 2,
       color: colors.textSecondary,
-    },
-    settingsButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-      borderWidth: 1,
-      borderColor: colors.border,
-      backgroundColor: colors.surface,
     },
     scrollView: {
       flex: 1,
@@ -387,19 +372,8 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* Screen Header */}
       <View style={styles.header}>
-        <View style={styles.headerRow}>
-          <View>
-            <Text style={styles.headerTitle}>Profile</Text>
-            <Text style={styles.headerSubtitle}>Candidate profile & simulator preferences</Text>
-          </View>
-          <Pressable
-            onPress={() => router.push('/(main)/preferences' as any)}
-            style={styles.settingsButton}
-            accessibilityLabel="Preferences"
-          >
-            <Gear size={20} color={colors.textSecondary} />
-          </Pressable>
-        </View>
+        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerSubtitle}>Candidate profile & simulator preferences</Text>
       </View>
 
       <ScrollView
