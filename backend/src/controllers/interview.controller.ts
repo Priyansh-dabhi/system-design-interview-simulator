@@ -233,6 +233,10 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
                 : getScore(missedTopics.length))
             : "average";
 
+        const durationSeconds = session.endedAt
+            ? Math.max(0, Math.floor((session.endedAt.getTime() - session.createdAt.getTime()) / 1000))
+            : (session.durationMinutes ? session.durationMinutes * 60 : undefined);
+
         return {
             id: session.id,
             topic: session.problemName,
@@ -242,7 +246,14 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
             messageCount: session.messages.length,
             overallScore,
             score,
+            durationSeconds,
             summary: {
+                overall_score: overallScore ?? undefined,
+                durationSeconds,
+                dimension_scores: (session.summary?.dimensionScores as any) ?? undefined,
+                topic_coverage: (session.summary?.topicCoverage as any) ?? undefined,
+                study_plan: (session.summary?.studyPlan as any) ?? undefined,
+                ideal_answer: session.summary?.idealAnswer ?? undefined,
                 strengths,
                 missed_topics: missedTopics,
                 suggestions,
@@ -318,3 +329,78 @@ export const interview_history = async (req: AuthRequest, res: Response) => {
         },
     });
 };
+
+export const get_session_detail = async (req: AuthRequest, res: Response) => {
+    const userId = req.user?.userId;
+    const id = String(req.params.id);
+
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized", code: "UNAUTHORIZED" });
+    }
+
+    const session = await sessionRepo.findOwnedSessionWithFullDetail(id, userId);
+
+    if (!session) {
+        return res.status(404).json({ message: "Interview session not found", code: "NOT_FOUND" });
+    }
+
+    const strengths = parseSummaryList(session.summary?.strengths);
+    const missedTopics = parseSummaryList(session.summary?.missedTopics);
+    const suggestions = parseSummaryList(session.summary?.suggestions);
+    const overallScore = session.summary?.overallScore ?? null;
+
+    const durationSeconds = session.endedAt
+        ? Math.max(0, Math.floor((session.endedAt.getTime() - session.createdAt.getTime()) / 1000))
+        : (session.durationMinutes ? session.durationMinutes * 60 : undefined);
+
+    const formattedSummary = session.summary ? {
+        overall_score: overallScore ?? undefined,
+        durationSeconds,
+        dimension_scores: (session.summary.dimensionScores as any) ?? undefined,
+        topic_coverage: (session.summary.topicCoverage as any) ?? undefined,
+        study_plan: (session.summary.studyPlan as any) ?? undefined,
+        ideal_answer: session.summary.idealAnswer ?? undefined,
+        strengths,
+        missed_topics: missedTopics,
+        suggestions,
+    } : null;
+
+    const formattedMessages = session.messages.map((m) => ({
+        id: m.id,
+        role: m.role === 'ai' ? 'interviewer' : 'user',
+        text: m.content,
+        createdAt: m.createdAt.toISOString(),
+    }));
+
+    return res.json({
+        id: session.id,
+        topic: session.problemName,
+        status: session.status,
+        stage: session.stage,
+        difficultyLevel: session.difficultyLevel,
+        durationMinutes: session.durationMinutes,
+        durationSeconds,
+        date: session.createdAt.toISOString(),
+        endedAt: session.endedAt?.toISOString() ?? null,
+        summary: formattedSummary,
+        messages: formattedMessages,
+    });
+};
+
+export const delete_session = async (req: AuthRequest, res: Response) => {
+    const userId = req.user?.userId;
+    const id = String(req.params.id);
+
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized", code: "UNAUTHORIZED" });
+    }
+
+    const session = await sessionRepo.findOwnedSessionById(id, userId);
+    if (!session) {
+        return res.status(404).json({ message: "Interview session not found", code: "NOT_FOUND" });
+    }
+
+    await sessionRepo.deleteSession(id);
+    return res.json({ success: true, message: "Interview session deleted successfully" });
+};
+
