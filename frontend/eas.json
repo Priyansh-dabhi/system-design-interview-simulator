@@ -14,11 +14,17 @@
       "android": {
         "buildType": "apk"
       },
-      "channel": "preview"
+      "channel": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://system-design-interview-simulator-6y2k.onrender.com"
+      }
     },
     "production": {
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://system-design-interview-simulator-6y2k.onrender.com"
+      }
     }
   },
   "submit": {

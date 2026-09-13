@@ -17,8 +17,8 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#000000",
-        "foregroundImage": "./assets/images/app_icon_pure_black_1024.png"
+        "backgroundColor": "#080B12",
+        "foregroundImage": "./assets/images/splash_foreground_transparent.png"
       },
       "edgeToEdgeEnabled": true,
       "usesCleartextTraffic": true,
@@ -41,12 +41,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/app_icon_pure_black_1024.png",
+          "image": "./assets/images/splash_foreground_transparent.png",
           "imageWidth": 144,
           "resizeMode": "contain",
           "backgroundColor": "#080B12",
           "dark": {
-            "image": "./assets/images/app_icon_pure_black_1024.png",
+            "image": "./assets/images/splash_foreground_transparent.png",
             "imageWidth": 144,
             "backgroundColor": "#080B12"
           }
