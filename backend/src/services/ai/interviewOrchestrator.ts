@@ -40,7 +40,7 @@ export async function orchestrateResponse(
     });
     
     // 6. Extract raw text
-    const responseText = extractTextContent(llmResponse.content);
+    const responseText = extractTextContent((llmResponse as any).content);
     
     return {
         response: responseText,
