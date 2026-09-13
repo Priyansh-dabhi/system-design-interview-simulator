@@ -6,7 +6,6 @@ export default {
 
   // Load .env and redirect DATABASE_URL → TEST_DATABASE_URL before every test file
   setupFiles: ["<rootDir>/src/__tests__/loadEnv.ts"],
-  setupFilesAfterEnv: ["<rootDir>/src/__tests__/setup.ts"],
 
   testMatch: ["**/__tests__/**/*.test.ts"],
   forceExit: true,
