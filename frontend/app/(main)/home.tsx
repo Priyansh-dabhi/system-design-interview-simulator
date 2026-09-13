@@ -14,19 +14,20 @@ import {
   Play,
   Sparkle,
   Target,
-  X,
 } from 'phosphor-react-native';
-import React, { useEffect, useMemo, useState } from 'react';
+
+import RBSheet from 'react-native-raw-bottom-sheet';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  Dimensions,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useTheme } from '../../src/theme/useTheme';
 
@@ -157,10 +158,12 @@ export default function HomeScreen() {
   const { data } = useGetHistoryQuery();
   const router = useRouter();
   const dispatch = useDispatch();
-  const { colors } = useTheme();
+  const { colors, isDark } = useTheme();
+  const insets = useSafeAreaInsets();
 
   const [selectedFrameworkStep, setSelectedFrameworkStep] = useState<FrameworkStep | null>(null);
   const [tipIndex, setTipIndex] = useState(0);
+  const frameworkSheetRef = useRef<any>(null);
 
   useEffect(() => {
     const requestPermissions = async () => {
@@ -299,6 +302,7 @@ export default function HomeScreen() {
           </Pressable>
         </LinearGradient>
 
+
         {/* 4-Step System Design Interview Framework */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
@@ -315,7 +319,12 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={step.step}
                 activeOpacity={0.75}
-                onPress={() => setSelectedFrameworkStep(step)}
+                onPress={() => {
+                  setSelectedFrameworkStep(step);
+                  requestAnimationFrame(() => {
+                    frameworkSheetRef.current?.open();
+                  });
+                }}
                 style={[
                   styles.frameworkCard,
                   { backgroundColor: colors.surface, borderColor: colors.border },
@@ -484,61 +493,77 @@ export default function HomeScreen() {
         </View>
       </ScrollView>
 
-      {/* Framework Checklist Modal */}
-      <Modal
-        visible={selectedFrameworkStep !== null}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setSelectedFrameworkStep(null)}
+      {/* Framework Checklist Instagram-Style Bottom Sheet */}
+      <RBSheet
+        ref={frameworkSheetRef}
+        height={Dimensions.get('window').height * 0.94}
+        draggable={true}
+        closeOnPressMask={true}
+        onClose={() => setSelectedFrameworkStep(null)}
+        customStyles={{
+          wrapper: {
+            backgroundColor: 'rgba(0,0,0,0.65)'
+          },
+          draggableIcon: {
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.25)' : 'rgba(0, 0, 0, 0.2)',
+            width: 42,
+            height: 4.5,
+            borderRadius: 3,
+            marginTop: 10,
+          },
+          container: {
+            backgroundColor: colors.surface,
+            borderTopLeftRadius: 28,
+            borderTopRightRadius: 28,
+            borderWidth: 1,
+            borderColor: colors.border,
+            paddingTop: insets.top || 10,
+          }
+        }}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-            <View style={styles.modalHeader}>
-              <View style={styles.modalHeaderLeft}>
-                <Text style={styles.modalStepBadge}>STAGE {selectedFrameworkStep?.step}</Text>
-                <Text style={[styles.modalTitle, { color: colors.text }]}>{selectedFrameworkStep?.title}</Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setSelectedFrameworkStep(null)}
-                style={[styles.modalCloseBtn, { backgroundColor: colors.background, borderColor: colors.border }]}
-              >
-                <X size={18} color={colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <Text style={[styles.modalSummary, { color: colors.textSecondary }]}>
-              {selectedFrameworkStep?.summary}
-            </Text>
-
-            <View style={[styles.modalDivider, { backgroundColor: colors.border }]} />
-
-            <Text style={[styles.checklistSectionTitle, { color: colors.text }]}>
-              What Interviewers Look For:
-            </Text>
-
-            <View style={styles.checklistItemsList}>
-              {selectedFrameworkStep?.checklists.map((item, index) => (
-                <View key={index} style={styles.checklistItem}>
-                  <CheckCircle size={16} color="#10B981" weight="fill" style={{ marginTop: 2 }} />
-                  <Text style={[styles.checklistItemText, { color: colors.text }]}>{item}</Text>
-                </View>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={() => {
-                setSelectedFrameworkStep(null);
-                handleStartSimulation();
-              }}
-              style={[styles.modalActionBtn, { backgroundColor: colors.primary }]}
-            >
-              <Text style={styles.modalActionBtnText}>Practice with this Framework</Text>
-              <ArrowRight size={16} color="#FFFFFF" weight="bold" />
-            </TouchableOpacity>
+        <View style={styles.sheetHeader}>
+          <View style={styles.modalHeaderLeft}>
+            <Text style={styles.modalStepBadge}>STAGE {selectedFrameworkStep?.step}</Text>
+            <Text style={[styles.modalTitle, { color: colors.text }]}>{selectedFrameworkStep?.title}</Text>
           </View>
         </View>
-      </Modal>
+
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[styles.sheetScrollContent, { paddingBottom: Math.max(insets.bottom, 24) }]}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={[styles.modalSummary, { color: colors.textSecondary }]}>
+            {selectedFrameworkStep?.summary}
+          </Text>
+
+          <View style={[styles.modalDivider, { backgroundColor: colors.border }]} />
+
+          <Text style={[styles.checklistSectionTitle, { color: colors.text }]}>
+            What Interviewers Look For:
+          </Text>
+
+          <View style={styles.checklistItemsList}>
+            {selectedFrameworkStep?.checklists.map((item, index) => (
+              <View key={index} style={styles.checklistItem}>
+                <CheckCircle size={16} color="#10B981" weight="fill" style={{ marginTop: 2 }} />
+                <Text style={[styles.checklistItemText, { color: colors.text }]}>{item}</Text>
+              </View>
+            ))}
+          </View>
+
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              frameworkSheetRef.current?.close();
+              handleStartSimulation();
+            }}
+            style={styles.modalActionBtn}
+          >
+            <Text style={styles.modalActionBtnText}>Practice This Framework</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </RBSheet>
     </SafeAreaView>
   );
 }
@@ -668,8 +693,40 @@ const styles = StyleSheet.create({
   },
   heroChipText: {
     color: '#EFF6FF',
-    fontSize: 11,
-    fontWeight: '600',
+    fontSize: 12,
+    fontFamily: 'Inter-Medium',
+    marginLeft: 4,
+  },
+  learningBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    marginHorizontal: 16,
+    marginBottom: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+  },
+  learningIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  learningBannerContent: {
+    flex: 1,
+    marginRight: 12,
+  },
+  learningBannerTitle: {
+    fontSize: 16,
+    fontFamily: 'Inter-SemiBold',
+    marginBottom: 4,
+  },
+  learningBannerSubtitle: {
+    fontSize: 13,
+    fontFamily: 'Inter-Regular',
+    lineHeight: 18,
   },
   startSimulationBtn: {
     backgroundColor: '#FFFFFF',
@@ -907,26 +964,21 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     fontStyle: 'italic',
   },
-  // Modal Styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 420,
-    borderRadius: 22,
-    padding: 22,
-    borderWidth: 1,
-    gap: 14,
-  },
-  modalHeader: {
+  // Bottom Sheet Styles
+  sheetHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(150, 150, 150, 0.1)',
+  },
+  sheetScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 14,
+    gap: 14,
   },
   modalHeaderLeft: {
     flex: 1,
@@ -942,14 +994,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '800',
     letterSpacing: -0.3,
-  },
-  modalCloseBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
   },
   modalSummary: {
     fontSize: 13,
