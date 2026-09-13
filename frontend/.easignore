@@ -1,71 +1,52 @@
-# Dependencies (EAS installs these automatically on cloud)
-node_modules/
-**/node_modules/
-**/node_modules/**
+# =============================================================
+# EAS Build Ignore File
+# Patterns use gitignore syntax. EAS CLI uses the `ignore` npm
+# package which requires forward-slash paths (no backslashes).
+# Using bare names (no slash) to match at ANY directory depth.
+# =============================================================
 
-# Local Expo and Web build artifacts
-.expo/
-**/.expo/
-**/.expo/**
-dist/
-**/dist/
-**/dist/**
-web-build/
-**/web-build/
-**/web-build/**
+# Dependencies (EAS installs fresh on cloud)
+node_modules
 
-# Android build artifacts and intermediate caches (Prevents multi-gigabyte upload)
-android/build/
-android/app/build/
-android/.gradle/
-android/.cxx/
-android/app/.cxx/
-android/.kotlin/
-**/build/
-**/build/**
-**/.gradle/
-**/.gradle/**
-**/.cxx/
-**/.cxx/**
-**/.kotlin/
-**/.kotlin/**
-build/
-.gradle/
-.cxx/
-.kotlin/
+# Expo & Metro caches
+.expo
+dist
+web-build
+.metro-health-check*
+
+# Android build outputs & caches (the biggest offenders)
+# These match any directory with these names at any depth:
+android/app/build
+android/app/.cxx
+android/.gradle
+android/.kotlin
+android/build
+android/local.properties
+
+# Also match by bare name for safety
+build
+.gradle
+.cxx
+.kotlin
+
+# Compiled binaries (by extension)
 *.apk
-**/*.apk
 *.aab
-**/*.aab
 *.dex
-**/*.dex
 *.class
-**/*.class
-*.so
-**/*.so
-*.obj
-**/*.obj
-*.o
-**/*.o
 *.hprof
-**/*.hprof
-local.properties
-**/local.properties
+
+# iOS
+ios/build
+ios/Pods
+Pods
+
+# IDE & editor
+.idea
 *.iml
-**/*.iml
-.idea/
-**/.idea/
-**/.idea/**
+.vscode
 
-# iOS local build artifacts
-ios/build/
-ios/Pods/
-**/ios/build/**
-**/ios/Pods/**
-Pods/
-**/Pods/**
-
-# Local environment & secrets
+# Environment & secrets
 .env*.local
 *.pem
 *.jks
@@ -73,17 +54,15 @@ Pods/
 *.p12
 *.key
 *.mobileprovision
+local.properties
 
-# Logs and system metadata
+# Logs & OS metadata
 *.log
 npm-debug.*
 yarn-debug.*
 yarn-error.*
 .DS_Store
-.vscode/
-**/.vscode/**
-docs/
-**/docs/**
-.git/
-**/.git/**
 
+# VCS & docs
+.git
+docs
