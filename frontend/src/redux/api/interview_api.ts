@@ -7,7 +7,7 @@ export const createSessionStartAPi = createApi({
 
     baseQuery: baseQueryWithReauth,
 
-    tagTypes: ["InterviewHistory"],
+    tagTypes: ["InterviewHistory", "LearningTopics", "LearningTopic", "LearningLesson"],
 
     endpoints: (builder) => ({
         startSession: builder.mutation({

@@ -7,6 +7,7 @@ import {
     ExpoSpeechRecognitionModule,
     useSpeechRecognitionEvent,
 } from 'expo-speech-recognition';
+import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
@@ -148,6 +149,32 @@ export default function InterviewSessionScreen() {
     const [isRecording, setIsRecording] = useState(false);
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
     const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+    const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+
+    // Stop TTS speech when component unmounts
+    useEffect(() => {
+        return () => {
+            Speech.stop();
+        };
+    }, []);
+
+    const handleToggleSpeak = useCallback((message: Message) => {
+        if (speakingMessageId === message.id) {
+            Speech.stop();
+            setSpeakingMessageId(null);
+            return;
+        }
+
+        Speech.stop();
+        setSpeakingMessageId(message.id);
+        Speech.speak(message.text, {
+            rate: 1.0,
+            pitch: 1.0,
+            onDone: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
+            onStopped: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
+            onError: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
+        });
+    }, [speakingMessageId]);
 
     const insets = useSafeAreaInsets();
     const [isKeyboardVisible, setKeyboardVisible] = useState(false);
@@ -216,6 +243,8 @@ export default function InterviewSessionScreen() {
         if (!sessionId || !problem) return;
         if (hasEndedRef.current) return;
         hasEndedRef.current = true;
+        Speech.stop();
+        setSpeakingMessageId(null);
         try {
             const result = await endSession({ sessionId, problem }).unwrap();
             
@@ -304,6 +333,8 @@ export default function InterviewSessionScreen() {
 
     const handleSend = async () => {
         if (!inputText.trim() || !sessionId || !problem) return;
+        Speech.stop();
+        setSpeakingMessageId(null);
 
         const userText = inputText.trim();
         const userMessage: Message = {
@@ -361,6 +392,8 @@ export default function InterviewSessionScreen() {
     };
 
     const handleVoiceInput = async () => {
+        Speech.stop();
+        setSpeakingMessageId(null);
         if (isRecording) {
             ExpoSpeechRecognitionModule.stop();
             return;
@@ -406,7 +439,13 @@ export default function InterviewSessionScreen() {
                 <FlatList
                     ref={flatListRef}
                     data={messages}
-                    renderItem={({ item }) => <MessageBubble item={item} />}
+                    renderItem={({ item }) => (
+                        <MessageBubble
+                            item={item}
+                            isSpeaking={speakingMessageId === item.id}
+                            onToggleSpeak={handleToggleSpeak}
+                        />
+                    )}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.messagesList}
                     showsVerticalScrollIndicator={false}
