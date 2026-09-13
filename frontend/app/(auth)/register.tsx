@@ -155,9 +155,6 @@ export default function RegisterScreen() {
             <Typography variant="h2" weight="bold" align="center" style={styles.title}>
               Create Account
             </Typography>
-            <Typography variant="body1" align="center" style={styles.subtitle}>
-              Start mastering system design today
-            </Typography>
           </View>
 
         <View style={styles.form}>

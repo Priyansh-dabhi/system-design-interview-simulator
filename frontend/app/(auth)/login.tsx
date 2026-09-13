@@ -207,9 +207,6 @@ export default function LoginScreen() {
             <Typography variant="h2" weight="bold" align="center" style={styles.title}>
               Welcome Back
             </Typography>
-            <Typography variant="body1" align="center" style={styles.subtitle}>
-              Continue your interview practice
-            </Typography>
           </View>
 
         <View style={styles.form}>
