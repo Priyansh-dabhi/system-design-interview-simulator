@@ -29,7 +29,6 @@
       "package": "com.priyanshdabhi.interviewsimulator"
     },
     "androidNavigationBar": {
-      "visible": "always",
       "backgroundColor": "#00000000"
     },
     "web": {
