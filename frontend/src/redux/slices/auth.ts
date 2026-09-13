@@ -186,10 +186,9 @@ export const logout = createAsyncThunk(
             await clearStoredAuth();
             await signOutFirebaseSession();
             dispatch(authSlice.actions.clearAuthNotice());
-            dispatch(authSlice.actions.clearAuthState());
             dispatch(clearSession());
             dispatch(clearSelectedTopic());
-            dispatch({ type: "interviewApi/resetApiState" });
+            dispatch(createSessionStartAPi.util.resetApiState());
         }
     }
 );
@@ -207,7 +206,6 @@ export const logoutAll = createAsyncThunk(
             await clearStoredAuth();
             await signOutFirebaseSession();
             dispatch(authSlice.actions.clearAuthNotice());
-            dispatch(authSlice.actions.clearAuthState());
             dispatch(clearSession());
             dispatch(clearSelectedTopic());
             dispatch(createSessionStartAPi.util.resetApiState());

@@ -7,15 +7,19 @@ import {
     ExpoSpeechRecognitionModule,
     useSpeechRecognitionEvent,
 } from 'expo-speech-recognition';
+import * as Speech from 'expo-speech';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
     Alert,
     FlatList,
+    Keyboard,
     KeyboardAvoidingView,
     Platform,
     StyleSheet,
+    Text,
+    View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChatHeader } from '../../src/components/interview/ChatHeader';
 import { ChatInput } from '../../src/components/interview/ChatInput';
@@ -24,19 +28,117 @@ import { TypingIndicator } from '../../src/components/interview/TypingIndicator'
 import { LoadingOverlay } from '../../src/components/shared/LoadingOverlay';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
+import { Typography } from '../../src/components/ui/Typography';
+
+// Segmented stage stepper matching top interview platforms
+function StageIndicator({ currentMessageCount }: { currentMessageCount: number }) {
+    const { colors, isDark } = useTheme();
+    const stages = ['Requirements', 'High-Level Design', 'Deep Dive', 'Scalability', 'Trade-offs'];
+    let activeIndex = 0;
+    if (currentMessageCount > 12) activeIndex = 4;
+    else if (currentMessageCount > 8) activeIndex = 3;
+    else if (currentMessageCount > 5) activeIndex = 2;
+    else if (currentMessageCount > 2) activeIndex = 1;
+
+    const styles = React.useMemo(() => StyleSheet.create({
+        container: {
+            paddingHorizontal: 18,
+            paddingTop: 10,
+            paddingBottom: 12,
+            backgroundColor: colors.surface,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.border,
+            gap: 8,
+        },
+        headerRow: {
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+        },
+        activeStageChip: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 6,
+            paddingHorizontal: 10,
+            paddingVertical: 3,
+            borderRadius: 12,
+            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.08)',
+            borderWidth: 1,
+            borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(37, 99, 235, 0.2)',
+        },
+        pulseDot: {
+            width: 7,
+            height: 7,
+            borderRadius: 3.5,
+            backgroundColor: colors.primary,
+        },
+        stepCount: {
+            fontSize: 12,
+            fontWeight: '600',
+            color: colors.textSecondary,
+        },
+        stepperTrack: {
+            flexDirection: 'row',
+            gap: 5,
+            height: 4.5,
+        },
+        stepSegment: {
+            flex: 1,
+            borderRadius: 3,
+        },
+    }), [colors, isDark]);
+
+    return (
+        <View style={styles.container}>
+            <View style={styles.headerRow}>
+                <View style={styles.activeStageChip}>
+                    <View style={styles.pulseDot} />
+                    <Typography variant="caption" weight="bold" style={{ color: colors.primary }}>
+                        {stages[activeIndex]}
+                    </Typography>
+                </View>
+                <Text style={styles.stepCount}>
+                    Step {activeIndex + 1} of {stages.length}
+                </Text>
+            </View>
+
+            {/* 5 Distinct Rounded Pill Segments */}
+            <View style={styles.stepperTrack}>
+                {stages.map((stage, idx) => {
+                    const isCompleted = idx < activeIndex;
+                    const isActive = idx === activeIndex;
+                    return (
+                        <View
+                            key={stage}
+                            style={[
+                                styles.stepSegment,
+                                {
+                                    backgroundColor: isCompleted
+                                        ? (colors.success || '#10B981')
+                                        : isActive
+                                        ? colors.primary
+                                        : (isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(203, 213, 225, 0.7)'),
+                                },
+                            ]}
+                        />
+                    );
+                })}
+            </View>
+        </View>
+    );
+}
 
 export default function InterviewSessionScreen() {
     const router = useRouter();
     const navigation = useNavigation();
     const dispatch = useDispatch();
 
-    // Read session data from Redux
     const sessionId = useSelector((state: RootState) => state.session.sessionId);
     const openingMessage = useSelector((state: RootState) => state.session.openingMessage);
     const problem = useSelector((state: RootState) => state.session.problem);
     const durationMinutes = useSelector((state: RootState) => state.session.durationMinutes);
     const hintCount = useSelector((state: RootState) => state.session.hintCount);
-    const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || 'System Design Interview';
+    const topicTitle = useSelector((state: RootState) => state.problem.selectedTopic?.title) || problem || 'Interview';
 
     const [sendChat, { isLoading: isSending }] = useChatMutation();
     const [endSession, { isLoading: isEnding }] = useEndSessionMutation();
@@ -45,24 +147,92 @@ export default function InterviewSessionScreen() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
     const [isRecording, setIsRecording] = useState(false);
-    const [isNavigatingAway, setIsNavigatingAway] = useState(false);
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
-    const flatListRef = useRef<FlatList>(null);
-    const baseTextRef = useRef('');
-    // Guards against ending the session more than once (timer + back gesture + End button).
+    const [isNavigatingAway, setIsNavigatingAway] = useState(false);
+    const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+
+    // Stop TTS speech when component unmounts
+    useEffect(() => {
+        return () => {
+            Speech.stop();
+        };
+    }, []);
+
+    const handleToggleSpeak = useCallback((message: Message) => {
+        if (speakingMessageId === message.id) {
+            Speech.stop();
+            setSpeakingMessageId(null);
+            return;
+        }
+
+        Speech.stop();
+        setSpeakingMessageId(message.id);
+        Speech.speak(message.text, {
+            rate: 1.0,
+            pitch: 1.0,
+            onDone: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
+            onStopped: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
+            onError: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
+        });
+    }, [speakingMessageId]);
+
+    const insets = useSafeAreaInsets();
+    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
     const hasEndedRef = useRef(false);
     const endsAtRef = useRef<number | null>(null);
     const performEndSessionRef = useRef<() => void>(() => {});
+    const flatListRef = useRef<FlatList>(null);
     const { colors } = useTheme();
 
-    // Keep track of text before recording to allow appending on resume
+    // Auto-scroll when keyboard opens
     useEffect(() => {
-        if (!isRecording) {
-            baseTextRef.current = inputText;
+        const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+        const showSub = Keyboard.addListener(showEvent, () => {
+            setKeyboardVisible(true);
+            setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+            }, 60);
+        });
+
+        const hideSub = Keyboard.addListener(hideEvent, () => {
+            setKeyboardVisible(false);
+        });
+
+        return () => {
+            showSub.remove();
+            hideSub.remove();
+        };
+    }, []);
+
+    // Voice recognition logic
+    useSpeechRecognitionEvent('start', () => setIsRecording(true));
+    useSpeechRecognitionEvent('end', () => setIsRecording(false));
+    useSpeechRecognitionEvent('result', (event) => {
+        const transcript = event.results[0]?.transcript;
+        if (transcript) {
+            setInputText((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+    });
+    useSpeechRecognitionEvent('error', (event) => {
+        console.error('Speech recognition error:', event.error, event.message);
+        setIsRecording(false);
+    });
+
+    const handleVoiceToggle = useCallback(async () => {
+        if (isRecording) {
+            ExpoSpeechRecognitionModule.stop();
+        } else {
+            setInputText('');
+            ExpoSpeechRecognitionModule.start({
+                lang: 'en-US',
+                interimResults: true,
+            });
         }
     }, [inputText, isRecording]);
 
-    // Set initial message from the API response
     useEffect(() => {
         if (openingMessage) {
             setMessages([{ id: '1', role: 'interviewer', text: openingMessage }]);
@@ -71,27 +241,27 @@ export default function InterviewSessionScreen() {
 
     const performEndSession = useCallback(async () => {
         if (!sessionId || !problem) return;
-        if (hasEndedRef.current) return; // already ending/ended — don't double-fire
+        if (hasEndedRef.current) return;
         hasEndedRef.current = true;
+        Speech.stop();
+        setSpeakingMessageId(null);
         try {
             const result = await endSession({ sessionId, problem }).unwrap();
             
             if (result.status === "cancelled") {
                 dispatch(clearSession());
                 setIsNavigatingAway(true);
-                router.replace('/(main)/home');
+                Alert.alert("Session Concluded", "Session discarded.");
+                router.replace('/(main)/home' as any);
                 return;
             }
 
             dispatch(setSummary(result));
-            
-            // Persist current messages for transcript export
             dispatch(persistMessages(messages.map(m => ({ role: m.role, text: m.text }))));
-            
             setIsNavigatingAway(true);
-            router.replace('/summary');
+            router.replace('/(interview)/complete' as any);
         } catch (err: any) {
-            hasEndedRef.current = false; // allow retry on failure
+            hasEndedRef.current = false;
             console.error('End session error:', err);
             Alert.alert(
                 'Summary Failed',
@@ -99,18 +269,14 @@ export default function InterviewSessionScreen() {
                 [{ text: 'OK' }]
             );
         }
-    }, [dispatch, endSession, problem, router, sessionId]);
+    }, [dispatch, endSession, problem, router, sessionId, messages]);
 
-    // Keep a live ref to performEndSession so the countdown interval always
-    // calls the latest closure without needing to re-create the interval.
     useEffect(() => {
         performEndSessionRef.current = performEndSession;
     });
 
-    // Countdown: derive a fixed deadline once, tick every second, and auto-end
-    // (exactly once, via hasEndedRef) when it reaches zero.
     useEffect(() => {
-        if (!durationMinutes) return; // untimed session — no countdown
+        if (!durationMinutes) return;
         if (endsAtRef.current === null) {
             endsAtRef.current = Date.now() + durationMinutes * 60 * 1000;
         }
@@ -127,17 +293,28 @@ export default function InterviewSessionScreen() {
     }, [durationMinutes]);
 
     const handleEndInterview = useCallback(() => {
-        Alert.alert(
-            'End Interview?',
-            'This will generate your performance summary. You cannot continue this session after ending.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'End Interview', style: 'destructive', onPress: performEndSession },
-            ]
-        );
-    }, [performEndSession]);
+        const userMsgCount = messages.filter(m => m.role === 'candidate').length;
+        if (userMsgCount === 0) {
+            Alert.alert(
+                'End Interview?',
+                'You have not submitted any answers yet. Ending now will conclude this session with a baseline evaluation.',
+                [
+                    { text: 'Keep Interviewing', style: 'cancel' },
+                    { text: 'End & Evaluate', style: 'destructive', onPress: performEndSession },
+                ]
+            );
+        } else {
+            Alert.alert(
+                'End Interview?',
+                'This will conclude your interview and generate your performance summary.',
+                [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'End Interview', style: 'destructive', onPress: performEndSession },
+                ]
+            );
+        }
+    }, [messages, performEndSession]);
 
-    // Intercept back button and gestures
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
             if (isNavigatingAway || isEnding) return;
@@ -156,6 +333,8 @@ export default function InterviewSessionScreen() {
 
     const handleSend = async () => {
         if (!inputText.trim() || !sessionId || !problem) return;
+        Speech.stop();
+        setSpeakingMessageId(null);
 
         const userText = inputText.trim();
         const userMessage: Message = {
@@ -196,7 +375,7 @@ export default function InterviewSessionScreen() {
         if (hintCount >= maxHints) {
             Alert.alert(
                 'No Hints Remaining',
-                `You've used all ${maxHints} hints for this session. Trust your instincts — you've got this! 💡`,
+                `You've used all ${maxHints} hints for this session. Trust your instincts! 💡`,
                 [{ text: 'OK' }]
             );
             return;
@@ -212,36 +391,9 @@ export default function InterviewSessionScreen() {
         }
     };
 
-    // --- Speech Recognition Hooks ---
-    useSpeechRecognitionEvent('start', () => setIsRecording(true));
-    useSpeechRecognitionEvent('end', () => setIsRecording(false));
-    useSpeechRecognitionEvent('result', (event) => {
-        const transcript = event.results[0]?.transcript;
-        if (transcript) {
-            const baseText = baseTextRef.current;
-            const separator = baseText.length > 0 && !baseText.endsWith(' ') ? ' ' : '';
-            setInputText(baseText + separator + transcript);
-        }
-    });
-    useSpeechRecognitionEvent('error', (event) => {
-        console.error('Speech recognition error:', event.error, event.message);
-        setIsRecording(false);
-        if (event.error === 'not-allowed') {
-            Alert.alert(
-                'Microphone Permission Required',
-                'Please enable microphone and speech recognition permissions in your device settings to use voice input.',
-                [{ text: 'OK' }]
-            );
-        } else if (event.error !== 'no-speech' && event.error !== 'aborted') {
-            Alert.alert(
-                'Voice Input Failed',
-                'Speech recognition encountered an error. Please try again or use text input.',
-                [{ text: 'OK' }]
-            );
-        }
-    });
-
     const handleVoiceInput = async () => {
+        Speech.stop();
+        setSpeakingMessageId(null);
         if (isRecording) {
             ExpoSpeechRecognitionModule.stop();
             return;
@@ -258,7 +410,7 @@ export default function InterviewSessionScreen() {
         ExpoSpeechRecognitionModule.start({ lang: 'en-US', interimResults: true, continuous: false });
     };
 
-const styles = React.useMemo(() => StyleSheet.create({
+    const styles = React.useMemo(() => StyleSheet.create({
         container: {
             flex: 1,
             backgroundColor: colors.background,
@@ -269,10 +421,8 @@ const styles = React.useMemo(() => StyleSheet.create({
         },
     }), [colors]);
 
-  return (
-
-
-          <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+    return (
+        <SafeAreaView style={styles.container} edges={['top']}>
             <ChatHeader
                 topicTitle={topicTitle}
                 onBack={() => router.back()}
@@ -280,18 +430,26 @@ const styles = React.useMemo(() => StyleSheet.create({
                 remainingSeconds={remainingSeconds ?? undefined}
             />
 
+            <StageIndicator currentMessageCount={messages.length} />
+
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
                 <FlatList
                     ref={flatListRef}
                     data={messages}
-                    renderItem={({ item }) => <MessageBubble item={item} />}
+                    renderItem={({ item }) => (
+                        <MessageBubble
+                            item={item}
+                            isSpeaking={speakingMessageId === item.id}
+                            onToggleSpeak={handleToggleSpeak}
+                        />
+                    )}
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.messagesList}
                     showsVerticalScrollIndicator={false}
+                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
                     ListFooterComponent={isSending ? <TypingIndicator /> : null}
                 />
 
@@ -307,6 +465,7 @@ const styles = React.useMemo(() => StyleSheet.create({
                     hintCount={hintCount}
                     maxHints={maxHints}
                     disabled={remainingSeconds !== null && remainingSeconds <= 0}
+                    bottomInset={isKeyboardVisible ? 6 : Math.max(insets.bottom, 10)}
                 />
             </KeyboardAvoidingView>
 

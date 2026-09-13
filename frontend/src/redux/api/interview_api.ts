@@ -7,7 +7,7 @@ export const createSessionStartAPi = createApi({
 
     baseQuery: baseQueryWithReauth,
 
-    tagTypes: ["InterviewHistory"],
+    tagTypes: ["InterviewHistory", "LearningTopics", "LearningTopic", "LearningLesson"],
 
     endpoints: (builder) => ({
         startSession: builder.mutation({
@@ -46,11 +46,43 @@ export const createSessionStartAPi = createApi({
                 method: "GET",
             }),
             providesTags: ["InterviewHistory"],
-        })
+        }),
+        getSessionDetail: builder.query<{
+            id: string;
+            topic: string;
+            status: string;
+            stage: string;
+            difficultyLevel?: string;
+            durationMinutes?: number | null;
+            durationSeconds?: number;
+            date: string;
+            endedAt?: string | null;
+            summary: InterviewHistoryResponse['history'][0]['summary'] | null;
+            messages: { id: string; role: 'interviewer' | 'user'; text: string; createdAt: string }[];
+        }, { sessionId: string }>({
+            query: ({ sessionId }) => ({
+                url: `/api/interview/session/${sessionId}`,
+                method: "GET",
+            }),
+            providesTags: (_result, _error, { sessionId }) => [{ type: "InterviewHistory", id: sessionId }],
+        }),
+        deleteSession: builder.mutation<{ success: boolean; message: string }, { sessionId: string }>({
+            query: ({ sessionId }) => ({
+                url: `/api/interview/session/${sessionId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: ["InterviewHistory"],
+        }),
     }),
-
-
-})
+});
 
 // custom hooks
-export const { useStartSessionMutation, useChatMutation, useEndSessionMutation, useGetHistoryQuery, useGetHintMutation } = createSessionStartAPi;
+export const {
+    useStartSessionMutation,
+    useChatMutation,
+    useEndSessionMutation,
+    useGetHistoryQuery,
+    useGetSessionDetailQuery,
+    useDeleteSessionMutation,
+    useGetHintMutation,
+} = createSessionStartAPi;

@@ -1,16 +1,15 @@
-import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from "expo-router";
-import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon } from "phosphor-react-native";
-import { Platform } from "react-native";
+import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon, GraduationCap, User } from "phosphor-react-native";
+import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../src/theme/useTheme";
+import { getSafeBottomInset } from "../../src/utils/safeArea";
 
 export default function MainLayout() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  
-  // Dynamically calculate padding based on device insets to avoid overlap with system nav buttons
-  const bottomPadding = Math.max(insets.bottom, Platform.OS === 'ios' ? 20 : 12);
+
+  const bottomPadding = getSafeBottomInset(insets.bottom, 10);
   const tabHeight = 60 + bottomPadding;
 
   return (
@@ -18,18 +17,21 @@ export default function MainLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: colors.background, // Figma #080B12
           borderTopColor: colors.border,
+          borderTopWidth: 1,
           height: tabHeight,
           paddingBottom: bottomPadding,
           paddingTop: 8,
+          elevation: 0,
         },
-        tabBarActiveTintColor: colors.primaryBrand,
-        tabBarInactiveTintColor: colors.textSecondary,
+        tabBarActiveTintColor: colors.primary, // Figma Accent Blue #2563EB
+        tabBarInactiveTintColor: colors.textDim, // Figma #94A3B8
         tabBarShowLabel: true,
         tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '500',
+          fontSize: 11,
+          fontWeight: "600",
+          marginTop: 2,
         },
       }}
     >
@@ -37,18 +39,26 @@ export default function MainLayout() {
         name="home"
         options={{
           title: "Home",
-          tabBarIcon: ({ color, size }) => (
-            <HouseIcon size={size} color={color} weight="fill" />
+          tabBarIcon: ({ color, size, focused }) => (
+            <HouseIcon size={22} color={color} weight={focused ? "fill" : "regular"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="learning"
+        options={{
+          title: "Learn",
+          tabBarIcon: ({ color, size, focused }) => (
+            <GraduationCap size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
       <Tabs.Screen
         name="practice"
         options={{
-          href: null, // This hides it from the bottom tab bar
           title: "Practice",
-          tabBarIcon: ({ color, size }) => (
-            <BooksIcon size={size} color={color} weight="fill" />
+          tabBarIcon: ({ color, size, focused }) => (
+            <BooksIcon size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
@@ -56,8 +66,8 @@ export default function MainLayout() {
         name="history"
         options={{
           title: "History",
-          tabBarIcon: ({ color, size }) => (
-            <ClockCounterClockwiseIcon size={size} color={color} weight="fill" />
+          tabBarIcon: ({ color, size, focused }) => (
+            <ClockCounterClockwiseIcon size={22} color={color} weight={focused ? "bold" : "regular"} />
           ),
         }}
       />
@@ -65,8 +75,8 @@ export default function MainLayout() {
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
+          tabBarIcon: ({ color, size, focused }) => (
+            <User size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
@@ -77,6 +87,14 @@ export default function MainLayout() {
           title: "Preferences",
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          href: null,
+          title: "Settings",
+        }}
+      />
+
     </Tabs>
   );
 }

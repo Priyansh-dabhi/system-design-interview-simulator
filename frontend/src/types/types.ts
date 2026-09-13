@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { TextInputProps, TextStyle, ViewStyle } from 'react-native';
+import { StyleProp, TextInputProps, TextStyle, ViewStyle } from 'react-native';
 
 export interface User {
     id: number;
@@ -59,6 +59,7 @@ export interface InterviewHistoryItem {
     messageCount: number;
     overallScore?: number | null;
     score: InterviewScore;
+    durationSeconds?: number;
     summary: InterviewSummary;
 }
 
@@ -96,12 +97,14 @@ export interface ScreenWrapperProps {
     children: React.ReactNode;
     style?: ViewStyle;
     withPadding?: boolean;
+    transparent?: boolean;
 }
 
 export interface InputProps extends TextInputProps {
     label?: string;
     error?: string;
     rightAccessory?: ReactNode;
+    labelStyle?: StyleProp<TextStyle>;
 }
 
 export interface ButtonProps {

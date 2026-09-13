@@ -1,10 +1,12 @@
-import { ChartBarIcon } from 'phosphor-react-native';
+import { ChartBar } from 'phosphor-react-native';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
 import { Layout } from '../../constants/Layout';
 import { DimensionScore } from '../../types/types';
 import { dimensionColor } from './summaryColors';
+import { Typography } from '../ui/Typography';
+import { Card } from '../ui/Card';
 
 interface DimensionBarsProps {
     scores: Record<string, DimensionScore>;
@@ -23,63 +25,74 @@ export function DimensionBars({ scores }: DimensionBarsProps) {
     const rows = DIMENSIONS.filter((d) => scores[d.key]);
 
     const styles = React.useMemo(() => StyleSheet.create({
-        container: { gap: Layout.spacing.sm },
+        container: { gap: Layout.spacing.lg },
         header: {
             flexDirection: 'row',
             alignItems: 'center',
             gap: Layout.spacing.sm,
-            marginBottom: 2,
+            marginBottom: Layout.spacing.sm,
         },
         iconContainer: {
-            width: 28,
-            height: 28,
-            borderRadius: 14,
+            width: 32,
+            height: 32,
+            borderRadius: 8,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#3B82F620',
+            backgroundColor: colors.primary + '15',
         },
-        title: { fontSize: 14, fontWeight: '600', color: colors.text },
-        row: { gap: 4, marginBottom: Layout.spacing.sm },
+        row: { gap: 6 },
         rowTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-        rowLabel: { fontSize: 13, fontWeight: '600', color: colors.text },
-        rowScore: { fontSize: 13, fontWeight: '700', fontVariant: ['tabular-nums'] },
         track: {
-            height: 6,
-            borderRadius: 3,
+            height: 8,
+            borderRadius: 4,
             backgroundColor: colors.surfaceHighlight,
             overflow: 'hidden',
         },
-        fill: { height: 6, borderRadius: 3 },
-        comment: { fontSize: 12, color: colors.textSecondary, lineHeight: 17 },
+        fill: { height: 8, borderRadius: 4 },
+        commentWrapper: {
+            backgroundColor: colors.surfaceHighlight,
+            padding: Layout.spacing.md,
+            borderRadius: Layout.borderRadius.md,
+            marginTop: 4,
+        },
     }), [colors]);
 
     if (rows.length === 0) return null;
 
     return (
-        <View style={styles.container}>
+        <Card padding="lg" variant="outlined">
             <View style={styles.header}>
                 <View style={styles.iconContainer}>
-                    <ChartBarIcon size={16} color="#3B82F6" weight="fill" />
+                    <ChartBar size={18} color={colors.primary} weight="fill" />
                 </View>
-                <Text style={styles.title}>Performance Breakdown</Text>
+                <Typography variant="h4" weight="semibold">Performance Breakdown</Typography>
             </View>
-            {rows.map((d) => {
-                const { score, comment } = scores[d.key];
-                const color = dimensionColor(score);
-                const pct = Math.max(0, Math.min(100, (score / 10) * 100));
-                return (
-                    <View key={d.key} style={styles.row}>
-                        <View style={styles.rowTop}>
-                            <Text style={styles.rowLabel}>{d.label}</Text>
-                            <Text style={[styles.rowScore, { color }]}>{score}/10</Text>
+            
+            <View style={styles.container}>
+                {rows.map((d) => {
+                    const { score, comment } = scores[d.key];
+                    const color = dimensionColor(score);
+                    const pct = Math.max(0, Math.min(100, (score / 10) * 100));
+                    return (
+                        <View key={d.key} style={styles.row}>
+                            <View style={styles.rowTop}>
+                                <Typography variant="body1" weight="semibold">{d.label}</Typography>
+                                <Typography variant="body1" weight="bold" style={{ color, fontVariant: ['tabular-nums'] }}>{score}/10</Typography>
+                            </View>
+                            <View style={styles.track}>
+                                <View style={[styles.fill, { width: `${pct}%`, backgroundColor: color }]} />
+                            </View>
+                            {!!comment && (
+                                <View style={styles.commentWrapper}>
+                                    <Typography variant="body2" color="textSecondary" style={{ lineHeight: 20 }}>
+                                        {comment}
+                                    </Typography>
+                                </View>
+                            )}
                         </View>
-                        <View style={styles.track}>
-                            <View style={[styles.fill, { width: `${pct}%`, backgroundColor: color }]} />
-                        </View>
-                        {!!comment && <Text style={styles.comment}>{comment}</Text>}
-                    </View>
-                );
-            })}
-        </View>
+                    );
+                })}
+            </View>
+        </Card>
     );
 }

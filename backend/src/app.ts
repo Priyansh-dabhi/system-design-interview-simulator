@@ -4,6 +4,7 @@ import cors from "cors";
 // routes (we’ll add auth routes soon)
 import authRoutes from "./routes/auth.routes.js";
 import interviewRoutes from  "./routes/interview.routes.js";
+import learningRoutes from "./routes/learning.routes.js";
 import { globalErrorHandler } from "./middleware/error.middleware.js";
 import { generalLimiter, authLimiter, chatLimiter } from "./middleware/rate-limit.middleware.js";
 
@@ -36,7 +37,8 @@ app.get("/", (req, res) => {
 
 // auth routes
 app.use("/api/auth", authRoutes);
-app.use("/api/interview",interviewRoutes)
+app.use("/api/interview", interviewRoutes);
+app.use("/api/learning", learningRoutes);
 
 // 404 catch-all
 app.use((req, res, next) => {

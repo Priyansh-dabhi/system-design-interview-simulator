@@ -64,9 +64,10 @@ At the end of each session, the AI generates a structured evaluation covering st
 | **AI / LLM** | LangChain, Google Gemini 2.5 Flash, Gemini Embedding 001 |
 | **RAG Pipeline** | LangChain TextSplitters, pgvector cosine similarity search |
 | **Authentication** | Firebase Authentication (Google OAuth), Firebase Admin SDK, JWT access/refresh tokens, bcrypt |
-| **Voice Input** | Expo Speech Recognition (native module) |
+| **Voice & Audio** | Expo Speech (TTS audio narration), Expo Speech Recognition (speech-to-text voice input) |
 | **Validation** | Zod schema validation (backend), structured error handling |
-| **UI** | Phosphor Icons, Expo Linear Gradient, React Native Reanimated |
+| **UI & Styling** | Slate & Navy design system, Google Fonts (Inter, DM Sans, JetBrains Mono), Phosphor Icons, Expo Linear Gradient, React Native Reanimated |
+| **Learning Module** | Markdown lesson renderer, interactive quiz engine, YouTube video walkthrough integration |
 | **Infrastructure** | Docker Compose (local pgvector), Render (production backend), Expo EAS (mobile builds) |
 
 ---
@@ -160,12 +161,16 @@ At the end of each session, the AI generates a structured evaluation covering st
 | 🎙 **AI Interviewer** | FAANG-level system design interviewer powered by Gemini 2.5 Flash via LangChain |
 | 📊 **Stage-Aware Progression** | Interview flows through 5 stages: greeting → warmup → design → deep_dive → evaluation |
 | 🧠 **RAG-Enhanced Questioning** | Questions are grounded in real system design knowledge via pgvector similarity search |
-| 🎤 **Voice Input** | Native speech-to-text via Expo Speech Recognition with append-on-resume behavior |
-| 📝 **Structured Evaluation** | AI-generated performance summaries with strengths, missed topics, and suggestions |
+| 🎤 **Voice Input (STT)** | Native speech-to-text via Expo Speech Recognition with append-on-resume behavior |
+| 🔊 **AI Voice Narration (TTS)** | Real-time text-to-speech voice playback for interviewer messages via `expo-speech` with replay controls |
+| 💡 **Real-Time Hints** | Context-aware hints generated on-demand during active interview sessions |
+| 🎓 **Learning Curriculum** | Comprehensive structured course pathway with video breakdowns, technical notes, and quizzes |
+| 📝 **Structured Evaluation** | Multi-dimensional scoring (0–100), radar dimension scores, missed topics, and reference designs |
 | 📜 **Interview History** | Full session history with per-interview stats, scores, and performance breakdown |
+| ⚙️ **Comprehensive Settings** | Dedicated preferences screen for audio narration speed, auto-play toggle, interview difficulty, and dark/light theme |
 | 🔐 **Dual Authentication** | Email/password registration + Google OAuth via Firebase with seamless account linking |
 | 🔄 **Session Persistence** | Secure JWT access + refresh token rotation with automatic silent refresh |
-| 🏠 **Dashboard** | Home screen with weekly progress tracking, recommended interviews, and quick actions |
+| 🏠 **Home Dashboard** | Dynamic dashboard with learning progress, daily architectural tips, and quick interview launches |
 | 🧩 **Problem Selection** | Curated system design problems (WhatsApp, Netflix, Uber, TinyURL) with difficulty ratings |
 
 ### AI Features
@@ -253,8 +258,14 @@ The application uses PostgreSQL 16 with the pgvector extension, managed by Prism
 erDiagram
     users ||--o{ interview_sessions : has
     users ||--o{ refresh_tokens : has
+    users ||--o{ learning_progress : tracks
+    users ||--o{ learning_quiz_attempts : submits
     interview_sessions ||--o{ interview_messages : contains
     interview_sessions ||--o| interview_summaries : produces
+    learning_topics ||--o{ learning_lessons : contains
+    learning_topics ||--o{ learning_progress : recorded_for
+    learning_lessons ||--o{ learning_quiz_questions : includes
+    learning_lessons ||--o{ learning_quiz_attempts : attempted_on
 
     users {
         int id PK
@@ -265,6 +276,7 @@ erDiagram
         string providerId UK
         string avatarUrl
         boolean oauthEnabled
+        datetime acceptedTermsAt
         datetime createdAt
     }
 
@@ -276,6 +288,9 @@ erDiagram
         string stage
         json coveredTopics
         string difficultyLevel
+        int durationMinutes
+        int hintCount
+        datetime endedAt
         datetime createdAt
     }
 
@@ -293,6 +308,11 @@ erDiagram
         string strengths
         string missedTopics
         string suggestions
+        int overallScore
+        json dimensionScores
+        json topicCoverage
+        json studyPlan
+        string idealAnswer
         datetime createdAt
     }
 
@@ -315,6 +335,57 @@ erDiagram
         datetime expiresAt
         datetime createdAt
         datetime revokedAt
+    }
+
+    learning_topics {
+        int id PK
+        string title
+        string description
+        string slug UK
+        int order
+        string icon
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    learning_lessons {
+        int id PK
+        int topicId FK
+        string title
+        string description
+        string content
+        int order
+        string youtubeVideoId
+        int estimatedMinutes
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    learning_quiz_questions {
+        int id PK
+        int lessonId FK
+        string question
+        json options
+        int correctAnswerIndex
+        string explanation
+    }
+
+    learning_progress {
+        int id PK
+        int userId FK
+        int topicId FK
+        boolean completed
+        datetime completedAt
+    }
+
+    learning_quiz_attempts {
+        int id PK
+        int userId FK
+        int lessonId FK
+        int score
+        int totalQuestions
+        boolean passed
+        datetime createdAt
     }
 ```
 
@@ -440,7 +511,19 @@ When a user registers with email/password and later signs in with Google (or vic
 | `POST` | `/api/interview/start_session` | ✅ | Start a new interview session for a given problem |
 | `POST` | `/api/interview/chat` | ✅ | Send a candidate message and receive an AI response |
 | `POST` | `/api/interview/summary` | ✅ | End an interview and generate a structured evaluation |
+| `POST` | `/api/interview/hint` | ✅ | Request a contextual hint during an active interview |
 | `GET` | `/api/interview/history` | ✅ | Retrieve all interview sessions with stats and summaries |
+| `GET` | `/api/interview/session/:id` | ✅ | Retrieve full transcript, metrics, and evaluation for a session |
+| `DELETE` | `/api/interview/session/:id` | ✅ | Delete a specific interview session |
+
+### Learning Endpoints
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `GET` | `/api/learning/topics` | ✅ | List all curriculum topics with lesson count and completion status |
+| `GET` | `/api/learning/topics/:slug/lessons` | ✅ | Retrieve all lessons, video links, and quiz questions for a topic |
+| `GET` | `/api/learning/lessons/:id` | ✅ | Get full lesson content (markdown breakdown, video metadata) |
+| `POST` | `/api/learning/lessons/:id/complete` | ✅ | Submit quiz answers, record score, and mark lesson as completed |
 
 ### Request/Response Examples
 
@@ -580,11 +663,17 @@ sd-sim/
     │   │   ├── register.tsx                # Registration screen
     │   │   └── google-signin.tsx           # Google sign-in handler
     │   ├── (main)/
-    │   │   ├── _layout.tsx                 # Bottom tab navigator (Home, History, Profile)
-    │   │   ├── home.tsx                    # Dashboard with progress + recommended topics
-    │   │   ├── history.tsx                 # Interview history with stats
-    │   │   ├── practice.tsx                # Practice screen (future expansion)
-    │   │   └── profile.tsx                 # User profile and settings
+    │   │   ├── _layout.tsx                 # Bottom tab navigator (Home, Learn, Practice, History, Profile)
+    │   │   ├── home.tsx                    # Dashboard with learning progress + daily tip
+    │   │   ├── learning.tsx                # Structured curriculum topics & pathway overview
+    │   │   ├── history.tsx                 # Interview history with stats & score radar
+    │   │   ├── practice.tsx                # System design problem catalog
+    │   │   ├── profile.tsx                 # User profile, statistics, and settings link
+    │   │   ├── settings.tsx                # Audio narration, interview prefs, and theme controls
+    │   │   ├── lesson/
+    │   │   │   └── [id].tsx                # Markdown lesson reader with video embeds
+    │   │   └── quiz/
+    │   │       └── [id].tsx                # Interactive topic assessment quiz
     │   └── (interview)/
     │       ├── _layout.tsx                 # Interview stack layout
     │       ├── problem-selection.tsx        # System design problem picker

@@ -4,7 +4,9 @@ export default function InterviewLayout() {
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="problem-selection" />
+            <Stack.Screen name="setup" />
             <Stack.Screen name="session" />
+            <Stack.Screen name="complete" />
             <Stack.Screen name="summary" />
         </Stack>
     );

@@ -1,8 +1,7 @@
-import { LightbulbIcon } from 'phosphor-react-native';
+import { Lightbulb } from 'phosphor-react-native';
 import React from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { useTheme } from '../../theme/useTheme';
-import { Layout } from '../../constants/Layout';
 
 interface HintButtonProps {
     onPress: () => void;
@@ -13,73 +12,58 @@ interface HintButtonProps {
 }
 
 export function HintButton({ onPress, isLoading, hintCount, maxHints, disabled = false }: HintButtonProps) {
-    const { colors } = useTheme();
-    const remaining = maxHints - hintCount;
+    const { colors, isDark } = useTheme();
+    const remaining = Math.max(0, maxHints - hintCount);
     const isExhausted = remaining <= 0;
 
     const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-            position: 'relative',
-        },
         button: {
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: colors.surface,
+            height: 44,
+            paddingHorizontal: 12,
+            borderRadius: 22,
+            backgroundColor: isExhausted
+                ? (isDark ? 'rgba(51, 65, 85, 0.25)' : '#F1F5F9')
+                : (isDark ? 'rgba(245, 158, 11, 0.12)' : '#FEF3C7'),
+            borderWidth: 1,
+            borderColor: isExhausted
+                ? colors.border
+                : (isDark ? 'rgba(245, 158, 11, 0.3)' : '#FDE68A'),
+            flexDirection: 'row',
             alignItems: 'center',
             justifyContent: 'center',
-            borderWidth: 1,
-            borderColor: colors.border,
+            gap: 5,
         },
         buttonDisabled: {
             opacity: 0.5,
         },
-        badge: {
-            position: 'absolute',
-            top: -4,
-            right: -4,
-            backgroundColor: '#F59E0B',
-            borderRadius: 10,
-            minWidth: 18,
-            height: 18,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 2,
-            borderColor: colors.background,
+        countText: {
+            fontSize: 13,
+            fontWeight: '700',
+            color: isExhausted ? colors.textDim : (isDark ? '#FBBF24' : '#D97706'),
         },
-        badgeExhausted: {
-            backgroundColor: '#EF4444',
-        },
-        badgeText: {
-            color: '#FFFFFF',
-            fontSize: 10,
-            fontWeight: 'bold',
-        },
-    }), [colors]);
+    }), [colors, isDark, isExhausted]);
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity
-                onPress={onPress}
-                disabled={disabled || isLoading}
-                style={[styles.button, (disabled || isLoading) && styles.buttonDisabled]}
-                activeOpacity={0.7}
-            >
-                {isLoading ? (
-                    <ActivityIndicator size="small" color="#F59E0B" />
-                ) : (
-                    <LightbulbIcon
-                        size={20}
-                        color={disabled || isExhausted ? colors.textSecondary : '#F59E0B'}
-                        weight="fill"
+        <TouchableOpacity
+            onPress={onPress}
+            disabled={disabled || isLoading || isExhausted}
+            style={[styles.button, (disabled || isLoading) && styles.buttonDisabled]}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Hints remaining: ${remaining}`}
+        >
+            {isLoading ? (
+                <ActivityIndicator size="small" color="#F59E0B" />
+            ) : (
+                <>
+                    <Lightbulb
+                        size={18}
+                        color={isExhausted ? colors.textDim : '#F59E0B'}
+                        weight={isExhausted ? 'regular' : 'fill'}
                     />
-                )}
-            </TouchableOpacity>
-
-            {/* Badge shows remaining hints. Turns red when exhausted. */}
-            <View style={[styles.badge, isExhausted && styles.badgeExhausted]}>
-                <Text style={styles.badgeText}>{remaining}</Text>
-            </View>
-        </View>
+                    <Text style={styles.countText}>{remaining}</Text>
+                </>
+            )}
+        </TouchableOpacity>
     );
 }

@@ -1,0 +1,35 @@
+# Dependencies (EAS installs these automatically on cloud)
+node_modules/
+
+# Local Expo and Web build artifacts
+.expo/
+dist/
+web-build/
+
+# Android build artifacts and caches (Prevents multi-gigabyte upload)
+android/build/
+android/app/build/
+android/.gradle/
+android/.cxx/
+android/app/.cxx/
+android/.kotlin/
+android/local.properties
+android/*.iml
+android/app/*.iml
+
+# iOS local build artifacts
+ios/build/
+ios/Pods/
+
+# Local environment overrides
+.env*.local
+
+# Logs and system metadata
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.DS_Store
+.vscode/
+docs/
+.git/

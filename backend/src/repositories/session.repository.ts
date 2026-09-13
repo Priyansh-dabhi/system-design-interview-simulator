@@ -79,6 +79,27 @@ export const getHistoryForUser = async (userId: number) => {
     }));
 };
 
+export const findOwnedSessionWithFullDetail = async (sessionId: string, userId: number) => {
+    return withDbErrorHandling(() => prisma.interviewSession.findFirst({
+        where: {
+            id: sessionId,
+            userId,
+        },
+        include: {
+            summary: true,
+            messages: {
+                orderBy: { createdAt: "asc" },
+                select: {
+                    id: true,
+                    role: true,
+                    content: true,
+                    createdAt: true,
+                },
+            },
+        },
+    }));
+};
+
 export const deleteSession = async (sessionId: string) => {
     return withDbErrorHandling(() => prisma.interviewSession.delete({
         where: {

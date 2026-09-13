@@ -1,6 +1,5 @@
-import React from "react";
-import { LoadingSplash } from "../src/components/LoadingSplash";
+import { Redirect } from 'expo-router';
 
-export default function SplashScreen() {
-  return <LoadingSplash />;
+export default function Index() {
+  return <Redirect href="/(main)/home" />;
 }

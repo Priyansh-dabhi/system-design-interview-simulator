@@ -1,5 +1,6 @@
 import React from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
+import { Typography } from "./Typography";
 import { useTheme } from "../../theme/useTheme";
 import { Layout } from "../../constants/Layout";
 
@@ -10,6 +11,7 @@ export const Input: React.FC<InputProps> = ({
   error,
   style,
   rightAccessory,
+  labelStyle,
   ...props
 }) => {
   const { colors } = useTheme();
@@ -20,10 +22,7 @@ export const Input: React.FC<InputProps> = ({
       width: "100%",
     },
     label: {
-      color: colors.textSecondary,
-      fontSize: 14,
       marginBottom: Layout.spacing.xs,
-      fontWeight: "500",
     },
     inputWrapper: {
       position: "relative",
@@ -36,6 +35,7 @@ export const Input: React.FC<InputProps> = ({
       borderRadius: Layout.borderRadius.md,
       padding: Layout.spacing.md,
       color: colors.text,
+      fontFamily: "Inter_400Regular",
       fontSize: 16,
       minHeight: 48,
     },
@@ -52,15 +52,13 @@ export const Input: React.FC<InputProps> = ({
       justifyContent: "center",
     },
     errorText: {
-      color: colors.error,
-      fontSize: 12,
       marginTop: Layout.spacing.xs,
     },
   }), [colors]);
 
   return (
     <View style={styles.container}>
-      {label && <Text style={styles.label}>{label}</Text>}
+      {label && <Typography variant="body2" weight="medium" color="textSecondary" style={[styles.label, labelStyle]}>{label}</Typography>}
       <View style={styles.inputWrapper}>
         <TextInput
           style={[
@@ -75,7 +73,7 @@ export const Input: React.FC<InputProps> = ({
         />
         {rightAccessory ? <View style={styles.accessory}>{rightAccessory}</View> : null}
       </View>
-      {error && <Text style={styles.errorText}>{error}</Text>}
+      {error && <Typography variant="caption" color="error" style={styles.errorText}>{error}</Typography>}
     </View>
   );
 };

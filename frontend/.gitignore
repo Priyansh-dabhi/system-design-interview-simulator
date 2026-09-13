@@ -43,5 +43,16 @@ app-example
 /ios
 /android
 
+# Android build outputs & local caches
+android/build/
+android/app/build/
+android/.gradle/
+android/.cxx/
+android/app/.cxx/
+android/.kotlin/
+android/local.properties
+android/*.iml
+android/app/*.iml
+
 #docs
 docs/

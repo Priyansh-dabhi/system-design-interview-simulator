@@ -21,11 +21,16 @@
         "foregroundImage": "./assets/images/app_icon_pure_black_1024.png"
       },
       "edgeToEdgeEnabled": true,
+      "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.priyanshdabhi.interviewsimulator"
+    },
+    "androidNavigationBar": {
+      "visible": "always",
+      "backgroundColor": "#00000000"
     },
     "web": {
       "output": "static",
@@ -39,11 +44,11 @@
           "image": "./assets/images/app_icon_pure_black_1024.png",
           "imageWidth": 144,
           "resizeMode": "contain",
-          "backgroundColor": "#000000",
+          "backgroundColor": "#080B12",
           "dark": {
             "image": "./assets/images/app_icon_pure_black_1024.png",
             "imageWidth": 144,
-            "backgroundColor": "#000000"
+            "backgroundColor": "#080B12"
           }
         }
       ],
@@ -72,9 +77,7 @@
       }
     },
     "owner": "priyansh_dabhi",
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "1.0.0",
     "updates": {
       "url": "https://u.expo.dev/a76a192a-8685-4ece-95b1-bcbe61c2110a",
       "enabled": true,

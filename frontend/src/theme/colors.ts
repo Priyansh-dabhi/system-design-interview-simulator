@@ -1,69 +1,69 @@
 import { ThemeColors } from './types';
 
 export const darkColors: ThemeColors = {
-    background: '#000000',
-    surface: '#121212',
-    surfaceHighlight: '#2A2A2A',
+    background: '#080B12', // Authentic Figma obsidian navy
+    surface: '#111827', // Figma card slate navy
+    surfaceHighlight: '#1E293B', // Elevated active slate
     text: '#FFFFFF',
-    textSecondary: '#A1A1AA', // Zinc 400
-    textDim: '#fff', // Zinc 600 - keeping existing behavior
-    primary: '#E4E4E7', // Zinc 200
-    primaryDark: '#A1A1AA',
-    border: '#27272A', // Zinc 800
-    error: '#EF4444',
-    success: '#10B981',
+    textSecondary: '#94A3B8', // Figma slate-400
+    textDim: '#64748B', // Figma slate-500
+    primary: '#3B82F6', // Figma Electric Blue
+    primaryDark: '#2563EB',
+    border: 'rgba(51, 65, 85, 0.45)', // Figma border-slate-800/60
+    error: '#EF4444', // Figma red-500
+    success: '#10B981', // Figma emerald-500
 
-    buttonPrimaryText: '#000000',
-    buttonSecondaryBackground: '#27272A',
+    buttonPrimaryText: '#FFFFFF',
+    buttonSecondaryBackground: '#1E293B',
     buttonSecondaryText: '#FFFFFF',
-    inputBackground: '#18181B',
+    inputBackground: '#0D1117',
 
-    primaryBrand: '#137fec',
-    backgroundDark: '#101922',
-    surfaceDark: '#18222c',
-    surfaceDarker: '#141e27',
+    primaryBrand: '#3B82F6',
+    backgroundDark: '#050810',
+    surfaceDark: '#111827',
+    surfaceDarker: '#080B12',
 
-    userMessageBg: '#137fec',
+    userMessageBg: '#2563EB',
     userMessageText: '#FFFFFF',
-    aiMessageBg: '#121212',
-    aiMessageText: '#FFFFFF',
-    aiMessageBorder: '#27272A',
+    aiMessageBg: '#111827',
+    aiMessageText: '#F1F5F9',
+    aiMessageBorder: 'rgba(51, 65, 85, 0.5)',
 
-    dangerSurfaceBg: '#1A0A0A',
-    dangerSurfaceBorder: '#2A1010',
-    overlayBackground: 'rgba(0, 0, 0, 0.7)',
+    dangerSurfaceBg: 'rgba(239, 68, 68, 0.1)',
+    dangerSurfaceBorder: 'rgba(239, 68, 68, 0.25)',
+    overlayBackground: 'rgba(0, 0, 0, 0.75)',
 };
 
 export const lightColors: ThemeColors = {
-    background: '#F8F9FB',
+    background: '#F8FAFC', // Clean slate-50
     surface: '#FFFFFF',
-    surfaceHighlight: '#EEF1F5',
-    text: '#111827',
-    textSecondary: '#5F6B7A',
+    surfaceHighlight: '#F1F5F9',
+    text: '#0F172A',
+    textSecondary: '#64748B',
     textDim: '#94A3B8',
-    primary: '#1570C8',
-    primaryDark: '#0F5298',
-    border: '#DFE3EA',
+    primary: '#2563EB',
+    primaryDark: '#1D4ED8',
+    border: '#E2E8F0',
     error: '#DC2626',
     success: '#059669',
 
     buttonPrimaryText: '#FFFFFF',
-    buttonSecondaryBackground: '#FFFFFF',
-    buttonSecondaryText: '#111827',
+    buttonSecondaryBackground: '#F1F5F9',
+    buttonSecondaryText: '#0F172A',
     inputBackground: '#FFFFFF',
 
-    primaryBrand: '#1570C8',
-    backgroundDark: '#F1F4F8',
-    surfaceDark: '#E8ECF1',
-    surfaceDarker: '#E2E6EC',
+    primaryBrand: '#2563EB',
+    backgroundDark: '#F1F5F9',
+    surfaceDark: '#E2E8F0',
+    surfaceDarker: '#CBD5E1',
 
-    userMessageBg: '#E8F0FE',
-    userMessageText: '#111827',
+    userMessageBg: '#EFF6FF',
+    userMessageText: '#0F172A',
     aiMessageBg: '#FFFFFF',
-    aiMessageText: '#111827',
-    aiMessageBorder: '#DFE3EA',
+    aiMessageText: '#0F172A',
+    aiMessageBorder: '#E2E8F0',
 
     dangerSurfaceBg: '#FEF2F2',
-    dangerSurfaceBorder: '#FEE2E2',
+    dangerSurfaceBorder: '#FECACA',
     overlayBackground: 'rgba(0, 0, 0, 0.3)',
 };

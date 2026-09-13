@@ -2,12 +2,12 @@ import React from "react";
 import {
   ActivityIndicator,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useTheme } from "../../theme/useTheme";
 import { Layout } from "../../constants/Layout";
+import { Typography } from "./Typography";
 
 import { ButtonProps } from "../../types/types";
 
@@ -83,10 +83,6 @@ export const Button: React.FC<ButtonProps> = ({
     leftIconContainer: {
       marginRight: Layout.spacing.sm,
     },
-    text: {
-      fontSize: 16,
-      fontWeight: "600",
-    },
     disabled: {
       opacity: 0.7,
     },
@@ -110,9 +106,13 @@ export const Button: React.FC<ButtonProps> = ({
       ) : (
         <View style={styles.contentContainer}>
           {leftIcon && <View style={styles.leftIconContainer}>{leftIcon}</View>}
-          <Text style={[styles.text, { color: getTextColor() }, textStyle]}>
+          <Typography 
+            variant="body1" 
+            weight="semibold" 
+            style={[{ color: getTextColor() }, textStyle]}
+          >
             {title}
-          </Text>
+          </Typography>
         </View>
       )}
     </TouchableOpacity>
