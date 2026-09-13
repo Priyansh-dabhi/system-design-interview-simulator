@@ -1,28 +1,78 @@
 # Dependencies (EAS installs these automatically on cloud)
 node_modules/
+**/node_modules/
+**/node_modules/**
 
 # Local Expo and Web build artifacts
 .expo/
+**/.expo/
+**/.expo/**
 dist/
+**/dist/
+**/dist/**
 web-build/
+**/web-build/
+**/web-build/**
 
-# Android build artifacts and caches (Prevents multi-gigabyte upload)
+# Android build artifacts and intermediate caches (Prevents multi-gigabyte upload)
 android/build/
 android/app/build/
 android/.gradle/
 android/.cxx/
 android/app/.cxx/
 android/.kotlin/
-android/local.properties
-android/*.iml
-android/app/*.iml
+**/build/
+**/build/**
+**/.gradle/
+**/.gradle/**
+**/.cxx/
+**/.cxx/**
+**/.kotlin/
+**/.kotlin/**
+build/
+.gradle/
+.cxx/
+.kotlin/
+*.apk
+**/*.apk
+*.aab
+**/*.aab
+*.dex
+**/*.dex
+*.class
+**/*.class
+*.so
+**/*.so
+*.obj
+**/*.obj
+*.o
+**/*.o
+*.hprof
+**/*.hprof
+local.properties
+**/local.properties
+*.iml
+**/*.iml
+.idea/
+**/.idea/
+**/.idea/**
 
 # iOS local build artifacts
 ios/build/
 ios/Pods/
+**/ios/build/**
+**/ios/Pods/**
+Pods/
+**/Pods/**
 
-# Local environment overrides
+# Local environment & secrets
 .env*.local
+*.pem
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
 
 # Logs and system metadata
 *.log
@@ -31,5 +81,9 @@ yarn-debug.*
 yarn-error.*
 .DS_Store
 .vscode/
+**/.vscode/**
 docs/
+**/docs/**
 .git/
+**/.git/**
+
