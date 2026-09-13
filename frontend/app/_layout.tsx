@@ -1,14 +1,13 @@
+import 'react-native-gesture-handler';
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
-import { useEffect, useRef } from "react";
-import { StyleSheet } from "react-native";
-import { View } from "react-native";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 
-import { useState } from "react";
 import * as SplashScreen from 'expo-splash-screen';
 
 // Keep the native splash screen visible while we fetch resources from Redux
@@ -20,6 +19,7 @@ import { bootstrapAuth, clearGoogleAuthPhase } from "@/src/redux/slices/auth";
 import { OfflineScreen } from "../src/components/OfflineScreen";
 import { ThemeProvider } from "../src/theme/ThemeContext";
 import { useTheme } from "../src/theme/useTheme";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   const dispatch = useAppDispatch();
@@ -62,7 +62,7 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   const isAuthInFlight = googleAuthPhase !== "idle" || isSubmitting;
 
   useEffect(() => {
-    if (showSplash) return;
+    if (isLoading || showSplash) return;
 
     const isOnAcceptTerms = segments[0] === '(auth)' && segments[1] === 'accept-terms';
 
@@ -129,12 +129,14 @@ export default function RootLayout() {
   });
 
   return (
-    <Provider store={store}>
-      <ThemeProvider>
-        <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-          <RootApp fontsLoaded={fontsLoaded} />
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <ThemeProvider>
+          <SafeAreaProvider initialMetrics={initialWindowMetrics}>
+            <RootApp fontsLoaded={fontsLoaded} />
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </Provider>
+    </GestureHandlerRootView>
   );
 }
