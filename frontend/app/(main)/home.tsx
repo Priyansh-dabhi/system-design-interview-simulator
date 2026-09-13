@@ -1,23 +1,22 @@
-import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
+import { useGetTopicsQuery } from '@/src/redux/api/learning_api';
 import { useAppSelector } from '@/src/redux/hooks';
-import { setSelectedTopic } from '@/src/redux/slices/problem';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ExpoSpeechRecognitionModule } from 'expo-speech-recognition';
 import {
   ArrowRight,
   BookOpen,
   CaretRight,
   CheckCircle,
+  GraduationCap,
   Lightning,
   Microphone,
   Play,
+  PlayCircle,
   Sparkle,
-  Target,
 } from 'phosphor-react-native';
 
 import RBSheet from 'react-native-raw-bottom-sheet';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -28,7 +27,6 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useDispatch } from 'react-redux';
 import { useTheme } from '../../src/theme/useTheme';
 
 // Core 4-Step System Design Interview Framework
@@ -91,56 +89,67 @@ const FRAMEWORK_STEPS: FrameworkStep[] = [
   },
 ];
 
-// Curated Quick-Launch Problem Scenarios
-interface CaseStudy {
-  id: string;
+// Fallback Learning Curriculum Topics
+interface LearningTopicItem {
+  id: number;
   title: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  duration: number;
-  domain: string;
-  keyChallenge: string;
+  description: string;
+  slug: string;
+  totalLessons: number;
+  progress: {
+    completed: boolean;
+    progress: number;
+  };
 }
 
-const QUICK_CASE_STUDIES: CaseStudy[] = [
+const DEFAULT_LEARNING_TOPICS: LearningTopicItem[] = [
   {
-    id: 'whatsapp',
-    title: 'Design WhatsApp',
-    difficulty: 'Advanced',
-    duration: 45,
-    domain: 'Real-time Chat',
-    keyChallenge: 'WebSockets, E2EE, and message persistence',
+    id: 1,
+    title: 'System Design Fundamentals',
+    description: 'Core concepts for designing large-scale distributed systems.',
+    slug: 'system-design-fundamentals',
+    totalLessons: 2,
+    progress: { completed: false, progress: 0 },
   },
   {
-    id: 'netflix',
-    title: 'Design Netflix',
-    difficulty: 'Advanced',
-    duration: 45,
-    domain: 'Video Streaming',
-    keyChallenge: 'Adaptive bitrate, transcoding & global CDN',
+    id: 2,
+    title: 'Horizontal vs Vertical Scaling',
+    description: 'Master scaling strategies, bottlenecks, and stateful vs stateless architectures.',
+    slug: 'scaling-strategies',
+    totalLessons: 2,
+    progress: { completed: false, progress: 0 },
   },
   {
-    id: 'uber',
-    title: 'Design Uber',
-    difficulty: 'Advanced',
-    duration: 45,
-    domain: 'Geospatial',
-    keyChallenge: 'Quadtrees, driver matching & live location',
+    id: 3,
+    title: 'Load Balancing & Reverse Proxies',
+    description: 'Traffic distribution, health checks, Layer 4 vs Layer 7 routing.',
+    slug: 'load-balancing',
+    totalLessons: 2,
+    progress: { completed: false, progress: 0 },
   },
   {
-    id: 'tinyurl',
-    title: 'Design TinyURL',
-    difficulty: 'Beginner',
-    duration: 30,
-    domain: 'URL Shortener',
-    keyChallenge: 'Base62 hashing, caching & high read throughput',
+    id: 4,
+    title: 'Caching & Content Delivery (CDN)',
+    description: 'Cache invalidation, eviction strategies, Redis, and edge computing.',
+    slug: 'caching-and-cdn',
+    totalLessons: 2,
+    progress: { completed: false, progress: 0 },
   },
   {
-    id: 'instagram',
-    title: 'Design Instagram',
-    difficulty: 'Intermediate',
-    duration: 35,
-    domain: 'Social Feed',
-    keyChallenge: 'Feed ranking, fan-out on write & S3 storage',
+    id: 5,
+    title: 'Database Sharding & Replication',
+    description: 'CAP theorem, ACID vs BASE, partition keys, and replication lag.',
+    slug: 'databases-and-sharding',
+    totalLessons: 2,
+    progress: { completed: false, progress: 0 },
+  },
+  {
+    id: 6,
+    title: 'Microservices & Message Queues',
+    description: 'Asynchronous event streaming, Kafka, RabbitMQ, and saga patterns.',
+    slug: 'microservices-and-queues',
+    totalLessons: 2,
+    progress: { completed: false, progress: 0 },
   },
 ];
 
@@ -155,26 +164,21 @@ const ARCHITECTURAL_TIPS = [
 
 export default function HomeScreen() {
   const user = useAppSelector((state) => state.auth.user);
-  const { data } = useGetHistoryQuery();
   const router = useRouter();
-  const dispatch = useDispatch();
   const { colors, isDark } = useTheme();
   const insets = useSafeAreaInsets();
+  const { data: learningData } = useGetTopicsQuery();
 
   const [selectedFrameworkStep, setSelectedFrameworkStep] = useState<FrameworkStep | null>(null);
   const [tipIndex, setTipIndex] = useState(0);
   const frameworkSheetRef = useRef<any>(null);
 
-  useEffect(() => {
-    const requestPermissions = async () => {
-      try {
-        await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-      } catch (e) {
-        // Optional permission
-      }
-    };
-    requestPermissions();
-  }, []);
+  const topics = useMemo(() => {
+    if (learningData?.topics && learningData.topics.length > 0) {
+      return learningData.topics;
+    }
+    return DEFAULT_LEARNING_TOPICS;
+  }, [learningData?.topics]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -187,50 +191,9 @@ export default function HomeScreen() {
     router.push('/(interview)/problem-selection' as any);
   };
 
-  const handleSelectCaseStudy = (study: CaseStudy) => {
-    dispatch(setSelectedTopic({ id: study.id, title: study.title }));
-    router.push('/(interview)/setup' as any);
-  };
-
   const handleCycleTip = () => {
     setTipIndex((prev) => (prev + 1) % ARCHITECTURAL_TIPS.length);
   };
-
-  // Extract actionable weaknesses from the most recent interview or provide default pillars
-  const latestInterview = data?.history && data.history.length > 0 ? data.history[0] : null;
-  const recentMissedTopics = latestInterview?.summary?.missed_topics ?? [];
-
-  const focusItems = useMemo(() => {
-    if (recentMissedTopics.length > 0) {
-      return recentMissedTopics.slice(0, 3).map((topic, i) => ({
-        id: `recent-${i}`,
-        title: topic,
-        reason: `Flagged in recent ${latestInterview?.topic || 'mock interview'}`,
-        isFromRecentFeedback: true,
-      }));
-    }
-
-    return [
-      {
-        id: 'pillar-1',
-        title: 'Distributed Caching & Invalidation',
-        reason: 'Essential for high read-to-write ratios & sub-millisecond latency',
-        isFromRecentFeedback: false,
-      },
-      {
-        id: 'pillar-2',
-        title: 'Database Sharding & Partition Keys',
-        reason: 'Critical for horizontal database scaling without hotspot nodes',
-        isFromRecentFeedback: false,
-      },
-      {
-        id: 'pillar-3',
-        title: 'Asynchronous Decoupling with Queues',
-        reason: 'Required for resilient event-driven systems and backpressure',
-        isFromRecentFeedback: false,
-      },
-    ];
-  }, [recentMissedTopics, latestInterview?.topic]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -351,61 +314,17 @@ export default function HomeScreen() {
           </ScrollView>
         </View>
 
-        {/* Target Architectural Focus Areas (Data-Driven Real Value) */}
+        {/* Learning Curriculum Modules */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {recentMissedTopics.length > 0 ? 'Target Areas from Evaluation' : 'Core Architecture Focus'}
-              </Text>
+              <Text style={[styles.sectionTitle, { color: colors.text }]}>Learning Modules</Text>
               <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-                {recentMissedTopics.length > 0
-                  ? `Specific areas flagged in your last ${latestInterview?.topic || 'interview'}`
-                  : 'High-impact architectural patterns tested in senior rounds'}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.focusList}>
-            {focusItems.map((item) => (
-              <View
-                key={item.id}
-                style={[
-                  styles.focusCard,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                ]}
-              >
-                <View style={styles.focusCardHeader}>
-                  <View style={styles.focusBadgeDot} />
-                  <Text style={[styles.focusCardTitle, { color: colors.text }]}>{item.title}</Text>
-                </View>
-                <Text style={[styles.focusCardReason, { color: colors.textSecondary }]}>
-                  {item.reason}
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleStartSimulation}
-                  style={styles.focusActionBtn}
-                >
-                  <Text style={[styles.focusActionText, { color: colors.primary }]}>Practice Related Scenario</Text>
-                  <ArrowRight size={13} color={colors.primary} />
-                </TouchableOpacity>
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Popular System Design Case Studies */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
-            <View>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>Practice Case Studies</Text>
-              <Text style={[styles.sectionSubtitle, { color: colors.textSecondary }]}>
-                Iconic distributed architectures to test your skills
+                Guided video lessons & scenario quizzes for real-world mastery
               </Text>
             </View>
             <Pressable
-              onPress={() => router.push('/(main)/practice' as any)}
+              onPress={() => router.push('/(main)/learning' as any)}
               style={styles.seeAllButton}
             >
               <Text style={[styles.seeAllText, { color: colors.primary }]}>See all</Text>
@@ -413,67 +332,137 @@ export default function HomeScreen() {
             </Pressable>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.caseStudiesScroll}>
-            {QUICK_CASE_STUDIES.map((study) => (
-              <TouchableOpacity
-                key={study.id}
-                activeOpacity={0.75}
-                onPress={() => handleSelectCaseStudy(study)}
-                style={[
-                  styles.caseStudyCard,
-                  { backgroundColor: colors.surface, borderColor: colors.border },
-                ]}
-              >
-                <View style={styles.caseStudyHeader}>
-                  <View style={[styles.caseDomainBadge, { backgroundColor: colors.background, borderColor: colors.border }]}>
-                    <Text style={[styles.caseDomainText, { color: colors.textSecondary }]}>{study.domain}</Text>
-                  </View>
-                  <Text style={[styles.caseDuration, { color: colors.textDim }]}>{study.duration}m</Text>
-                </View>
+          {/* Interactive Topic Modules Carousel */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.learningTopicsScroll}
+          >
+            {topics.map((topic: any, index: number) => {
+              const isCompleted = topic.progress?.completed;
+              const progressPercentage = topic.progress?.progress || 0;
 
-                <Text style={[styles.caseStudyTitle, { color: colors.text }]}>{study.title}</Text>
-                <Text style={[styles.caseStudyChallenge, { color: colors.textSecondary }]} numberOfLines={2}>
-                  {study.keyChallenge}
-                </Text>
-
-                <View style={styles.caseStudyFooter}>
-                  <View
-                    style={[
-                      styles.difficultyTag,
-                      {
-                        backgroundColor:
-                          study.difficulty === 'Beginner'
-                            ? '#10B98118'
-                            : study.difficulty === 'Intermediate'
-                            ? '#F59E0B18'
-                            : '#EF444418',
-                      },
-                    ]}
-                  >
-                    <Text
+              return (
+                <TouchableOpacity
+                  key={topic.id || index}
+                  activeOpacity={0.75}
+                  onPress={() => router.push(`/(main)/learning/topic/${topic.slug}` as any)}
+                  style={[
+                    styles.learningTopicCard,
+                    { backgroundColor: colors.surface, borderColor: colors.border },
+                  ]}
+                >
+                  <View style={styles.learningCardTop}>
+                    <View
                       style={[
-                        styles.difficultyTagText,
-                        {
-                          color:
-                            study.difficulty === 'Beginner'
-                              ? '#10B981'
-                              : study.difficulty === 'Intermediate'
-                              ? '#F59E0B'
-                              : '#EF4444',
-                        },
+                        styles.learningBadge,
+                        { backgroundColor: colors.background, borderColor: colors.border },
                       ]}
                     >
-                      {study.difficulty}
+                      <BookOpen size={12} color={colors.primary} />
+                      <Text style={[styles.learningBadgeText, { color: colors.textSecondary }]}>
+                        {topic.totalLessons || 2} Lessons
+                      </Text>
+                    </View>
+                    {isCompleted ? (
+                      <View style={styles.completedBadge}>
+                        <CheckCircle size={14} color="#10B981" weight="fill" />
+                        <Text style={styles.completedBadgeText}>Done</Text>
+                      </View>
+                    ) : (
+                      <View style={styles.topicStepBox}>
+                        <Text style={styles.topicStepNumber}>{String(index + 1).padStart(2, '0')}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  <View style={styles.learningCardBody}>
+                    <Text style={[styles.learningTopicTitle, { color: colors.text }]} numberOfLines={2}>
+                      {topic.title}
+                    </Text>
+                    <Text
+                      style={[styles.learningTopicDesc, { color: colors.textSecondary }]}
+                      numberOfLines={2}
+                    >
+                      {topic.description}
                     </Text>
                   </View>
 
-                  <View style={styles.startArrowBox}>
-                    <Play size={12} color={colors.primary} weight="fill" />
+                  {/* Progress Indicator */}
+                  <View style={styles.learningCardProgress}>
+                    <View style={[styles.progressBarTrack, { backgroundColor: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)' }]}>
+                      <View
+                        style={[
+                          styles.progressBarFill,
+                          {
+                            width: `${isCompleted ? 100 : progressPercentage}%`,
+                            backgroundColor: isCompleted ? '#10B981' : colors.primary,
+                          },
+                        ]}
+                      />
+                    </View>
                   </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+
+                  <View style={styles.learningCardFooter}>
+                    <Text style={[styles.learningActionText, { color: colors.primary }]}>
+                      {isCompleted ? 'Review Topic' : progressPercentage > 0 ? `${progressPercentage}% finished` : 'Start Learning'}
+                    </Text>
+                    <View style={[styles.learningPlayBox, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.16)' : 'rgba(37, 99, 235, 0.1)' }]}>
+                      <Play size={11} color={colors.primary} weight="fill" />
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
+
+          {/* Curriculum Pathway Feature Highlight Card */}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => router.push('/(main)/learning' as any)}
+            style={[
+              styles.curriculumPathwayCard,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <View style={styles.pathwayHeader}>
+              <View style={[styles.pathwayIconContainer, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.1)' }]}>
+                <GraduationCap size={22} color={colors.primary} weight="fill" />
+              </View>
+              <View style={styles.pathwayTitleContainer}>
+                <View style={styles.pathwayBadgeRow}>
+                  <Text style={styles.pathwayBadgeText}>STRUCTURED PATH</Text>
+                </View>
+                <Text style={[styles.pathwayTitle, { color: colors.text }]}>
+                  Comprehensive System Design Course
+                </Text>
+              </View>
+            </View>
+
+            <Text style={[styles.pathwaySubtitle, { color: colors.textSecondary }]}>
+              Deep dive into scaling, caching, sharding, and messaging with verified FAANG-level video breakdowns & interactive quizzes.
+            </Text>
+
+            <View style={styles.pathwayPillsRow}>
+              <View style={[styles.pathwayPill, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <PlayCircle size={12} color={colors.primary} weight="fill" />
+                <Text style={[styles.pathwayPillText, { color: colors.textSecondary }]}>Video Lessons</Text>
+              </View>
+              <View style={[styles.pathwayPill, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <BookOpen size={12} color={colors.primary} weight="fill" />
+                <Text style={[styles.pathwayPillText, { color: colors.textSecondary }]}>Technical Notes</Text>
+              </View>
+              <View style={[styles.pathwayPill, { backgroundColor: colors.background, borderColor: colors.border }]}>
+                <CheckCircle size={12} color="#10B981" weight="fill" />
+                <Text style={[styles.pathwayPillText, { color: colors.textSecondary }]}>Quizzes</Text>
+              </View>
+            </View>
+
+            <View style={styles.pathwayFooter}>
+              <Text style={[styles.pathwayActionText, { color: colors.primary }]}>Explore Full Curriculum</Text>
+              <ArrowRight size={14} color={colors.primary} weight="bold" />
+            </View>
+          </TouchableOpacity>
         </View>
 
         {/* Architectural Principle / Tip of the Day */}
@@ -827,110 +816,176 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
   },
-  // Focus Areas (Real Value)
-  focusList: {
-    gap: 10,
-  },
-  focusCard: {
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    gap: 6,
-  },
-  focusCardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  focusBadgeDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#3B82F6',
-  },
-  focusCardTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    flex: 1,
-  },
-  focusCardReason: {
-    fontSize: 12,
-    lineHeight: 16,
-    marginLeft: 16,
-  },
-  focusActionBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginLeft: 16,
-    marginTop: 4,
-  },
-  focusActionText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  // Quick Case Studies
-  caseStudiesScroll: {
+  // Learning Section
+  learningTopicsScroll: {
     gap: 12,
     paddingRight: 8,
   },
-  caseStudyCard: {
-    width: 220,
-    borderRadius: 16,
+  learningTopicCard: {
+    width: 230,
+    borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    gap: 8,
+    justifyContent: 'space-between',
+    minHeight: 180,
   },
-  caseStudyHeader: {
+  learningCardTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  caseDomainBadge: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
+  learningBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
     borderWidth: 1,
   },
-  caseDomainText: {
+  learningBadgeText: {
     fontSize: 10,
     fontWeight: '600',
   },
-  caseDuration: {
-    fontSize: 11,
-    fontWeight: '600',
+  completedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  caseStudyTitle: {
+  completedBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#10B981',
+  },
+  topicStepBox: {
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  topicStepNumber: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#3B82F6',
+    letterSpacing: 0.5,
+  },
+  learningCardBody: {
+    marginVertical: 8,
+    gap: 4,
+  },
+  learningTopicTitle: {
     fontSize: 14,
     fontWeight: '700',
-    marginTop: 2,
+    letterSpacing: -0.2,
+    lineHeight: 18,
   },
-  caseStudyChallenge: {
+  learningTopicDesc: {
     fontSize: 11,
     lineHeight: 15,
   },
-  caseStudyFooter: {
+  learningCardProgress: {
+    marginVertical: 4,
+  },
+  progressBarTrack: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+  learningCardFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 6,
+    marginTop: 4,
   },
-  difficultyTag: {
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  difficultyTagText: {
-    fontSize: 10,
+  learningActionText: {
+    fontSize: 11,
     fontWeight: '700',
   },
-  startArrowBox: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+  learningPlayBox: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Pathway Highlight Card
+  curriculumPathwayCard: {
+    borderRadius: 18,
+    padding: 16,
+    borderWidth: 1,
+    marginTop: 14,
+    gap: 10,
+  },
+  pathwayHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  pathwayIconContainer: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pathwayTitleContainer: {
+    flex: 1,
+    gap: 2,
+  },
+  pathwayBadgeRow: {
+    flexDirection: 'row',
+  },
+  pathwayBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#3B82F6',
+    letterSpacing: 0.8,
+  },
+  pathwayTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    letterSpacing: -0.2,
+  },
+  pathwaySubtitle: {
+    fontSize: 12,
+    lineHeight: 17,
+  },
+  pathwayPillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 2,
+  },
+  pathwayPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  pathwayPillText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  pathwayFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(150, 150, 150, 0.1)',
+  },
+  pathwayActionText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   // Tip Card
   tipCard: {

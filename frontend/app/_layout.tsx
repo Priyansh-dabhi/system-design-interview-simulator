@@ -42,9 +42,17 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   // Hide the native splash screen once Redux finishes hydrating and fonts are loaded
   useEffect(() => {
     if (!isLoading && fontsLoaded) {
-      SplashScreen.hideAsync();
+      SplashScreen.hideAsync().catch(() => {});
     }
   }, [isLoading, fontsLoaded]);
+
+  // Fail-safe: ensure splash screen hides even if hydration or font loading stalls
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      SplashScreen.hideAsync().catch(() => {});
+    }, 3500);
+    return () => clearTimeout(timeout);
+  }, []);
 
   const showSplash = isLoading || !fontsLoaded;
   const inAuthGroup = segments[0] === '(auth)';
@@ -117,7 +125,7 @@ function RootApp({ fontsLoaded }: { fontsLoaded: boolean }) {
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
@@ -128,12 +136,14 @@ export default function RootLayout() {
     JetBrainsMono_500Medium,
   });
 
+  const isFontReady = fontsLoaded || !!fontError;
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <Provider store={store}>
         <ThemeProvider>
           <SafeAreaProvider initialMetrics={initialWindowMetrics}>
-            <RootApp fontsLoaded={fontsLoaded} />
+            <RootApp fontsLoaded={isFontReady} />
           </SafeAreaProvider>
         </ThemeProvider>
       </Provider>
