@@ -477,7 +477,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
           </View>
           <Text style={[styles.tipContentText, { color: colors.text }]}>
-            "{ARCHITECTURAL_TIPS[tipIndex]}"
+            {`"${ARCHITECTURAL_TIPS[tipIndex]}"`}
           </Text>
         </View>
       </ScrollView>

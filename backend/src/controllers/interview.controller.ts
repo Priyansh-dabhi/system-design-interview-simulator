@@ -152,40 +152,8 @@ export const interview_summary = async (req: AuthRequest, res: Response) => {
     const userMessageCount = await messageRepo.getUserMessageCountForOwnedSession(sessionId, req.user.userId);
 
     if (userMessageCount === 0) {
-        const baselineResult: InterviewSummaryResult = {
-            overall_score: 0,
-            dimension_scores: {
-                requirements: { score: 0, comment: "No requirements were specified by candidate." },
-                scalability: { score: 0, comment: "No scalability considerations discussed." },
-                data_modeling: { score: 0, comment: "No data models or schemas provided." },
-                tradeoffs: { score: 0, comment: "No technical trade-offs analyzed." },
-                communication: { score: 0, comment: "Session ended early before candidate responses." },
-            },
-            strengths: ["Initiated interview session"],
-            missed_topics: ["Functional & non-functional requirements", "High-level architecture", "Component design", "Data storage and caching"],
-            suggestions: ["Practice responding to opening prompt with functional and non-functional requirements."],
-            topic_coverage: [
-                { topic: "Requirements", covered: false },
-                { topic: "High-Level Design", covered: false },
-                { topic: "Deep Dive", covered: false },
-            ],
-            study_plan: [
-                { topic: "Requirements Gathering", why: "Start system design interviews by scoping functional & non-functional requirements." },
-            ],
-            ideal_answer: "In a full interview, begin by asking clarifying questions about throughput, storage constraints, latency SLAs, and core features.",
-        };
-
-        await summaryRepo.saveSummary(sessionId, req.user.userId, baselineResult);
-
-        let durationSeconds = Math.max(
-            0,
-            Math.floor((Date.now() - new Date(ownedSession.createdAt).getTime()) / 1000)
-        );
-        if (ownedSession.durationMinutes) {
-            durationSeconds = Math.min(durationSeconds, ownedSession.durationMinutes * 60);
-        }
-
-        return res.json({ ...baselineResult, durationSeconds });
+        await sessionRepo.deleteSession(sessionId);
+        return res.json({ status: "cancelled", message: "Session cancelled due to inactivity" });
     }
 
     const result = await generateSummary(problem ?? ownedSession.problemName, conversation, {

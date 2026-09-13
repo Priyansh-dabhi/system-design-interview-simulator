@@ -1,4 +1,5 @@
 import testPrisma from "../../prisma/test-client.js";
+import { closeDatabaseConnections } from "../config/prisma.js";
 
 // Runs before ALL tests — clean DB
 beforeAll(async () => {
@@ -11,4 +12,5 @@ beforeAll(async () => {
 // Runs after ALL tests — disconnect
 afterAll(async () => {
   await testPrisma.$disconnect();
+  await closeDatabaseConnections();
 });

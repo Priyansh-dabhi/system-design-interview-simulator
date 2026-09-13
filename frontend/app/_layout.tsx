@@ -1,17 +1,14 @@
-import 'react-native-gesture-handler';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useFonts, Inter_400Regular, Inter_500Medium, Inter_600SemiBold, Inter_700Bold } from '@expo-google-fonts/inter';
 import { DMSans_500Medium, DMSans_700Bold } from '@expo-google-fonts/dm-sans';
 import { JetBrainsMono_400Regular, JetBrainsMono_500Medium } from '@expo-google-fonts/jetbrains-mono';
-import { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { View } from "react-native";
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-
 import * as SplashScreen from 'expo-splash-screen';
 
-// Keep the native splash screen visible while we fetch resources from Redux
-SplashScreen.preventAutoHideAsync();
 import { store } from "@/src/redux/store";
 import { Provider } from "react-redux";
 import { useAppDispatch, useAppSelector } from "@/src/redux/hooks";
@@ -19,7 +16,9 @@ import { bootstrapAuth, clearGoogleAuthPhase } from "@/src/redux/slices/auth";
 import { OfflineScreen } from "../src/components/OfflineScreen";
 import { ThemeProvider } from "../src/theme/ThemeContext";
 import { useTheme } from "../src/theme/useTheme";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
+
+// Keep the native splash screen visible while we fetch resources from Redux
+SplashScreen.preventAutoHideAsync();
 
 function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   const dispatch = useAppDispatch();
@@ -92,7 +91,7 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
       // Clear ref once we are within the target route group
       lastNavigatedPathRef.current = null;
     }
-  }, [user, showSplash, segments, isAuthInFlight, inAuthGroup]);
+  }, [user, showSplash, segments, isAuthInFlight, inAuthGroup, isLoading, router]);
 
   // Remove the early return null so that Expo Router's <Stack> always mounts.
   // The native splash screen will remain visible until SplashScreen.hideAsync() is called.

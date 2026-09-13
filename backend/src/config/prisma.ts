@@ -33,9 +33,10 @@ prisma.$on('error', (e) => {
     console.error(`[Prisma Error] ${e.message}`);
 });
 
-process.on('beforeExit', async () => {
-    console.log("Shutting down Prisma client...");
-    await prisma.$disconnect();
-});
+export async function closeDatabaseConnections() {
+    await prisma.$disconnect().catch(() => {});
+    await pool.end().catch(() => {});
+}
 
+export { pool };
 export default prisma;

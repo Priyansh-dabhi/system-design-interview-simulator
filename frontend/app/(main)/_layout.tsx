@@ -1,7 +1,6 @@
 import { Tabs } from "expo-router";
 import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon, GraduationCap, User } from "phosphor-react-native";
 import React from "react";
-import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../src/theme/useTheme";
 import { getSafeBottomInset } from "../../src/utils/safeArea";
