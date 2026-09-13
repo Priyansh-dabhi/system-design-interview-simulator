@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Books, BooksIcon, ClockCounterClockwiseIcon, HouseIcon, PersonIcon } from "phosphor-react-native";
+import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon, User, GraduationCap } from "phosphor-react-native";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -46,6 +46,15 @@ export default function MainLayout() {
         }}
       />
       <Tabs.Screen
+        name="learning"
+        options={{
+          title: "Learn",
+          tabBarIcon: ({ color, size, focused }) => (
+            <GraduationCap size={22} color={color} weight={focused ? "fill" : "regular"} />
+          ),
+        }}
+      />
+      <Tabs.Screen
         name="practice"
         options={{
           title: "Practice",
@@ -68,7 +77,7 @@ export default function MainLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size, focused }) => (
-            <PersonIcon size={22} color={color} weight={focused ? "fill" : "regular"} />
+            <User size={22} color={color} weight={focused ? "fill" : "regular"} />
           ),
         }}
       />
@@ -79,6 +88,14 @@ export default function MainLayout() {
           title: "Preferences",
         }}
       />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          href: null,
+          title: "Settings",
+        }}
+      />
+
     </Tabs>
   );
 }
