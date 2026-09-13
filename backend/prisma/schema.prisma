@@ -22,6 +22,8 @@ model User {
 
   sessions      InterviewSession[]
   refreshTokens RefreshToken[]
+  learningProgress LearningProgress[]
+  quizAttempts     LearningQuizAttempt[]
 
   @@map("users")
 }
@@ -103,4 +105,96 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model LearningTopic {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  slug        String   @unique
+  order       Int      @default(0)
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  lessons  LearningLesson[]
+  progress LearningProgress[]
+
+  @@map("learning_topics")
+}
+
+model LearningLesson {
+  id               Int      @id @default(autoincrement())
+  topicId          Int
+  title            String
+  description      String
+  content          String   @db.Text
+  order            Int      @default(0)
+  youtubeVideoId   String?
+  youtubeVideoTitle String?
+  youtubeChannel   String?
+  estimatedMinutes Int      @default(5)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  topic    LearningTopic          @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  questions LearningQuizQuestion[]
+  attempts  LearningQuizAttempt[]
+
+  @@map("learning_lessons")
+}
+
+model LearningQuizQuestion {
+  id          Int      @id @default(autoincrement())
+  lessonId    Int
+  question    String
+  explanation String?  @db.Text
+  order       Int      @default(0)
+
+  lesson  LearningLesson       @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  options LearningQuizOption[]
+
+  @@map("learning_quiz_questions")
+}
+
+model LearningQuizOption {
+  id         Int      @id @default(autoincrement())
+  questionId Int
+  text       String
+  isCorrect  Boolean  @default(false)
+
+  question LearningQuizQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@map("learning_quiz_options")
+}
+
+model LearningProgress {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  topicId      Int
+  completed    Boolean  @default(false)
+  progress     Int      @default(0) // percentage 0-100
+  lastLessonId Int?
+  updatedAt    DateTime @updatedAt
+
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  topic LearningTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, topicId])
+  @@map("learning_progress")
+}
+
+model LearningQuizAttempt {
+  id             Int      @id @default(autoincrement())
+  userId         Int
+  lessonId       Int
+  score          Int
+  totalQuestions Int
+  correctAnswers Int
+  completedAt    DateTime @default(now())
+
+  user   User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson LearningLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@map("learning_quiz_attempts")
 }
