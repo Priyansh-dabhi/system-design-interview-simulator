@@ -50,6 +50,14 @@ android/.gradle/
 android/.cxx/
 android/app/.cxx/
 android/.kotlin/
+**/build/
+**/build/**
+**/.gradle/
+**/.gradle/**
+**/.cxx/
+**/.cxx/**
+**/.kotlin/
+**/.kotlin/**
 android/local.properties
 android/*.iml
 android/app/*.iml
