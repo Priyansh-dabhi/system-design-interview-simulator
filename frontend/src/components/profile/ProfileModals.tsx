@@ -17,6 +17,7 @@ import {
     ScrollView,
     TextInput,
     Dimensions,
+    BackHandler,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../theme/useTheme';
@@ -40,18 +41,33 @@ export const BaseBottomSheet: React.FC<BaseModalProps> = ({
     const { colors, isDark } = useTheme();
     const insets = useSafeAreaInsets();
     const bottomSheetRef = useRef<any>(null);
+    const isOpenRef = useRef(false);
 
     useEffect(() => {
         if (visible) {
+            isOpenRef.current = true;
             bottomSheetRef.current?.open();
         } else {
-            bottomSheetRef.current?.close();
+            if (isOpenRef.current) {
+                isOpenRef.current = false;
+                bottomSheetRef.current?.close();
+            }
         }
     }, [visible]);
 
     const handleDismiss = useCallback(() => {
+        isOpenRef.current = false;
         onClose();
     }, [onClose]);
+
+    useEffect(() => {
+        if (!visible) return;
+        const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+            bottomSheetRef.current?.close();
+            return true;
+        });
+        return () => subscription.remove();
+    }, [visible]);
 
     const styles = useMemo(() => StyleSheet.create({
         header: {
@@ -78,6 +94,7 @@ export const BaseBottomSheet: React.FC<BaseModalProps> = ({
             height={Dimensions.get('window').height * 0.94}
             draggable={true}
             closeOnPressMask={true}
+            closeOnPressBack={true}
             onClose={handleDismiss}
             customStyles={{
                 wrapper: {

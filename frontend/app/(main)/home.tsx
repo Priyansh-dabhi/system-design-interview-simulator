@@ -16,7 +16,7 @@ import {
 } from 'phosphor-react-native';
 
 import RBSheet from 'react-native-raw-bottom-sheet';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -25,6 +25,7 @@ import {
   TouchableOpacity,
   View,
   Dimensions,
+  BackHandler,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme/useTheme';
@@ -172,6 +173,15 @@ export default function HomeScreen() {
   const [selectedFrameworkStep, setSelectedFrameworkStep] = useState<FrameworkStep | null>(null);
   const [tipIndex, setTipIndex] = useState(0);
   const frameworkSheetRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!selectedFrameworkStep) return;
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      frameworkSheetRef.current?.close();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [selectedFrameworkStep]);
 
   const topics = useMemo(() => {
     if (learningData?.topics && learningData.topics.length > 0) {
@@ -488,6 +498,7 @@ export default function HomeScreen() {
         height={Dimensions.get('window').height * 0.94}
         draggable={true}
         closeOnPressMask={true}
+        closeOnPressBack={true}
         onClose={() => setSelectedFrameworkStep(null)}
         customStyles={{
           wrapper: {
