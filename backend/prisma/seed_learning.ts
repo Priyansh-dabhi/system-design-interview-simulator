@@ -18,7 +18,7 @@ const pool = new pg.Pool({
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-async function main() {
+export async function seedLearning() {
     console.log('Seeding learning topics...');
 
     // Delete existing topics (which cascades to lessons, questions, etc.)
@@ -349,11 +349,18 @@ Mention that for read-heavy systems (e.g., 95% reads, 5% writes), adding Read Re
     console.log('Created topics and lessons!');
 }
 
-main()
-    .catch((e) => {
-        console.error(e);
-        process.exit(1);
-    })
-    .finally(async () => {
-        await prisma.$disconnect();
-    });
+const isMain = process.argv[1] && (
+    process.argv[1].endsWith("seed_learning.ts") ||
+    process.argv[1].endsWith("seed_learning.js")
+);
+
+if (isMain) {
+    seedLearning()
+        .catch((e) => {
+            console.error(e);
+            process.exit(1);
+        })
+        .finally(async () => {
+            await prisma.$disconnect();
+        });
+}

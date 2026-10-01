@@ -17,13 +17,20 @@ async function run() {
 
     const files = fs.readdirSync(dir);
 
-    for (const file of files) {
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         const topic = file.replace(".md", "");
 
+        console.log(`[${i + 1}/${files.length}] Ingesting ${topic}...`);
         await ingestFile(path.join(dir, file), topic);
+
+        // 1.5s delay between files to respect Google Gemini free tier rate limits (15 RPM)
+        if (i < files.length - 1) {
+            await new Promise((resolve) => setTimeout(resolve, 1500));
+        }
     }
 
-    console.log("Knowledge ingestion completed");
+    console.log("All knowledge ingestion completed successfully!");
 }
 
 run();
