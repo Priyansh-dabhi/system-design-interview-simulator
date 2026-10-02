@@ -172,3 +172,12 @@ export const acceptTermsRequest = async (accessToken: string): Promise<{ user: U
         },
     });
 };
+
+export const deleteAccountRequest = async (accessToken: string): Promise<{ success: boolean; message: string }> => {
+    return requestJson<{ success: boolean; message: string }>("/api/auth/account", {
+        method: "DELETE",
+        headers: {
+            authorization: `Bearer ${accessToken}`,
+        },
+    });
+};

@@ -11,6 +11,7 @@ import {
   Microphone,
   Play,
   Sparkle,
+  User,
 } from 'phosphor-react-native';
 import RBSheet from 'react-native-raw-bottom-sheet';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
@@ -220,19 +221,30 @@ export default function HomeScreen() {
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* 1. Header: Clean, Minimalist Candidate Info */}
-      <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
+      <View style={[styles.header, { backgroundColor: colors.background }]}>
         <View style={styles.headerLeft}>
           <Text style={[styles.greetingText, { color: colors.textSecondary }]}>{getGreeting()}</Text>
           <Text style={[styles.userNameText, { color: colors.text }]}>
             {user?.fullName || 'Engineer'} 👋
           </Text>
         </View>
-        <View style={[styles.targetPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-          <View style={styles.statusDot} />
-          <Text style={[styles.targetPillText, { color: colors.textSecondary }]}>
-            Senior SWE Prep
-          </Text>
-        </View>
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => router.push('/(main)/profile' as any)}
+          style={[
+            styles.profileBtn,
+            {
+              backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+              borderColor: colors.border,
+            },
+          ]}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Profile"
+          accessibilityRole="button"
+        >
+          <User size={20} color={colors.text} weight="regular" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -263,11 +275,11 @@ export default function HomeScreen() {
             Adaptive AI interviewer calibrated for FAANG & senior engineering standards.
           </Text>
 
-          {/* Quick Metrics Bar */}
+          {/* Quick Metrics Bar - Balanced & Non-overflowing */}
           <View style={styles.heroSpecsRow}>
             <View style={styles.heroSpecItem}>
               <Lightning size={12} color="#93C5FD" weight="fill" />
-              <Text style={styles.heroSpecText}>Real-Time Feedback</Text>
+              <Text style={styles.heroSpecText}>Real-Time</Text>
             </View>
             <View style={styles.heroSpecDivider} />
             <View style={styles.heroSpecItem}>
@@ -277,7 +289,7 @@ export default function HomeScreen() {
             <View style={styles.heroSpecDivider} />
             <View style={styles.heroSpecItem}>
               <CheckCircle size={12} color="#93C5FD" weight="fill" />
-              <Text style={styles.heroSpecText}>5 Rubric Stages</Text>
+              <Text style={styles.heroSpecText}>5 Rubrics</Text>
             </View>
           </View>
 
@@ -293,7 +305,7 @@ export default function HomeScreen() {
           </Pressable>
         </LinearGradient>
 
-        {/* 3. 4-Stage Interview Framework: Streamlined Interactive Stepper */}
+        {/* 3. 4-Stage Interview Framework: Spacious Horizontal Scrollable Cards */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: colors.text }]}>Interview Framework</Text>
@@ -302,12 +314,16 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          {/* Compact 4-Step Stepper Cards */}
-          <View style={styles.frameworkGrid}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.frameworkScrollView}
+            contentContainerStyle={styles.frameworkScrollContent}
+          >
             {FRAMEWORK_STEPS.map((step) => (
               <TouchableOpacity
                 key={step.step}
-                activeOpacity={0.7}
+                activeOpacity={0.75}
                 onPress={() => {
                   setSelectedFrameworkStep(step);
                   requestAnimationFrame(() => {
@@ -320,23 +336,28 @@ export default function HomeScreen() {
                 ]}
               >
                 <View style={styles.frameworkStepTop}>
-                  <Text style={styles.frameworkStepNum}>{step.step}</Text>
-                  <Text style={[styles.frameworkStepTiming, { color: colors.textSecondary }]}>
-                    {step.timing}
-                  </Text>
+                  <View style={[styles.frameworkStepBadge, { backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.1)' }]}>
+                    <Text style={styles.frameworkStepNum}>{step.step}</Text>
+                  </View>
+                  <View style={[styles.frameworkTimingChip, { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.04)' }]}>
+                    <Clock size={10} color={colors.textSecondary} weight="bold" />
+                    <Text style={[styles.frameworkStepTiming, { color: colors.textSecondary }]}>
+                      {step.timing}
+                    </Text>
+                  </View>
                 </View>
-                <Text style={[styles.frameworkStepTitle, { color: colors.text }]} numberOfLines={1}>
-                  {step.shortTitle}
+                <Text style={[styles.frameworkStepTitle, { color: colors.text }]} numberOfLines={2}>
+                  {step.title}
                 </Text>
                 <View style={styles.frameworkStepAction}>
                   <Text style={[styles.frameworkStepActionText, { color: colors.primary }]}>
                     Checklist
                   </Text>
-                  <CaretRight size={11} color={colors.primary} />
+                  <CaretRight size={12} color={colors.primary} weight="bold" />
                 </View>
               </TouchableOpacity>
             ))}
-          </View>
+          </ScrollView>
         </View>
 
         {/* 4. Active Learning Focus (Zero Duplication with Learn Tab) */}
@@ -519,8 +540,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 14,
-    borderBottomWidth: 1,
+    paddingBottom: 8,
   },
   headerLeft: {
     flex: 1,
@@ -528,31 +548,21 @@ const styles = StyleSheet.create({
   greetingText: {
     fontSize: 13,
     fontWeight: '500',
+    letterSpacing: 0.1,
   },
   userNameText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
     marginTop: 2,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
   },
-  targetPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+  profileBtn: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
     borderWidth: 1,
-  },
-  statusDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#10B981',
-  },
-  targetPillText: {
-    fontSize: 11,
-    fontWeight: '600',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   scrollView: {
     flex: 1,
@@ -567,7 +577,7 @@ const styles = StyleSheet.create({
   heroCard: {
     borderRadius: 20,
     padding: 20,
-    marginBottom: 22,
+    marginBottom: 24,
     overflow: 'hidden',
   },
   heroTopRow: {
@@ -627,22 +637,23 @@ const styles = StyleSheet.create({
   heroSpecsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.22)',
-    borderRadius: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    borderRadius: 12,
+    paddingVertical: 9,
+    paddingHorizontal: 8,
     marginBottom: 16,
-    justifyContent: 'space-between',
   },
   heroSpecItem: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 5,
   },
   heroSpecDivider: {
     width: 1,
-    height: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    height: 14,
+    backgroundColor: 'rgba(255, 255, 255, 0.18)',
   },
   heroSpecText: {
     color: '#DBEAFE',
@@ -666,64 +677,84 @@ const styles = StyleSheet.create({
 
   /* 3. Framework Stepper */
   section: {
-    marginBottom: 22,
+    marginBottom: 24,
   },
   sectionHeader: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '700',
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   sectionSubtitle: {
-    fontSize: 12,
+    fontSize: 12.5,
     marginTop: 2,
+    lineHeight: 17,
   },
-  frameworkGrid: {
-    flexDirection: 'row',
-    gap: 8,
+  frameworkScrollView: {
+    marginHorizontal: -18,
+  },
+  frameworkScrollContent: {
+    paddingHorizontal: 18,
+    gap: 12,
+    paddingBottom: 4,
   },
   frameworkStepCard: {
-    flex: 1,
-    borderRadius: 14,
+    width: 172,
+    height: 128,
+    borderRadius: 16,
     borderWidth: 1,
-    padding: 10,
+    padding: 13,
     justifyContent: 'space-between',
   },
   frameworkStepTop: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 6,
+  },
+  frameworkStepBadge: {
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   frameworkStepNum: {
     fontSize: 11,
     fontWeight: '800',
     color: '#2563EB',
+    letterSpacing: 0.2,
+  },
+  frameworkTimingChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   frameworkStepTiming: {
-    fontSize: 9,
-    fontWeight: '500',
+    fontSize: 10,
+    fontWeight: '600',
   },
   frameworkStepTitle: {
-    fontSize: 12,
+    fontSize: 13.5,
     fontWeight: '700',
-    marginBottom: 6,
+    lineHeight: 18,
+    marginVertical: 4,
   },
   frameworkStepAction: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
   },
   frameworkStepActionText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '600',
   },
 

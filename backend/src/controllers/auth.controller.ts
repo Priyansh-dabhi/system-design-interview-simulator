@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { registerUser, loginUser, loginWithGoogle, getAuthenticatedUser, acceptUserTerms } from "../services/auth.service.js";
+import { registerUser, loginUser, loginWithGoogle, getAuthenticatedUser, acceptUserTerms, deleteUserAccount } from "../services/auth.service.js";
 import {
     refreshAuthSession,
     revokeAllUserSessions,
@@ -87,5 +87,17 @@ export const acceptTerms = async (req: AuthRequest, res: Response) => {
     return res.status(200).json({
         message: "Terms accepted successfully",
         user,
+    });
+};
+
+export const deleteAccount = async (req: AuthRequest, res: Response) => {
+    if (!req.user) {
+        return res.status(401).json({ message: "Unauthorized", code: "UNAUTHORIZED" });
+    }
+
+    await deleteUserAccount(req.user.userId);
+    return res.status(200).json({
+        success: true,
+        message: "Account and associated data deleted successfully.",
     });
 };

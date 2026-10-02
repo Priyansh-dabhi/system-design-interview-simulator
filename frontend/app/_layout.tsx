@@ -38,10 +38,14 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
     dispatch(bootstrapAuth());
   }, [dispatch]);
 
-  // Hide the native splash screen once Redux finishes hydrating and fonts are loaded
+  // Hide the native splash screen once Redux finishes hydrating and fonts are loaded,
+  // with a 400ms buffer so the initial route transition completes fully under splash
   useEffect(() => {
     if (!isLoading && fontsLoaded) {
-      SplashScreen.hideAsync().catch(() => {});
+      const timer = setTimeout(() => {
+        SplashScreen.hideAsync().catch(() => {});
+      }, 400);
+      return () => clearTimeout(timer);
     }
   }, [isLoading, fontsLoaded]);
 
@@ -101,6 +105,7 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: colors.background },
+          animation: 'none',
         }}
       >
         <Stack.Screen name="(auth)" />
@@ -129,6 +134,10 @@ export default function RootLayout() {
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
+    "Inter-Regular": Inter_400Regular,
+    "Inter-Medium": Inter_500Medium,
+    "Inter-SemiBold": Inter_600SemiBold,
+    "Inter-Bold": Inter_700Bold,
     DMSans_500Medium,
     DMSans_700Bold,
     JetBrainsMono_400Regular,

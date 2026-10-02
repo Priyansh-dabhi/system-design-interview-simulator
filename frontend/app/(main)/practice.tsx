@@ -28,8 +28,6 @@ const PROBLEMS: ProblemItem[] = [
     difficulty: 'Advanced',
     duration: 45,
     topics: ['WebSockets', 'Message Queues', 'Cassandra', 'E2EE'],
-    attempts: 4,
-    bestScore: 82,
   },
   {
     id: 'netflix',
@@ -38,7 +36,6 @@ const PROBLEMS: ProblemItem[] = [
     difficulty: 'Advanced',
     duration: 45,
     topics: ['Video Transcoding', 'CDN', 'Adaptive Bitrate', 'Cassandra'],
-    attempts: 1,
   },
   {
     id: 'uber',
@@ -47,8 +44,6 @@ const PROBLEMS: ProblemItem[] = [
     difficulty: 'Advanced',
     duration: 45,
     topics: ['Geohash', 'WebSockets', 'Redis', 'Matching Algo'],
-    attempts: 2,
-    bestScore: 78,
   },
   {
     id: 'tinyurl',
@@ -57,8 +52,6 @@ const PROBLEMS: ProblemItem[] = [
     difficulty: 'Beginner',
     duration: 30,
     topics: ['Base62 Encoding', 'Hashing', 'Redis Caching', 'Rate Limiting'],
-    attempts: 3,
-    bestScore: 91,
   },
   {
     id: 'instagram',
@@ -67,7 +60,6 @@ const PROBLEMS: ProblemItem[] = [
     difficulty: 'Intermediate',
     duration: 35,
     topics: ['Fan-out', 'Feed Ranking', 'S3 Storage', 'Cache Invalidation'],
-    attempts: 0,
   },
   {
     id: 'twitter',
@@ -76,7 +68,6 @@ const PROBLEMS: ProblemItem[] = [
     difficulty: 'Intermediate',
     duration: 35,
     topics: ['Timeline Service', 'Redis Clusters', 'Fan-out on Read', 'Graph DB'],
-    attempts: 0,
   },
 ];
 

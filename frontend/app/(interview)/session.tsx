@@ -1,7 +1,8 @@
-import { useChatMutation, useEndSessionMutation, useGetHintMutation } from '@/src/redux/api/interview_api';
+import { useChatMutation, useDeleteSessionMutation, useEndSessionMutation, useGetHintMutation } from '@/src/redux/api/interview_api';
 import { setSummary, incrementHintCount, setMessages as persistMessages, clearSession } from '@/src/redux/slices/session';
 import { getMaxHints } from '../../src/utils/hints';
 import type { RootState } from '@/src/redux/store';
+import { defaultSettings, getStoredSettings, VoicePreferences, InterviewPreferences } from '../../src/storage/settingsStorage';
 import { useNavigation, useRouter } from 'expo-router';
 import {
     ExpoSpeechRecognitionModule,
@@ -19,7 +20,7 @@ import {
     Text,
     View,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { ChatHeader } from '../../src/components/interview/ChatHeader';
 import { ChatInput } from '../../src/components/interview/ChatInput';
@@ -28,105 +29,6 @@ import { TypingIndicator } from '../../src/components/interview/TypingIndicator'
 import { LoadingOverlay } from '../../src/components/shared/LoadingOverlay';
 import { useTheme } from '../../src/theme/useTheme';
 import { Layout } from '../../src/constants/Layout';
-import { Typography } from '../../src/components/ui/Typography';
-
-// Segmented stage stepper matching top interview platforms
-function StageIndicator({ currentMessageCount }: { currentMessageCount: number }) {
-    const { colors, isDark } = useTheme();
-    const stages = ['Requirements', 'High-Level Design', 'Deep Dive', 'Scalability', 'Trade-offs'];
-    let activeIndex = 0;
-    if (currentMessageCount > 12) activeIndex = 4;
-    else if (currentMessageCount > 8) activeIndex = 3;
-    else if (currentMessageCount > 5) activeIndex = 2;
-    else if (currentMessageCount > 2) activeIndex = 1;
-
-    const styles = React.useMemo(() => StyleSheet.create({
-        container: {
-            paddingHorizontal: 18,
-            paddingTop: 10,
-            paddingBottom: 12,
-            backgroundColor: colors.surface,
-            borderBottomWidth: 1,
-            borderBottomColor: colors.border,
-            gap: 8,
-        },
-        headerRow: {
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-        },
-        activeStageChip: {
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: 6,
-            paddingHorizontal: 10,
-            paddingVertical: 3,
-            borderRadius: 12,
-            backgroundColor: isDark ? 'rgba(59, 130, 246, 0.15)' : 'rgba(37, 99, 235, 0.08)',
-            borderWidth: 1,
-            borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(37, 99, 235, 0.2)',
-        },
-        pulseDot: {
-            width: 7,
-            height: 7,
-            borderRadius: 3.5,
-            backgroundColor: colors.primary,
-        },
-        stepCount: {
-            fontSize: 12,
-            fontWeight: '600',
-            color: colors.textSecondary,
-        },
-        stepperTrack: {
-            flexDirection: 'row',
-            gap: 5,
-            height: 4.5,
-        },
-        stepSegment: {
-            flex: 1,
-            borderRadius: 3,
-        },
-    }), [colors, isDark]);
-
-    return (
-        <View style={styles.container}>
-            <View style={styles.headerRow}>
-                <View style={styles.activeStageChip}>
-                    <View style={styles.pulseDot} />
-                    <Typography variant="caption" weight="bold" style={{ color: colors.primary }}>
-                        {stages[activeIndex]}
-                    </Typography>
-                </View>
-                <Text style={styles.stepCount}>
-                    Step {activeIndex + 1} of {stages.length}
-                </Text>
-            </View>
-
-            {/* 5 Distinct Rounded Pill Segments */}
-            <View style={styles.stepperTrack}>
-                {stages.map((stage, idx) => {
-                    const isCompleted = idx < activeIndex;
-                    const isActive = idx === activeIndex;
-                    return (
-                        <View
-                            key={stage}
-                            style={[
-                                styles.stepSegment,
-                                {
-                                    backgroundColor: isCompleted
-                                        ? (colors.success || '#10B981')
-                                        : isActive
-                                        ? colors.primary
-                                        : (isDark ? 'rgba(51, 65, 85, 0.5)' : 'rgba(203, 213, 225, 0.7)'),
-                                },
-                            ]}
-                        />
-                    );
-                })}
-            </View>
-        </View>
-    );
-}
 
 export default function InterviewSessionScreen() {
     const router = useRouter();
@@ -142,6 +44,7 @@ export default function InterviewSessionScreen() {
 
     const [sendChat, { isLoading: isSending }] = useChatMutation();
     const [endSession, { isLoading: isEnding }] = useEndSessionMutation();
+    const [deleteSession, { isLoading: isDeleting }] = useDeleteSessionMutation();
     const [getHint, { isLoading: isHintLoading }] = useGetHintMutation();
 
     const [messages, setMessages] = useState<Message[]>([]);
@@ -150,6 +53,22 @@ export default function InterviewSessionScreen() {
     const [remainingSeconds, setRemainingSeconds] = useState<number | null>(null);
     const [isNavigatingAway, setIsNavigatingAway] = useState(false);
     const [speakingMessageId, setSpeakingMessageId] = useState<string | null>(null);
+    const [voiceSettings, setVoiceSettings] = useState<VoicePreferences>(defaultSettings.voice);
+    const [interviewSettings, setInterviewSettings] = useState<InterviewPreferences>(defaultSettings.interview);
+    const interviewSettingsRef = useRef<InterviewPreferences>(defaultSettings.interview);
+
+    useEffect(() => {
+        interviewSettingsRef.current = interviewSettings;
+    }, [interviewSettings]);
+
+    // Load persisted settings on mount
+    useEffect(() => {
+        getStoredSettings().then((s) => {
+            setVoiceSettings(s.voice);
+            setInterviewSettings(s.interview);
+            interviewSettingsRef.current = s.interview;
+        });
+    }, []);
 
     // Stop TTS speech when component unmounts
     useEffect(() => {
@@ -168,16 +87,13 @@ export default function InterviewSessionScreen() {
         Speech.stop();
         setSpeakingMessageId(message.id);
         Speech.speak(message.text, {
-            rate: 1.0,
+            rate: voiceSettings.speechSpeed,
             pitch: 1.0,
             onDone: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
             onStopped: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
             onError: () => setSpeakingMessageId((curr) => (curr === message.id ? null : curr)),
         });
-    }, [speakingMessageId]);
-
-    const insets = useSafeAreaInsets();
-    const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+    }, [speakingMessageId, voiceSettings.speechSpeed]);
 
     const hasEndedRef = useRef(false);
     const endsAtRef = useRef<number | null>(null);
@@ -188,22 +104,15 @@ export default function InterviewSessionScreen() {
     // Auto-scroll when keyboard opens
     useEffect(() => {
         const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
-        const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
 
         const showSub = Keyboard.addListener(showEvent, () => {
-            setKeyboardVisible(true);
             setTimeout(() => {
                 flatListRef.current?.scrollToEnd({ animated: true });
             }, 60);
         });
 
-        const hideSub = Keyboard.addListener(hideEvent, () => {
-            setKeyboardVisible(false);
-        });
-
         return () => {
             showSub.remove();
-            hideSub.remove();
         };
     }, []);
 
@@ -238,6 +147,23 @@ export default function InterviewSessionScreen() {
             setMessages([{ id: '1', role: 'interviewer', text: openingMessage }]);
         }
     }, [openingMessage]);
+
+    const handleDiscardSession = useCallback(async () => {
+        if (!sessionId) return;
+        if (hasEndedRef.current) return;
+        hasEndedRef.current = true;
+        Speech.stop();
+        setSpeakingMessageId(null);
+        try {
+            await deleteSession({ sessionId }).unwrap();
+        } catch (e) {
+            console.error('Failed to delete session on discard:', e);
+        }
+        dispatch(clearSession());
+        setIsNavigatingAway(true);
+        Alert.alert('Session Discarded', 'Your interview session was not saved.');
+        router.replace('/(main)/home' as any);
+    }, [sessionId, deleteSession, dispatch, router]);
 
     const performEndSession = useCallback(async () => {
         if (!sessionId || !problem) return;
@@ -284,52 +210,94 @@ export default function InterviewSessionScreen() {
             const remaining = Math.max(0, Math.round((endsAtRef.current! - Date.now()) / 1000));
             setRemainingSeconds(remaining);
             if (remaining <= 0) {
-                performEndSessionRef.current();
+                if (hasEndedRef.current) return;
+                const autoSave = interviewSettingsRef.current.autoSave;
+                if (autoSave) {
+                    performEndSessionRef.current();
+                } else {
+                    Alert.alert(
+                        "Time's Up!",
+                        'Your interview time has ended. Auto-save is turned off. Would you like to evaluate and save this session to your history, or discard it?',
+                        [
+                            { text: 'Discard Session', style: 'destructive', onPress: handleDiscardSession },
+                            { text: 'Save & Evaluate', onPress: performEndSession },
+                        ],
+                        { cancelable: false }
+                    );
+                }
             }
         };
         tick();
         const intervalId = setInterval(tick, 1000);
         return () => clearInterval(intervalId);
-    }, [durationMinutes]);
+    }, [durationMinutes, handleDiscardSession, performEndSession]);
 
     const handleEndInterview = useCallback(() => {
         const userMsgCount = messages.filter(m => m.role === 'candidate').length;
+        const autoSave = interviewSettingsRef.current.autoSave;
+
         if (userMsgCount === 0) {
             Alert.alert(
                 'End Interview?',
-                'You have not submitted any answers yet. Ending now will conclude this session with a baseline evaluation.',
+                'You have not submitted any answers yet. Ending now will discard this session.',
                 [
                     { text: 'Keep Interviewing', style: 'cancel' },
-                    { text: 'End & Evaluate', style: 'destructive', onPress: performEndSession },
+                    { text: 'Discard Session', style: 'destructive', onPress: handleDiscardSession },
                 ]
             );
-        } else {
+            return;
+        }
+
+        if (autoSave) {
             Alert.alert(
                 'End Interview?',
                 'This will conclude your interview and generate your performance summary.',
                 [
                     { text: 'Cancel', style: 'cancel' },
-                    { text: 'End Interview', style: 'destructive', onPress: performEndSession },
+                    { text: 'End & Save', style: 'destructive', onPress: performEndSession },
+                ]
+            );
+        } else {
+            Alert.alert(
+                'End Interview?',
+                'Auto-save is turned off. Would you like to evaluate and save this session to your history, or discard it?',
+                [
+                    { text: 'Keep Interviewing', style: 'cancel' },
+                    { text: 'Discard Session', style: 'destructive', onPress: handleDiscardSession },
+                    { text: 'Save & Evaluate', onPress: performEndSession },
                 ]
             );
         }
-    }, [messages, performEndSession]);
+    }, [messages, handleDiscardSession, performEndSession]);
 
     useEffect(() => {
         const unsubscribe = navigation.addListener('beforeRemove', (e: any) => {
-            if (isNavigatingAway || isEnding) return;
+            if (isNavigatingAway || isEnding || isDeleting) return;
             e.preventDefault();
-            Alert.alert(
-                'End Interview?',
-                'This will generate your performance summary. You cannot continue this session after ending.',
-                [
-                    { text: 'Cancel', style: 'cancel', onPress: () => { } },
-                    { text: 'End Interview', style: 'destructive', onPress: () => { performEndSession(); } },
-                ]
-            );
+            const autoSave = interviewSettingsRef.current.autoSave;
+            if (autoSave) {
+                Alert.alert(
+                    'End Interview?',
+                    'This will conclude your interview and save your performance summary. You cannot continue this session after ending.',
+                    [
+                        { text: 'Cancel', style: 'cancel', onPress: () => { } },
+                        { text: 'End & Save', style: 'destructive', onPress: () => { performEndSession(); } },
+                    ]
+                );
+            } else {
+                Alert.alert(
+                    'Exit Interview?',
+                    'Auto-save is turned off. Would you like to evaluate and save this session to your history, or discard it?',
+                    [
+                        { text: 'Stay', style: 'cancel', onPress: () => { } },
+                        { text: 'Discard Session', style: 'destructive', onPress: () => { handleDiscardSession(); } },
+                        { text: 'Save & Evaluate', onPress: () => { performEndSession(); } },
+                    ]
+                );
+            }
         });
         return unsubscribe;
-    }, [navigation, isNavigatingAway, isEnding, performEndSession]);
+    }, [navigation, isNavigatingAway, isEnding, isDeleting, performEndSession, handleDiscardSession]);
 
     const handleSend = async () => {
         if (!inputText.trim() || !sessionId || !problem) return;
@@ -357,6 +325,18 @@ export default function InterviewSessionScreen() {
             };
             setMessages((prev) => [...prev, aiMessage]);
             setTimeout(() => { flatListRef.current?.scrollToEnd({ animated: true }); }, 100);
+
+            // Auto-play AI response if enabled in voice settings
+            if (voiceSettings.autoPlayResponses) {
+                setSpeakingMessageId(aiMessage.id);
+                Speech.speak(aiMessage.text, {
+                    rate: voiceSettings.speechSpeed,
+                    pitch: 1.0,
+                    onDone: () => setSpeakingMessageId((curr) => (curr === aiMessage.id ? null : curr)),
+                    onStopped: () => setSpeakingMessageId((curr) => (curr === aiMessage.id ? null : curr)),
+                    onError: () => setSpeakingMessageId((curr) => (curr === aiMessage.id ? null : curr)),
+                });
+            }
         } catch (err: any) {
             console.error('Chat error:', err);
             Alert.alert(
@@ -370,7 +350,7 @@ export default function InterviewSessionScreen() {
     const maxHints = getMaxHints(durationMinutes);
 
     const handleHint = async () => {
-        if (!sessionId || isHintLoading) return;
+        if (!interviewSettings.showHints || !sessionId || isHintLoading) return;
 
         if (hintCount >= maxHints) {
             Alert.alert(
@@ -422,7 +402,7 @@ export default function InterviewSessionScreen() {
     }), [colors]);
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <ChatHeader
                 topicTitle={topicTitle}
                 onBack={() => router.back()}
@@ -430,11 +410,10 @@ export default function InterviewSessionScreen() {
                 remainingSeconds={remainingSeconds ?? undefined}
             />
 
-            <StageIndicator currentMessageCount={messages.length} />
-
             <KeyboardAvoidingView
                 style={{ flex: 1 }}
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
             >
                 <FlatList
                     ref={flatListRef}
@@ -464,12 +443,12 @@ export default function InterviewSessionScreen() {
                     isHintLoading={isHintLoading}
                     hintCount={hintCount}
                     maxHints={maxHints}
+                    showHints={interviewSettings.showHints}
                     disabled={remainingSeconds !== null && remainingSeconds <= 0}
-                    bottomInset={isKeyboardVisible ? 6 : Math.max(insets.bottom, 10)}
                 />
             </KeyboardAvoidingView>
 
-            {isEnding && <LoadingOverlay />}
+            {(isEnding || isDeleting) && <LoadingOverlay />}
         </SafeAreaView>
     );
 }

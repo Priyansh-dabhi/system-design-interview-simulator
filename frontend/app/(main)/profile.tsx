@@ -1,10 +1,11 @@
 import { useGetHistoryQuery } from '@/src/redux/api/interview_api';
 import { useAppDispatch, useAppSelector } from '@/src/redux/hooks';
-import { logout } from '@/src/redux/slices/auth';
+import { logout, deleteAccountThunk } from '@/src/redux/slices/auth';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import {
     Bug,
+    CaretLeft,
     CheckCircle,
     FileText,
     Fire,
@@ -72,9 +73,9 @@ export default function ProfileScreen() {
     const openHelpSupport = () => {
         Alert.alert(
             'Help & Support',
-            'Need assistance with your simulations or account? Reach out to our engineering support team.\n\nsupport@interviewai.app',
+            'Need assistance with your simulations or account? Reach out to our engineering support team.\n\npriyanshdabhi7@gmail.com',
             [
-                { text: 'Copy Email', onPress: () => Linking.openURL('mailto:support@interviewai.app') },
+                { text: 'Copy Email', onPress: () => Linking.openURL('mailto:priyanshdabhi7@gmail.com') },
                 { text: 'Close', style: 'cancel' },
             ]
         );
@@ -152,6 +153,17 @@ export default function ProfileScreen() {
             fontSize: 13,
             marginTop: 2,
             color: colors.textSecondary,
+        },
+        backBtn: {
+            width: 40,
+            height: 40,
+            borderRadius: 12,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 0, 0, 0.04)',
+            borderWidth: 1,
+            borderColor: colors.border,
+            marginRight: 12,
         },
         settingsBtn: {
             width: 40,
@@ -396,6 +408,22 @@ export default function ProfileScreen() {
         <SafeAreaView style={styles.container} edges={['top']}>
             {/* Header */}
             <View style={styles.header}>
+                <TouchableOpacity
+                    style={styles.backBtn}
+                    onPress={() => {
+                        if (router.canGoBack()) {
+                            router.back();
+                        } else {
+                            router.replace('/(main)/home' as any);
+                        }
+                    }}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    activeOpacity={0.7}
+                    accessibilityLabel="Back to Home"
+                    accessibilityRole="button"
+                >
+                    <CaretLeft size={22} color={colors.text} weight="bold" />
+                </TouchableOpacity>
                 <View style={styles.headerTextContainer}>
                     <Text style={styles.headerTitle}>Profile</Text>
                     <Text style={styles.headerSubtitle}>Candidate profile & simulator preferences</Text>
@@ -645,6 +673,9 @@ export default function ProfileScreen() {
             <DataPrivacyModal
                 visible={dataPrivacyVisible}
                 onClose={() => setDataPrivacyVisible(false)}
+                onDeleteAccount={async () => {
+                    await dispatch(deleteAccountThunk()).unwrap();
+                }}
                 onSignOut={() => dispatch(logout())}
             />
 

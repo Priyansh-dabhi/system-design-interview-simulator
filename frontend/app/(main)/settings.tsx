@@ -27,9 +27,6 @@ import {
     AppSettings,
     defaultSettings,
     getStoredSettings,
-    InterviewDifficulty,
-    InterviewDuration,
-    InterviewMode,
     setStoredSettings,
     SpeechSpeed,
 } from '../../src/storage/settingsStorage';
@@ -118,7 +115,6 @@ export default function SettingsScreen() {
         { id: 'system', label: 'System', icon: Desktop },
     ];
 
-    const durationOptions: InterviewDuration[] = [20, 30, 45, 60];
     const speedOptions: SpeechSpeed[] = [0.8, 1.0, 1.2, 1.5];
 
     const styles = React.useMemo(() => StyleSheet.create({
@@ -321,6 +317,25 @@ export default function SettingsScreen() {
             fontWeight: '700',
             color: colors.primary,
         },
+        comingSoonBanner: {
+            flexDirection: 'row',
+            alignItems: 'flex-start',
+            gap: 12,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            borderRadius: 12,
+            borderWidth: 1,
+        },
+        comingSoonTitle: {
+            fontSize: 13,
+            fontWeight: '700',
+            marginBottom: 2,
+            letterSpacing: 0.1,
+        },
+        comingSoonDesc: {
+            fontSize: 12,
+            lineHeight: 17,
+        },
     }), [colors, isDark]);
 
     return (
@@ -383,79 +398,19 @@ export default function SettingsScreen() {
                         <SlidersHorizontal size={17} color={colors.primary} weight="fill" />
                         <Text style={styles.sectionTitle}>Interview Preferences</Text>
                     </View>
+
+                    {/* Default Mode: Coming Soon */}
+                    <View style={[styles.comingSoonBanner, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.06)', borderColor: isDark ? 'rgba(59, 130, 246, 0.25)' : 'rgba(37, 99, 235, 0.18)' }]}>
+                        <SlidersHorizontal size={16} color={colors.primary} weight="fill" />
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>Default Interview Mode — Coming Soon</Text>
+                            <Text style={[styles.comingSoonDesc, { color: colors.textSecondary }]}>
+                                Voice vs. Text mode selection will be pre-configurable in a future update. Duration and difficulty are always set per-session from the Practice screen.
+                            </Text>
+                        </View>
+                    </View>
+
                     <View style={styles.card}>
-                        {/* Mode */}
-                        <View>
-                            <Text style={styles.rowLabel}>Default Interview Mode</Text>
-                            <Text style={styles.rowDesc}>Interactive chat format for simulations</Text>
-                        </View>
-                        <View style={styles.segmentedControl}>
-                            {(['text', 'voice'] as InterviewMode[]).map((mode) => {
-                                const active = settings.interview.defaultMode === mode;
-                                return (
-                                    <Pressable
-                                        key={mode}
-                                        onPress={() => updateInterviewSetting('defaultMode', mode)}
-                                        style={[styles.segmentBtn, active && styles.segmentBtnActive]}
-                                    >
-                                        <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                                            {mode === 'text' ? 'Text Interview' : 'Voice Interview'}
-                                        </Text>
-                                    </Pressable>
-                                );
-                            })}
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        {/* Difficulty */}
-                        <View>
-                            <Text style={styles.rowLabel}>Default Difficulty</Text>
-                            <Text style={styles.rowDesc}>Starting probing level for problem setups</Text>
-                        </View>
-                        <View style={styles.segmentedControl}>
-                            {(['beginner', 'intermediate', 'advanced'] as InterviewDifficulty[]).map((diff) => {
-                                const active = settings.interview.defaultDifficulty === diff;
-                                return (
-                                    <Pressable
-                                        key={diff}
-                                        onPress={() => updateInterviewSetting('defaultDifficulty', diff)}
-                                        style={[styles.segmentBtn, active && styles.segmentBtnActive]}
-                                    >
-                                        <Text style={[styles.segmentText, active && styles.segmentTextActive]}>
-                                            {diff.charAt(0).toUpperCase() + diff.slice(1)}
-                                        </Text>
-                                    </Pressable>
-                                );
-                            })}
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        {/* Duration */}
-                        <View>
-                            <Text style={styles.rowLabel}>Interview Duration</Text>
-                            <Text style={styles.rowDesc}>Recommended simulation countdown length</Text>
-                        </View>
-                        <View style={styles.pillRow}>
-                            {durationOptions.map((dur) => {
-                                const active = settings.interview.duration === dur;
-                                return (
-                                    <TouchableOpacity
-                                        key={dur}
-                                        onPress={() => updateInterviewSetting('duration', dur)}
-                                        style={[styles.pillBtn, active && styles.pillBtnActive]}
-                                    >
-                                        <Text style={[styles.pillText, active && styles.pillTextActive]}>
-                                            {dur} min
-                                        </Text>
-                                    </TouchableOpacity>
-                                );
-                            })}
-                        </View>
-
-                        <View style={styles.divider} />
-
                         {/* Hints toggle */}
                         <View style={styles.rowBetween}>
                             <View style={{ flex: 1, paddingRight: 10 }}>
@@ -584,7 +539,19 @@ export default function SettingsScreen() {
                         <Bell size={17} color={colors.primary} weight="fill" />
                         <Text style={styles.sectionTitle}>Notifications</Text>
                     </View>
-                    <View style={styles.card}>
+
+                    {/* Coming Soon Banner */}
+                    <View style={[styles.comingSoonBanner, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.06)', borderColor: isDark ? 'rgba(59, 130, 246, 0.25)' : 'rgba(37, 99, 235, 0.18)' }]}>
+                        <Bell size={16} color={colors.primary} weight="fill" />
+                        <View style={{ flex: 1 }}>
+                            <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>Coming Soon</Text>
+                            <Text style={[styles.comingSoonDesc, { color: colors.textSecondary }]}>
+                                Push notifications are planned for an upcoming release. Toggle controls will be active once the feature ships.
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View style={[styles.card, { opacity: 0.45 }]} pointerEvents="none">
                         <View style={styles.rowBetween}>
                             <View style={{ flex: 1, paddingRight: 10 }}>
                                 <Text style={styles.rowLabel}>Interview Reminders</Text>
@@ -627,15 +594,6 @@ export default function SettingsScreen() {
                                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
                             />
                         </View>
-
-                        {settings.notifications.dailyPractice ? (
-                            <View style={styles.reminderTimeRow}>
-                                <Text style={styles.rowDesc}>Reminder Time</Text>
-                                <View style={styles.timeChip}>
-                                    <Text style={styles.timeChipText}>{settings.notifications.dailyPracticeTime}</Text>
-                                </View>
-                            </View>
-                        ) : null}
 
                         <View style={styles.divider} />
 

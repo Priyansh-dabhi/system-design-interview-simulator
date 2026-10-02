@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon, GraduationCap, User } from "phosphor-react-native";
+import { BooksIcon, ClockCounterClockwiseIcon, HouseIcon, GraduationCap } from "phosphor-react-native";
 import React from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../../src/theme/useTheme";
@@ -74,10 +74,8 @@ export default function MainLayout() {
       <Tabs.Screen
         name="profile"
         options={{
+          href: null,
           title: "Profile",
-          tabBarIcon: ({ color, size, focused }) => (
-            <User size={22} color={color} weight={focused ? "fill" : "regular"} />
-          ),
         }}
       />
       <Tabs.Screen

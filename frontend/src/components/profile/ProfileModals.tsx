@@ -10,6 +10,7 @@ import {
 } from 'phosphor-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Alert, StyleSheet,
     Text,
     TouchableOpacity,
@@ -249,27 +250,37 @@ interface DataPrivacyModalProps {
     visible: boolean;
     onClose: () => void;
     onSignOut: () => void;
+    onDeleteAccount?: () => Promise<void> | void;
 }
 
-export const DataPrivacyModal: React.FC<DataPrivacyModalProps> = ({ visible, onClose, onSignOut }) => {
+export const DataPrivacyModal: React.FC<DataPrivacyModalProps> = ({ visible, onClose, onSignOut, onDeleteAccount }) => {
     const { colors, isDark } = useTheme();
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleDeleteAccount = () => {
         Alert.alert(
             'Delete Account',
-            'Are you sure you want to permanently delete your account? All interview histories, telemetry, and evaluations will be erased. This action cannot be undone.',
+            'Are you sure you want to permanently delete your account? All interview histories, telemetry, and evaluations will be erased immediately. This action cannot be undone.',
             [
                 { text: 'Cancel', style: 'cancel' },
                 {
                     text: 'Permanently Delete',
                     style: 'destructive',
-                    onPress: () => {
-                        onClose();
-                        Alert.alert(
-                            'Account Deletion Request',
-                            'Your deletion request has been registered. You will now be signed out.',
-                            [{ text: 'OK', onPress: onSignOut }]
-                        );
+                    onPress: async () => {
+                        try {
+                            setIsDeleting(true);
+                            if (onDeleteAccount) {
+                                await onDeleteAccount();
+                            } else {
+                                onSignOut();
+                            }
+                            onClose();
+                            Alert.alert('Account Deleted', 'Your account and all associated data have been permanently deleted.');
+                        } catch (err: any) {
+                            Alert.alert('Deletion Failed', err?.message || 'Failed to delete account. Please try again.');
+                        } finally {
+                            setIsDeleting(false);
+                        }
                     },
                 },
             ]
@@ -383,9 +394,15 @@ export const DataPrivacyModal: React.FC<DataPrivacyModalProps> = ({ visible, onC
                 <Text style={styles.deleteDesc}>
                     Permanently delete your account, session records, telemetry, and analytics. This operation cannot be reversed.
                 </Text>
-                <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount}>
-                    <Trash size={15} color="#FFFFFF" weight="bold" />
-                    <Text style={styles.deleteBtnText}>Delete Account</Text>
+                <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteAccount} disabled={isDeleting}>
+                    {isDeleting ? (
+                        <ActivityIndicator size="small" color="#FFFFFF" />
+                    ) : (
+                        <>
+                            <Trash size={15} color="#FFFFFF" weight="bold" />
+                            <Text style={styles.deleteBtnText}>Delete Account</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
             </View>
         </BaseModal>

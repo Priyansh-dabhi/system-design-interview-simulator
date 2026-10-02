@@ -16,6 +16,7 @@ interface ChatInputProps {
     isHintLoading: boolean;
     hintCount: number;
     maxHints: number;
+    showHints?: boolean;
     disabled?: boolean;
     bottomInset?: number;
 }
@@ -31,6 +32,7 @@ export function ChatInput({
     isHintLoading,
     hintCount,
     maxHints,
+    showHints = true,
     disabled = false,
     bottomInset = 0,
 }: ChatInputProps) {
@@ -66,16 +68,11 @@ export function ChatInput({
             alignItems: 'flex-end',
             paddingHorizontal: 14,
             paddingTop: 10,
-            paddingBottom: Math.max(bottomInset, 10),
+            paddingBottom: bottomInset > 0 ? bottomInset : 10,
             borderTopWidth: 1,
             borderTopColor: colors.border,
             backgroundColor: colors.surface,
             gap: 8,
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: -3 },
-            shadowOpacity: isDark ? 0.25 : 0.05,
-            shadowRadius: 8,
-            elevation: 8,
         },
         inputWrapper: {
             flex: 1,
@@ -133,13 +130,15 @@ export function ChatInput({
 
     return (
         <View style={styles.inputContainer}>
-            <HintButton
-                onPress={onHint}
-                isLoading={isHintLoading}
-                hintCount={hintCount}
-                maxHints={maxHints}
-                disabled={disabled}
-            />
+            {showHints && (
+                <HintButton
+                    onPress={onHint}
+                    isLoading={isHintLoading}
+                    hintCount={hintCount}
+                    maxHints={maxHints}
+                    disabled={disabled}
+                />
+            )}
 
             <View style={styles.inputWrapper}>
                 <TextInput

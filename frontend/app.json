@@ -21,7 +21,6 @@
         "foregroundImage": "./assets/images/splash_foreground_transparent.png"
       },
       "edgeToEdgeEnabled": true,
-      "usesCleartextTraffic": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.RECORD_AUDIO"

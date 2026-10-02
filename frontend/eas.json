@@ -16,14 +16,30 @@
       },
       "channel": "preview",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://system-design-interview-simulator-6y2k.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://system-design-interview-simulator-6y2k.onrender.com",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDC_kWxfcw745qIMvocmGdDbqvv2z-kboA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "system-design-interviewer.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "system-design-interviewer",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "system-design-interviewer.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "525763895253",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:525763895253:android:edb6a705471871f965675c",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "525763895253-f2ciq38rppknn2fcfnpmjkqi9mak8got.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "525763895253-pd9qgq5077c0g08edojas7hid4pjajo9.apps.googleusercontent.com"
       }
     },
     "production": {
       "autoIncrement": true,
       "channel": "production",
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://system-design-interview-simulator-6y2k.onrender.com"
+        "EXPO_PUBLIC_API_URL": "https://system-design-interview-simulator-6y2k.onrender.com",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyDC_kWxfcw745qIMvocmGdDbqvv2z-kboA",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "system-design-interviewer.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "system-design-interviewer",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "system-design-interviewer.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "525763895253",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:525763895253:android:edb6a705471871f965675c",
+        "EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID": "525763895253-f2ciq38rppknn2fcfnpmjkqi9mak8got.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "525763895253-pd9qgq5077c0g08edojas7hid4pjajo9.apps.googleusercontent.com"
       }
     }
   },

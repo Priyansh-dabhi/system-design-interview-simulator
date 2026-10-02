@@ -212,3 +212,10 @@ export const acceptUserTerms = async (userId: number) => {
 
     return toAuthUser(user);
 };
+
+export const deleteUserAccount = async (userId: number) => {
+    await withDbErrorHandling(() => prisma.user.delete({
+        where: { id: userId },
+    }));
+    return { success: true };
+};

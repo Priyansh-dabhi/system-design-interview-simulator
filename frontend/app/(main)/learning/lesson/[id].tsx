@@ -1,7 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CaretLeft, PlayCircle } from "phosphor-react-native";
 import React, { useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import YoutubePlayer from "react-native-youtube-iframe";
 import Markdown from 'react-native-markdown-display';
@@ -36,7 +36,7 @@ export default function LessonScreen() {
     
     // Check if all answered
     if (Object.keys(selectedAnswers).length < lesson.questions.length) {
-      alert("Please answer all questions before submitting.");
+      Alert.alert("Incomplete Quiz", "Please answer all questions before submitting.");
       return;
     }
 

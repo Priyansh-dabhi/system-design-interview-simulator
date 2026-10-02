@@ -65,6 +65,13 @@ const performTokenRefresh = async (api: BaseQueryApi) => {
                 api.dispatch(setSession({ accessToken: tokens.accessToken, user: tokens.user }));
                 return tokens.accessToken;
             } catch (error) {
+                // If it's a network error (e.g. offline, connection timeout, server restarting),
+                // do NOT clear stored auth and do NOT log the user out!
+                if (error instanceof AuthApiError && error.category === "network") {
+                    console.warn("[performTokenRefresh] Network error during token refresh. Retaining session.");
+                    return null;
+                }
+
                 await clearStoredAuth();
                 await signOutFirebaseSession();
                 api.dispatch(clearAuthState());
@@ -89,11 +96,10 @@ export const baseQueryWithReauth: BaseQueryFn<string | FetchArgs, unknown, Fetch
     let result = await rawBaseQuery(args, api, extraOptions);
 
     if (result.error?.status === 401) {
-        // If the app is still bootstrapping auth, do NOT attempt a token refresh here.
-        // bootstrapAuth is already handling session restoration, and racing with it
-        // would clear auth state and force a spurious logout.
-        const state = api.getState() as { auth: { isHydrating: boolean } };
-        if (state.auth.isHydrating) {
+        // If the app is still bootstrapping auth or currently submitting auth credentials,
+        // do NOT attempt a token refresh here to prevent race conditions.
+        const state = api.getState() as { auth: { isHydrating: boolean; isSubmitting: boolean } };
+        if (state.auth.isHydrating || state.auth.isSubmitting) {
             return result;
         }
 

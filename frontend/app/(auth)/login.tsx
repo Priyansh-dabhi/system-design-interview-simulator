@@ -29,14 +29,17 @@ export default function LoginScreen() {
   const isLoading = useAppSelector((state) => state.auth.isSubmitting);
   const authNotice = useAppSelector((state) => state.auth.authNotice);
   const googleAuthPhase = useAppSelector((state) => state.auth.googleAuthPhase);
+  const user = useAppSelector((state) => state.auth.user);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const isBusy = isLoading || activeMethod !== null;
 
   useEffect(() => {
-    if (!authNotice) return;
+    // Never show a "Session ended" alert if the user is already authenticated
+    if (!authNotice || user || isAuthenticated) return;
     Alert.alert("Session ended", authNotice, [
       { text: "OK", onPress: () => dispatch(clearAuthNotice()) },
     ]);
-  }, [authNotice, dispatch]);
+  }, [authNotice, user, isAuthenticated, dispatch]);
 
   const handleLogin = async () => {
     const trimmedEmail = email.trim();

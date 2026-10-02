@@ -11,6 +11,7 @@ import {
     refreshSession,
     registerUser,
     acceptTermsRequest,
+    deleteAccountRequest,
 } from "../../services/auth.api";
 import { signOutFirebaseSession } from "../../services/googleAuth";
 import { clearStoredAuth, getStoredRefreshToken, getStoredUser, setStoredRefreshToken, setStoredUser } from "../../storage/authStorage";
@@ -63,16 +64,43 @@ const persistSession = async (payload: AuthResponse) => {
 
 export const bootstrapAuth = createAsyncThunk(
     "auth/bootstrap",
-    async () => {
+    async (_, { getState }) => {
+        const state = getState() as { auth: AuthState };
+        if (state.auth.isAuthenticated || state.auth.user) {
+            return {
+                accessToken: state.auth.accessToken,
+                user: state.auth.user,
+                authNotice: null,
+            };
+        }
+
         const refreshToken = await getStoredRefreshToken();
 
         if (!refreshToken) {
+            const currentState = getState() as { auth: AuthState };
+            if (currentState.auth.isAuthenticated || currentState.auth.user) {
+                return {
+                    accessToken: currentState.auth.accessToken,
+                    user: currentState.auth.user,
+                    authNotice: null,
+                };
+            }
             await clearStoredAuth();
             return { accessToken: null, user: null, authNotice: null };
         }
 
         try {
             const refreshedSession = await refreshSession(refreshToken);
+
+            const currentState = getState() as { auth: AuthState };
+            if (currentState.auth.isAuthenticated || currentState.auth.user) {
+                return {
+                    accessToken: currentState.auth.accessToken,
+                    user: currentState.auth.user,
+                    authNotice: null,
+                };
+            }
+
             await Promise.all([
                 setStoredRefreshToken(refreshedSession.refreshToken),
                 setStoredUser(refreshedSession.user),
@@ -84,6 +112,16 @@ export const bootstrapAuth = createAsyncThunk(
                 authNotice: null,
             };
         } catch (error) {
+            // Check if user logged in while this refresh request was in-flight
+            const currentState = getState() as { auth: AuthState };
+            if (currentState.auth.isAuthenticated || currentState.auth.user) {
+                return {
+                    accessToken: currentState.auth.accessToken,
+                    user: currentState.auth.user,
+                    authNotice: null,
+                };
+            }
+
             // Network error — device is offline. Preserve stored credentials
             // and load cached user so the AuthGuard doesn't redirect to login.
             if (error instanceof AuthApiError && error.category === "network") {
@@ -213,6 +251,33 @@ export const logoutAll = createAsyncThunk(
     }
 );
 
+export const deleteAccountThunk = createAsyncThunk(
+    "auth/deleteAccount",
+    async (_, { dispatch, getState, rejectWithValue }) => {
+        const state = getState() as { auth: AuthState };
+        const accessToken = state.auth.accessToken;
+
+        if (!accessToken) {
+            return rejectWithValue("Authentication required to delete account.");
+        }
+
+        try {
+            await deleteAccountRequest(accessToken);
+        } catch (error) {
+            const message = error instanceof Error ? error.message : "Failed to delete account";
+            return rejectWithValue(message);
+        } finally {
+            await clearStoredAuth();
+            await signOutFirebaseSession();
+            dispatch(authSlice.actions.clearAuthNotice());
+            dispatch(clearSession());
+            dispatch(clearSelectedTopic());
+            dispatch(createSessionStartAPi.util.resetApiState());
+            dispatch(authSlice.actions.clearAuthState());
+        }
+    }
+);
+
 const authSlice = createSlice({
     name: "auth",
     initialState,
@@ -258,6 +323,11 @@ const authSlice = createSlice({
                 state.isHydrating = true;
             })
             .addCase(bootstrapAuth.fulfilled, (state, action) => {
+                // If user is already authenticated (e.g. logged in while bootstrap was in flight), keep current state
+                if (state.isAuthenticated && state.user) {
+                    state.isHydrating = false;
+                    return;
+                }
                 state.user = action.payload.user;
                 state.accessToken = action.payload.accessToken;
                 state.isAuthenticated = Boolean(action.payload.accessToken && action.payload.user);
@@ -265,6 +335,10 @@ const authSlice = createSlice({
                 state.authNotice = action.payload.authNotice;
             })
             .addCase(bootstrapAuth.rejected, (state) => {
+                if (state.isAuthenticated && state.user) {
+                    state.isHydrating = false;
+                    return;
+                }
                 state.user = null;
                 state.accessToken = null;
                 state.isAuthenticated = false;
@@ -280,6 +354,7 @@ const authSlice = createSlice({
                 state.accessToken = action.payload.accessToken;
                 state.isAuthenticated = true;
                 state.isSubmitting = false;
+                state.isHydrating = false;
                 state.authNotice = null;
             })
             .addCase(login.rejected, (state) => {
@@ -294,6 +369,7 @@ const authSlice = createSlice({
                 state.accessToken = action.payload.accessToken;
                 state.isAuthenticated = true;
                 state.isSubmitting = false;
+                state.isHydrating = false;
                 state.authNotice = null;
                 state.googleAuthPhase = "idle";
             })
@@ -311,6 +387,7 @@ const authSlice = createSlice({
                 state.accessToken = action.payload.accessToken;
                 state.isAuthenticated = true;
                 state.isSubmitting = false;
+                state.isHydrating = false;
                 state.authNotice = null;
             })
             .addCase(register.rejected, (state) => {
@@ -347,6 +424,25 @@ const authSlice = createSlice({
                 state.googleAuthPhase = "idle";
             })
             .addCase(logoutAll.fulfilled, (state) => {
+                state.user = null;
+                state.accessToken = null;
+                state.isAuthenticated = false;
+                state.isHydrating = false;
+                state.isSubmitting = false;
+                state.googleAuthPhase = "idle";
+            })
+            .addCase(deleteAccountThunk.pending, (state) => {
+                state.isSubmitting = true;
+            })
+            .addCase(deleteAccountThunk.fulfilled, (state) => {
+                state.user = null;
+                state.accessToken = null;
+                state.isAuthenticated = false;
+                state.isHydrating = false;
+                state.isSubmitting = false;
+                state.googleAuthPhase = "idle";
+            })
+            .addCase(deleteAccountThunk.rejected, (state) => {
                 state.user = null;
                 state.accessToken = null;
                 state.isAuthenticated = false;

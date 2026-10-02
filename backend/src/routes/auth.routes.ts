@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { googleLogin, login, logout, logoutAll, me, refresh, register, acceptTerms } from "../controllers/auth.controller.js";
+import { googleLogin, login, logout, logoutAll, me, refresh, register, acceptTerms, deleteAccount } from "../controllers/auth.controller.js";
 import {authenticate} from '../middleware/auth.middleware.js'
 import { validateBody } from "../middleware/validate.middleware.js";
 import { googleLoginSchema, loginSchema, logoutSchema, refreshSchema, registerSchema } from "../validation/auth.validation.js";
@@ -14,5 +14,6 @@ router.get("/me", authenticate, me);
 router.post("/logout", authenticate, validateBody(logoutSchema), logout);
 router.post("/logout-all", authenticate, logoutAll);
 router.post("/accept-terms", authenticate, acceptTerms);
+router.delete("/account", authenticate, deleteAccount);
 
 export default router
