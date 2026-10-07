@@ -53,7 +53,7 @@
     "seed": "node --loader ts-node/esm prisma/seed.ts"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Priyansh Dabhi",
+  "license": "MIT",
   "type": "module"
 }

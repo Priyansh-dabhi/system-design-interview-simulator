@@ -15,10 +15,18 @@
 [![Google Gemini](https://img.shields.io/badge/Gemini_2.5_Flash-8E75B2?logo=googlegemini&logoColor=white)](https://ai.google.dev/)
 [![Firebase](https://img.shields.io/badge/Firebase-DD2C00?logo=firebase&logoColor=white)](https://firebase.google.com/)
 [![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Google Play](https://img.shields.io/badge/Google_Play-Live_on_Play_Store-34A853?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.priyanshdabhi.interviewsimulator)
 
 ---
 
-🔗 **[Live Backend](https://system-design-interview-simulator.onrender.com)** · 📂 **[GitHub Repository](https://github.com/Priyansh-dabhi/system-design-interview-simulator)** · 🎬 **[Demo Video](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=drive_link)** · 🖼️ **[Media Gallery](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=drive_link)**
+📲 **[Google Play Store](https://play.google.com/store/apps/details?id=com.priyanshdabhi.interviewsimulator)** · 🔗 **[Live Backend](https://system-design-interview-simulator.onrender.com)** · 📂 **[GitHub Repository](https://github.com/Priyansh-dabhi/system-design-interview-simulator)** · 🎬 **[Demo Video](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=drive_link)** · 🖼️ **[Media Gallery](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=drive_link)**
+
+<br>
+
+<a href="https://play.google.com/store/apps/details?id=com.priyanshdabhi.interviewsimulator">
+  <img src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png" alt="Get it on Google Play" height="55">
+</a>
 
 </div>
 
@@ -41,6 +49,7 @@
 - [Demo & Screenshots](#-demo--screenshots)
 - [Engineering Highlights](#-engineering-highlights)
 - [Future Improvements](#-future-improvements)
+- [License](#-license)
 
 ---
 
@@ -68,7 +77,7 @@ At the end of each session, the AI generates a structured evaluation covering st
 | **Validation** | Zod schema validation (backend), structured error handling |
 | **UI & Styling** | Slate & Navy design system, Google Fonts (Inter, DM Sans, JetBrains Mono), Phosphor Icons, Expo Linear Gradient, React Native Reanimated |
 | **Learning Module** | Markdown lesson renderer, interactive quiz engine, YouTube video walkthrough integration |
-| **Infrastructure** | Docker Compose (local pgvector), Render (production backend), Expo EAS (mobile builds) |
+| **Infrastructure** | Docker Compose (local pgvector), Render (production backend), Expo EAS, Google Play Store (Production Release) |
 
 ---
 
@@ -845,16 +854,19 @@ The backend is deployed on [Render](https://render.com) as a web service:
 - **Local:** Docker Compose with `pgvector/pgvector:pg16` image
 - **Production:** Render managed PostgreSQL with the `vector` extension enabled via Prisma schema configuration
 
-### Mobile (Expo EAS)
+### Mobile (Google Play Store & Expo EAS)
 
-- Development builds via `eas build --profile development`
-- Native modules (speech recognition) require a development build, not Expo Go
+- **Google Play Store:** Live in production on [Google Play](https://play.google.com/store/apps/details?id=com.priyanshdabhi.interviewsimulator) (`com.priyanshdabhi.interviewsimulator`)
+- **Production Review:** Successfully passed Google Play production review and released to production
+- **Build Pipeline:** Expo Application Services (EAS Build) with automated Android App Bundle (`.aab`) generation
+- **Development Builds:** Native modules (speech recognition) use `eas build --profile development` for local testing
 
 ---
 
 ## 📸 Demo & Screenshots
 
-**[🔗 Click here to view the Demo Video and Screenshots on Google Drive](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=sharing)**
+- 📱 **Google Play Store:** [Download on Google Play](https://play.google.com/store/apps/details?id=com.priyanshdabhi.interviewsimulator)
+- 🎬 **Demo Video & Screenshots:** [View Demo Video and Media Gallery on Google Drive](https://drive.google.com/drive/folders/17D8jdzvUZUydYvQaVz6i8u8xjmyA9UZd?usp=sharing)
 
 ---
 
@@ -888,6 +900,12 @@ The backend is deployed on [Render](https://render.com) as a web service:
 | 🧩 **Constraint Injection** | Mid-interview curveballs ("Now assume your system needs to handle 10x traffic in 3 months") |
 | 📈 **Performance Scoring** | Quantitative scoring rubric aligned with real FAANG evaluation criteria |
 | 🌐 **Expanded Problem Set** | Community-contributed system design problems with categorization and tagging |
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
