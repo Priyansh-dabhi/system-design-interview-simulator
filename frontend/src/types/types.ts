@@ -82,6 +82,14 @@ export interface InterviewHistoryResponse {
     stats: InterviewStats;
 }
 
+export interface InterviewQuota {
+    limit: number;
+    used: number;
+    remaining: number;
+    resetsAt: string;
+}
+
+
 export interface LoginCredentials {
     email: string;
     password: string;

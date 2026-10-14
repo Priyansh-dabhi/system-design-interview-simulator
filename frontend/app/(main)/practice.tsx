@@ -1,6 +1,7 @@
+import { useGetQuotaQuery } from '@/src/redux/api/interview_api';
 import { setSelectedTopic } from '@/src/redux/slices/problem';
 import { useRouter } from 'expo-router';
-import { CaretRight, Clock } from 'phosphor-react-native';
+import { CaretRight, Clock, Lightning } from 'phosphor-react-native';
 import React, { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -76,6 +77,7 @@ export default function PracticeScreen() {
   const dispatch = useDispatch();
   const { colors } = useTheme();
   const [filter, setFilter] = useState<Difficulty>('All');
+  const { data: quota } = useGetQuotaQuery();
 
   const filters: Difficulty[] = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 
@@ -103,10 +105,36 @@ export default function PracticeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Header */}
       <View style={[styles.header, { backgroundColor: colors.background, borderBottomColor: colors.border }]}>
-        <Text style={[styles.headerTitle, { color: colors.text }]}>Interviews</Text>
-        <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
-          Choose a system design problem to solve
-        </Text>
+        {/* Header Title & Quota */}
+        <View style={styles.headerTopRow}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>Interviews</Text>
+            <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+              Choose a system design problem to solve
+            </Text>
+          </View>
+          {quota && (
+            <View
+              style={[
+                styles.quotaPill,
+                {
+                  backgroundColor: quota.remaining > 0 ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                  borderColor: quota.remaining > 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+                },
+              ]}
+            >
+              <Lightning size={12} color={quota.remaining > 0 ? '#10B981' : '#EF4444'} weight="fill" />
+              <Text
+                style={[
+                  styles.quotaPillText,
+                  { color: quota.remaining > 0 ? '#10B981' : '#EF4444' },
+                ]}
+              >
+                {quota.remaining}/{quota.limit} today
+              </Text>
+            </View>
+          )}
+        </View>
 
         {/* Filter Chips */}
         <ScrollView
@@ -360,5 +388,25 @@ const styles = StyleSheet.create({
   newText: {
     fontSize: 12,
     fontWeight: '600',
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  quotaPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    marginTop: 4,
+  },
+  quotaPillText: {
+    fontSize: 11,
+    fontWeight: '700',
   },
 });

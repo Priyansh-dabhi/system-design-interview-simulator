@@ -89,6 +89,26 @@ describe("Interview Routes", () => {
     });
   });
 
+  describe("GET /api/interview/quota", () => {
+    it("should return the daily interview quota status", async () => {
+      const res = await request(app)
+        .get("/api/interview/quota")
+        .set("Authorization", authHeader(token));
+
+      expect(res.status).toBe(200);
+      expect(res.body.limit).toBeDefined();
+      expect(res.body.used).toBeDefined();
+      expect(res.body.remaining).toBeDefined();
+      expect(res.body.resetsAt).toBeDefined();
+    });
+
+    it("should reject unauthenticated request", async () => {
+      const res = await request(app).get("/api/interview/quota");
+      expect(res.status).toBe(401);
+    });
+  });
+
+
   describe("POST /api/interview/chat", () => {
     let sessionId: string;
 

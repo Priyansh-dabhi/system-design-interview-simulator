@@ -1,5 +1,5 @@
 import testPrisma from "../../../prisma/test-client.js";
-import { createSession } from "../../repositories/session.repository.js";
+import { createSession, getDailyInterviewUsage } from "../../repositories/session.repository.js";
 
 describe("Session Repository", () => {
   let userId: number;
@@ -30,4 +30,13 @@ describe("Session Repository", () => {
 
     expect(session?.status).toBe("active");
   });
+
+  it("should calculate daily interview usage correctly", async () => {
+    const usage = await getDailyInterviewUsage(userId);
+    expect(usage).toBeDefined();
+    expect(usage.used).toBeGreaterThanOrEqual(1);
+    expect(usage.limit).toBeDefined();
+    expect(usage.resetsAt).toBeDefined();
+  });
 });
+

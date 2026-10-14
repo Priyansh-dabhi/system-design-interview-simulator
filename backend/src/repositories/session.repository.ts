@@ -107,3 +107,48 @@ export const deleteSession = async (sessionId: string) => {
         },
     }));
 };
+
+export const getDailyInterviewUsage = async (userId: number, email?: string) => {
+    return withDbErrorHandling(async () => {
+        const startOfDay = new Date();
+        startOfDay.setUTCHours(0, 0, 0, 0);
+
+        const endOfDay = new Date(startOfDay);
+        endOfDay.setUTCDate(endOfDay.getUTCDate() + 1);
+
+        const used = await prisma.interviewSession.count({
+            where: {
+                userId,
+                createdAt: {
+                    gte: startOfDay,
+                },
+            },
+        });
+
+        const isReviewer = Boolean(
+            process.env.REVIEWER_EMAIL &&
+            email &&
+            email.toLowerCase() === process.env.REVIEWER_EMAIL.toLowerCase()
+        );
+
+        let defaultLimit = 2;
+        if (process.env.NODE_ENV === "test") {
+            defaultLimit = 100;
+        }
+
+        const envLimit = process.env.DAILY_INTERVIEW_LIMIT
+            ? parseInt(process.env.DAILY_INTERVIEW_LIMIT, 10)
+            : defaultLimit;
+
+        const limit = isReviewer ? 100 : (Number.isFinite(envLimit) && envLimit >= 0 ? envLimit : 2);
+        const remaining = Math.max(0, limit - used);
+
+        return {
+            limit,
+            used,
+            remaining,
+            resetsAt: endOfDay.toISOString(),
+        };
+    });
+};
+

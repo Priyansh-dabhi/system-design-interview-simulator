@@ -1,5 +1,5 @@
 import { createApi } from "@reduxjs/toolkit/query/react";
-import { InterviewHistoryResponse } from "../../types/types";
+import { InterviewHistoryResponse, InterviewQuota } from "../../types/types";
 import { baseQueryWithReauth } from "./baseQuery";
 
 export const createSessionStartAPi = createApi({
@@ -39,6 +39,13 @@ export const createSessionStartAPi = createApi({
                 method: "POST",
                 body: { sessionId },
             }),
+        }),
+        getQuota: builder.query<InterviewQuota, void>({
+            query: () => ({
+                url: "/api/interview/quota",
+                method: "GET",
+            }),
+            providesTags: ["InterviewHistory"],
         }),
         getHistory: builder.query<InterviewHistoryResponse, void>({
             query: () => ({
@@ -85,4 +92,5 @@ export const {
     useGetSessionDetailQuery,
     useDeleteSessionMutation,
     useGetHintMutation,
+    useGetQuotaQuery,
 } = createSessionStartAPi;

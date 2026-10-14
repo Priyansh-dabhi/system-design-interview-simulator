@@ -1,10 +1,10 @@
-import { useStartSessionMutation } from '@/src/redux/api/interview_api';
+import { useGetQuotaQuery, useStartSessionMutation } from '@/src/redux/api/interview_api';
 import { setDifficulty, setDuration } from '@/src/redux/slices/problem';
 import { clearSession, setSession } from '@/src/redux/slices/session';
 import type { RootState } from '@/src/redux/store';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Check } from 'phosphor-react-native';
+import { ArrowLeft, Check, Lightning } from 'phosphor-react-native';
 import React, { useMemo } from 'react';
 import {
   ActivityIndicator,
@@ -43,9 +43,20 @@ export default function SetupScreen() {
   const difficultyLevel = useSelector((state: RootState) => state.problem.difficultyLevel);
 
   const [startSession, { isLoading }] = useStartSessionMutation();
+  const { data: quota } = useGetQuotaQuery();
+  const isQuotaExhausted = Boolean(quota && quota.remaining <= 0);
 
   const handleStartInterview = async () => {
     if (!selectedTopic) return;
+
+    if (isQuotaExhausted) {
+      Alert.alert(
+        'Daily Limit Reached',
+        `You have completed your ${quota?.limit ?? 2} free mock interviews for today. Your quota resets at midnight UTC.\n\nIn the meantime, explore the Learn tab or review your evaluations in History!`,
+        [{ text: 'Got It' }]
+      );
+      return;
+    }
 
     try {
       dispatch(clearSession());
@@ -245,22 +256,63 @@ export default function SetupScreen() {
           },
         ]}
       >
+        {quota && (
+          <View
+            style={[
+              styles.quotaBanner,
+              {
+                backgroundColor: quota.remaining > 0 ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                borderColor: quota.remaining > 0 ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+              },
+            ]}
+          >
+            <Lightning
+              size={14}
+              color={quota.remaining > 0 ? '#10B981' : '#EF4444'}
+              weight="fill"
+            />
+            <Text
+              style={[
+                styles.quotaBannerText,
+                { color: quota.remaining > 0 ? '#10B981' : '#EF4444' },
+              ]}
+            >
+              {quota.remaining > 0
+                ? `${quota.remaining} of ${quota.limit} daily interviews available`
+                : `Daily limit reached (0/${quota.limit} left) · Resets at midnight UTC`}
+            </Text>
+          </View>
+        )}
+
         <Pressable
           onPress={handleStartInterview}
           disabled={isLoading}
           style={({ pressed }) => [
             styles.startBtn,
-            {
-              backgroundColor: colors.primary,
-              opacity: isLoading ? 0.7 : pressed ? 0.92 : 1,
-              transform: [{ scale: pressed ? 0.99 : 1 }],
-            },
+            isQuotaExhausted
+              ? {
+                  backgroundColor: colors.surface,
+                  borderColor: colors.border,
+                  borderWidth: 1,
+                }
+              : {
+                  backgroundColor: colors.primary,
+                  opacity: isLoading ? 0.7 : pressed ? 0.92 : 1,
+                  transform: [{ scale: pressed ? 0.99 : 1 }],
+                },
           ]}
         >
           {isLoading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.startBtnText}>Start Live Interview</Text>
+            <Text
+              style={[
+                styles.startBtnText,
+                isQuotaExhausted && { color: colors.textSecondary },
+              ]}
+            >
+              {isQuotaExhausted ? `Daily Limit Reached (0/${quota?.limit ?? 2})` : 'Start Live Interview'}
+            </Text>
           )}
         </Pressable>
       </View>
@@ -423,5 +475,20 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  quotaBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  quotaBannerText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

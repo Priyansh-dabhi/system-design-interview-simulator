@@ -69,6 +69,16 @@ const getOwnedSessionOrRespond = async (
 export const start_session = async (req: AuthRequest, res: Response) => {
     const { problem, durationMinutes, difficultyLevel } = req.body;
     const userId = req.user!.userId;
+
+    const quota = await sessionRepo.getDailyInterviewUsage(userId, req.user?.email);
+    if (quota.remaining <= 0) {
+        return res.status(429).json({
+            code: "DAILY_LIMIT_REACHED",
+            message: `You have reached your daily limit of ${quota.limit} mock interviews. Quota resets at midnight UTC.`,
+            quota,
+        });
+    }
+
     const session = await sessionRepo.createSession(userId, problem, durationMinutes, difficultyLevel);
 
     const { response: openingQuestion, stage } = await orchestrateResponse(
@@ -370,5 +380,15 @@ export const delete_session = async (req: AuthRequest, res: Response) => {
 
     await sessionRepo.deleteSession(id);
     return res.json({ success: true, message: "Interview session deleted successfully" });
+};
+
+export const get_interview_quota = async (req: AuthRequest, res: Response) => {
+    const userId = req.user?.userId;
+    if (!userId) {
+        return res.status(401).json({ message: "Unauthorized", code: "UNAUTHORIZED" });
+    }
+
+    const quota = await sessionRepo.getDailyInterviewUsage(userId, req.user?.email);
+    return res.json(quota);
 };
 
