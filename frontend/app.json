@@ -23,7 +23,8 @@
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.POST_NOTIFICATIONS"
       ],
       "package": "com.priyanshdabhi.interviewsimulator"
     },
@@ -62,7 +63,15 @@
       ],
       "expo-web-browser",
       "expo-secure-store",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/app_icon_pure_black_1024.png",
+          "color": "#2563EB",
+          "defaultChannel": "practice-reminders"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
