@@ -27,6 +27,17 @@ import {
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/theme/useTheme';
+import {
+  requestNotificationPermission,
+  scheduleDailyPracticeReminder,
+  scheduleLearningReminder,
+} from '../../src/services/notifications';
+import {
+  getStoredSettings,
+  hasAskedNotificationPermission,
+  markNotificationPermissionAsked,
+  setStoredSettings,
+} from '../../src/storage/settingsStorage';
 
 // 4-Stage System Design Interview Framework
 interface FrameworkStep {
@@ -185,6 +196,41 @@ export default function HomeScreen() {
     });
     return () => subscription.remove();
   }, [selectedFrameworkStep]);
+
+  // First-launch notification permission prompt (runs once)
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      const alreadyAsked = await hasAskedNotificationPermission();
+      if (alreadyAsked || !isMounted) return;
+
+      // Small delay so Home screen finishes initial render and transitions cleanly
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      if (!isMounted) return;
+
+      const granted = await requestNotificationPermission();
+      await markNotificationPermissionAsked();
+
+      if (granted && isMounted) {
+        const currentSettings = await getStoredSettings();
+        const updated = {
+          ...currentSettings,
+          notifications: {
+            ...currentSettings.notifications,
+            dailyPractice: true,
+            learningReminders: true,
+          },
+        };
+        await setStoredSettings(updated);
+        await scheduleDailyPracticeReminder(updated.notifications.dailyPracticeTime || '7:00 PM');
+        await scheduleLearningReminder();
+      }
+    })();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const topics = useMemo(() => {
     if (learningData?.topics && learningData.topics.length > 0) {
