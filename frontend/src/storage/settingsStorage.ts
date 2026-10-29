@@ -81,3 +81,22 @@ export async function setStoredSettings(settings: AppSettings): Promise<void> {
         // Ignored
     }
 }
+
+const NOTIFICATION_PERMISSION_ASKED_KEY = 'interviewai_notification_perm_asked';
+
+export async function hasAskedNotificationPermission(): Promise<boolean> {
+    try {
+        const val = await AsyncStorage.getItem(NOTIFICATION_PERMISSION_ASKED_KEY);
+        return val === 'true';
+    } catch {
+        return false;
+    }
+}
+
+export async function markNotificationPermissionAsked(): Promise<void> {
+    try {
+        await AsyncStorage.setItem(NOTIFICATION_PERMISSION_ASKED_KEY, 'true');
+    } catch {
+        // Ignored
+    }
+}
