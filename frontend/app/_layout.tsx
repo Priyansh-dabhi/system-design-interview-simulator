@@ -16,6 +16,11 @@ import { bootstrapAuth, clearGoogleAuthPhase } from "@/src/redux/slices/auth";
 import { OfflineScreen } from "../src/components/OfflineScreen";
 import { ThemeProvider } from "../src/theme/ThemeContext";
 import { useTheme } from "../src/theme/useTheme";
+import {
+  initNotifications,
+  syncNotificationsWithSettings,
+  useNotificationResponseListener,
+} from "@/src/services/notifications";
 
 // Keep the native splash screen visible while we fetch resources from Redux
 SplashScreen.preventAutoHideAsync();
@@ -33,10 +38,22 @@ function AuthGuard({ fontsLoaded }: { fontsLoaded: boolean }) {
   const router = useRouter();
   const { colors } = useTheme();
   const lastNavigatedPathRef = useRef<string | null>(null);
+  useNotificationResponseListener();
+
+  useEffect(() => {
+    initNotifications();
+  }, []);
 
   useEffect(() => {
     dispatch(bootstrapAuth());
   }, [dispatch]);
+
+  // Sync scheduled alarms with user notification preferences on launch
+  useEffect(() => {
+    if (user && !isLoading) {
+      syncNotificationsWithSettings();
+    }
+  }, [user, isLoading]);
 
   // Hide the native splash screen once Redux finishes hydrating and fonts are loaded,
   // with a 400ms buffer so the initial route transition completes fully under splash
