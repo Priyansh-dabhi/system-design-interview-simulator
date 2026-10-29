@@ -13,6 +13,7 @@ import {
 } from 'phosphor-react-native';
 import React, { useEffect, useState } from 'react';
 import {
+    Alert,
     Platform,
     Pressable,
     ScrollView,
@@ -23,6 +24,13 @@ import {
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+    cancelDailyPracticeReminder,
+    cancelLearningReminder,
+    requestNotificationPermission,
+    scheduleDailyPracticeReminder,
+    scheduleLearningReminder,
+} from '../../src/services/notifications';
 import {
     AppSettings,
     defaultSettings,
@@ -107,6 +115,42 @@ export default function SettingsScreen() {
             setStoredSettings(updated);
             return updated;
         });
+    };
+
+    const handleDailyPracticeToggle = async (val: boolean) => {
+        if (val) {
+            const granted = await requestNotificationPermission();
+            if (!granted) {
+                Alert.alert(
+                    'Permission Required',
+                    'Please enable notifications in your device settings to receive daily practice reminders.'
+                );
+                return;
+            }
+            updateNotificationSetting('dailyPractice', true);
+            await scheduleDailyPracticeReminder(settings.notifications.dailyPracticeTime || '7:00 PM');
+        } else {
+            updateNotificationSetting('dailyPractice', false);
+            await cancelDailyPracticeReminder();
+        }
+    };
+
+    const handleLearningRemindersToggle = async (val: boolean) => {
+        if (val) {
+            const granted = await requestNotificationPermission();
+            if (!granted) {
+                Alert.alert(
+                    'Permission Required',
+                    'Please enable notifications in your device settings to receive learning reminders.'
+                );
+                return;
+            }
+            updateNotificationSetting('learningReminders', true);
+            await scheduleLearningReminder();
+        } else {
+            updateNotificationSetting('learningReminders', false);
+            await cancelLearningReminder();
+        }
     };
 
     const themeOptions: { id: ThemeMode; label: string; icon: any }[] = [
@@ -540,56 +584,21 @@ export default function SettingsScreen() {
                         <Text style={styles.sectionTitle}>Notifications</Text>
                     </View>
 
-                    {/* Coming Soon Banner */}
-                    <View style={[styles.comingSoonBanner, { backgroundColor: isDark ? 'rgba(37, 99, 235, 0.1)' : 'rgba(37, 99, 235, 0.06)', borderColor: isDark ? 'rgba(59, 130, 246, 0.25)' : 'rgba(37, 99, 235, 0.18)' }]}>
-                        <Bell size={16} color={colors.primary} weight="fill" />
-                        <View style={{ flex: 1 }}>
-                            <Text style={[styles.comingSoonTitle, { color: colors.primary }]}>Coming Soon</Text>
-                            <Text style={[styles.comingSoonDesc, { color: colors.textSecondary }]}>
-                                Push notifications are planned for an upcoming release. Toggle controls will be active once the feature ships.
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View style={[styles.card, { opacity: 0.45 }]} pointerEvents="none">
+                    <View style={styles.card}>
+                        {/* Daily Practice Reminder */}
                         <View style={styles.rowBetween}>
                             <View style={{ flex: 1, paddingRight: 10 }}>
-                                <Text style={styles.rowLabel}>Interview Reminders</Text>
-                                <Text style={styles.rowDesc}>Reminders for scheduled mock rounds</Text>
-                            </View>
-                            <Switch
-                                value={settings.notifications.interviewReminders}
-                                onValueChange={(val) => updateNotificationSetting('interviewReminders', val)}
-                                trackColor={{ false: colors.border, true: colors.primary }}
-                                thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
-                            />
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.rowBetween}>
-                            <View style={{ flex: 1, paddingRight: 10 }}>
-                                <Text style={styles.rowLabel}>Learning Reminders</Text>
-                                <Text style={styles.rowDesc}>Prompts to continue system design modules</Text>
-                            </View>
-                            <Switch
-                                value={settings.notifications.learningReminders}
-                                onValueChange={(val) => updateNotificationSetting('learningReminders', val)}
-                                trackColor={{ false: colors.border, true: colors.primary }}
-                                thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
-                            />
-                        </View>
-
-                        <View style={styles.divider} />
-
-                        <View style={styles.rowBetween}>
-                            <View style={{ flex: 1, paddingRight: 10 }}>
-                                <Text style={styles.rowLabel}>Daily Practice Reminder</Text>
-                                <Text style={styles.rowDesc}>Keep your preparation streak active</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                    <Text style={styles.rowLabel}>Daily Practice Reminder</Text>
+                                    <View style={styles.timeChip}>
+                                        <Text style={styles.timeChipText}>{settings.notifications.dailyPracticeTime || '7:00 PM'}</Text>
+                                    </View>
+                                </View>
+                                <Text style={styles.rowDesc}>Keep your interview preparation streak active</Text>
                             </View>
                             <Switch
                                 value={settings.notifications.dailyPractice}
-                                onValueChange={(val) => updateNotificationSetting('dailyPractice', val)}
+                                onValueChange={handleDailyPracticeToggle}
                                 trackColor={{ false: colors.border, true: colors.primary }}
                                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
                             />
@@ -597,14 +606,20 @@ export default function SettingsScreen() {
 
                         <View style={styles.divider} />
 
+                        {/* Learning Reminders */}
                         <View style={styles.rowBetween}>
                             <View style={{ flex: 1, paddingRight: 10 }}>
-                                <Text style={styles.rowLabel}>Achievement Notifications</Text>
-                                <Text style={styles.rowDesc}>Celebrate milestone unlocks and streaks</Text>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                                    <Text style={styles.rowLabel}>Learning Reminders</Text>
+                                    <View style={styles.timeChip}>
+                                        <Text style={styles.timeChipText}>10:00 AM</Text>
+                                    </View>
+                                </View>
+                                <Text style={styles.rowDesc}>Daily prompt to continue system design modules</Text>
                             </View>
                             <Switch
-                                value={settings.notifications.achievementNotifications}
-                                onValueChange={(val) => updateNotificationSetting('achievementNotifications', val)}
+                                value={settings.notifications.learningReminders}
+                                onValueChange={handleLearningRemindersToggle}
                                 trackColor={{ false: colors.border, true: colors.primary }}
                                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
                             />
@@ -612,17 +627,50 @@ export default function SettingsScreen() {
 
                         <View style={styles.divider} />
 
-                        <View style={styles.rowBetween}>
-                            <View style={{ flex: 1, paddingRight: 10 }}>
-                                <Text style={styles.rowLabel}>Weekly Progress Summary</Text>
-                                <Text style={styles.rowDesc}>Digest of readiness and areas for growth</Text>
+                        {/* Future / Coming Soon Reminders */}
+                        <View style={{ opacity: 0.45 }}>
+                            <View style={styles.rowBetween}>
+                                <View style={{ flex: 1, paddingRight: 10 }}>
+                                    <Text style={styles.rowLabel}>Interview Reminders</Text>
+                                    <Text style={styles.rowDesc}>Reminders for scheduled mock rounds (Coming Soon)</Text>
+                                </View>
+                                <Switch
+                                    value={false}
+                                    disabled={true}
+                                    trackColor={{ false: colors.border, true: colors.primary }}
+                                    thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+                                />
                             </View>
-                            <Switch
-                                value={settings.notifications.weeklyProgressSummary}
-                                onValueChange={(val) => updateNotificationSetting('weeklyProgressSummary', val)}
-                                trackColor={{ false: colors.border, true: colors.primary }}
-                                thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
-                            />
+
+                            <View style={[styles.divider, { marginVertical: 12 }]} />
+
+                            <View style={styles.rowBetween}>
+                                <View style={{ flex: 1, paddingRight: 10 }}>
+                                    <Text style={styles.rowLabel}>Achievement Notifications</Text>
+                                    <Text style={styles.rowDesc}>Celebrate milestone unlocks and streaks (Coming Soon)</Text>
+                                </View>
+                                <Switch
+                                    value={false}
+                                    disabled={true}
+                                    trackColor={{ false: colors.border, true: colors.primary }}
+                                    thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+                                />
+                            </View>
+
+                            <View style={[styles.divider, { marginVertical: 12 }]} />
+
+                            <View style={styles.rowBetween}>
+                                <View style={{ flex: 1, paddingRight: 10 }}>
+                                    <Text style={styles.rowLabel}>Weekly Progress Summary</Text>
+                                    <Text style={styles.rowDesc}>Digest of readiness and areas for growth (Coming Soon)</Text>
+                                </View>
+                                <Switch
+                                    value={false}
+                                    disabled={true}
+                                    trackColor={{ false: colors.border, true: colors.primary }}
+                                    thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
+                                />
+                            </View>
                         </View>
                     </View>
                 </View>
