@@ -161,6 +161,32 @@ export async function scheduleLearningReminder(): Promise<void> {
 }
 
 /**
+ * Triggers an immediate test notification in 2 seconds to verify design and banners.
+ */
+export async function sendTestNotification(): Promise<void> {
+  try {
+    const granted = await requestNotificationPermission();
+    if (!granted) return;
+
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🎯 Time for System Design Practice!',
+        body: 'Keep your interview preparation streak alive. Jump into a mock round now.',
+        sound: true,
+        data: { screen: '/(main)/practice' },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds: 2,
+        channelId: PRACTICE_CHANNEL_ID,
+      },
+    });
+  } catch (err) {
+    console.warn('Failed to send test notification:', err);
+  }
+}
+
+/**
  * Cancels the learning reminder.
  */
 export async function cancelLearningReminder(): Promise<void> {

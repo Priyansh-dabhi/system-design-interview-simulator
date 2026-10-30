@@ -50,7 +50,7 @@ export const defaultSettings: AppSettings = {
     notifications: {
         interviewReminders: true,
         learningReminders: true,
-        dailyPractice: false,
+        dailyPractice: true,
         dailyPracticeTime: '7:00 PM',
         achievementNotifications: true,
         weeklyProgressSummary: true,
@@ -64,10 +64,22 @@ export async function getStoredSettings(): Promise<AppSettings> {
         const raw = await AsyncStorage.getItem(SETTINGS_STORAGE_KEY);
         if (!raw) return defaultSettings;
         const parsed = JSON.parse(raw);
+        const dailyPracticeTime =
+            !parsed.notifications?.dailyPracticeTime ||
+            parsed.notifications.dailyPracticeTime === '6:40 PM' ||
+            parsed.notifications.dailyPracticeTime === '5:50 PM' ||
+            parsed.notifications.dailyPracticeTime === '6:15 PM'
+                ? '7:00 PM'
+                : parsed.notifications.dailyPracticeTime;
+
         return {
             interview: { ...defaultSettings.interview, ...parsed.interview },
             voice: { ...defaultSettings.voice, ...parsed.voice },
-            notifications: { ...defaultSettings.notifications, ...parsed.notifications },
+            notifications: {
+                ...defaultSettings.notifications,
+                ...parsed.notifications,
+                dailyPracticeTime,
+            },
         };
     } catch {
         return defaultSettings;

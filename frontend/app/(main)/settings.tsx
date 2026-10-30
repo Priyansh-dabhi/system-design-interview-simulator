@@ -30,6 +30,7 @@ import {
     requestNotificationPermission,
     scheduleDailyPracticeReminder,
     scheduleLearningReminder,
+    sendTestNotification,
 } from '../../src/services/notifications';
 import {
     AppSettings,
@@ -624,6 +625,32 @@ export default function SettingsScreen() {
                                 thumbColor={Platform.OS === 'android' ? '#FFFFFF' : undefined}
                             />
                         </View>
+
+                        <View style={styles.divider} />
+
+                        {/* Instant Test Button */}
+                        <TouchableOpacity
+                            onPress={async () => {
+                                await sendTestNotification();
+                                Alert.alert('Test Notification Sent', 'A notification banner will trigger in 2 seconds.');
+                            }}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 8,
+                                paddingVertical: 10,
+                                borderRadius: 10,
+                                backgroundColor: isDark ? 'rgba(37, 99, 235, 0.15)' : 'rgba(37, 99, 235, 0.08)',
+                                borderWidth: 1,
+                                borderColor: isDark ? 'rgba(59, 130, 246, 0.3)' : 'rgba(37, 99, 235, 0.2)',
+                            }}
+                        >
+                            <Bell size={15} color={colors.primary} weight="bold" />
+                            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>
+                                Send Instant Test Notification (2s)
+                            </Text>
+                        </TouchableOpacity>
 
                         <View style={styles.divider} />
 
