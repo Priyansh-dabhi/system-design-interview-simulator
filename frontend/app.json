@@ -67,7 +67,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/app_icon_pure_black_1024.png",
+          "icon": "./assets/images/notification_icon.png",
           "color": "#2563EB",
           "defaultChannel": "practice-reminders"
         }
